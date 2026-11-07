@@ -33,7 +33,6 @@
     .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
     .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
     
-    /* 點擊時變成橢圓形溫潤米白色，無奇怪長方形框 */
     .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; background-color: #fff; }
     .item-option:active { background-color: #F4EBE1; }
     .item-option.selected { border-color: var(--primary-color); background-color: #F4EBE1; }
@@ -93,7 +92,7 @@
 <body>
 
 <div class="app-container">
-  <div class="header" onclick="handleHeaderClick()">
+  <div class="header" id="headerClickArea">
     <h1 id="shopTitle">安,你好ANNEHO</h1>
     <p id="shopSubTitle">線上預約系統</p>
   </div>
@@ -101,24 +100,45 @@
   <div id="adminHeader" style="display: none;">
     <div class="admin-bar">
       <span>👑 店家管理後台</span>
-      <button class="btn-secondary" onclick="switchView('client')">👁️ 預覽顧客頁面</button>
+      <button type="button" class="btn-secondary" onclick="switchView('client')">👁️ 預覽顧客頁面</button>
     </div>
     <div class="admin-tab-group">
-      <div class="admin-tab active" onclick="switchAdminTab('services')">主服務</div>
-      <div class="admin-tab" onclick="switchAdminTab('addons')">加購</div>
-      <div class="admin-tab" onclick="switchAdminTab('removal')">卸睫</div>
-      <div class="admin-tab" onclick="switchAdminTab('schedule')">設定預約時段</div>
-      <div class="admin-tab" onclick="switchAdminTab('orders')">已接收預約</div>
-      <div class="admin-tab" onclick="switchAdminTab('customers')">客歷</div>
-      <div class="admin-tab" onclick="switchAdminTab('accounting')">記帳</div>
-      <div class="admin-tab" onclick="switchAdminTab('settings')">設定</div>
+      <div class="admin-tab active" onclick="switchAdminTab('services', event)">主服務</div>
+      <div class="admin-tab" onclick="switchAdminTab('addons', event)">加購</div>
+      <div class="admin-tab" onclick="switchAdminTab('removal', event)">卸睫</div>
+      <div class="admin-tab" onclick="switchAdminTab('schedule', event)">設定預約時段</div>
+      <div class="admin-tab" onclick="switchAdminTab('orders', event)">已接收預約</div>
+      <div class="admin-tab" onclick="switchAdminTab('customers', event)">客歷</div>
+      <div class="admin-tab" onclick="switchAdminTab('accounting', event)">記帳</div>
+      <div class="admin-tab" onclick="switchAdminTab('settings', event)">設定</div>
     </div>
   </div>
 
   <div id="clientView">
+    <!-- 查詢我的預約入口卡片 -->
+    <div class="card" style="background: linear-gradient(135deg, #FAF6F0 0%, #F4EBE1 100%); border: 1.5px solid var(--primary-color);">
+      <div class="card-title" style="margin-bottom: 8px;">🔍 查詢我的預約 / 自助改期</div>
+      <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 10px;">輸入預約時的手機號碼，即可查詢或在 3 天前自主改期/取消。</div>
+      <div style="display: flex; gap: 8px;">
+        <input type="tel" id="queryPhoneInput" class="form-input" placeholder="請輸入手機號碼" autocomplete="off" style="background:#fff;">
+        <button type="button" class="btn-submit" style="padding: 10px 16px; border-radius: var(--radius-md); white-space: nowrap;" onclick="openQueryModal()">查詢</button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="card-title">選擇服務項目 *</div>
       <div id="clientServicesList"></div>
+    </div>
+
+    <div class="card" id="eyebrowBaseColorCard" style="display: none;">
+      <div class="card-title">眉毛有無底色 *</div>
+      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+        <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowNone" onclick="selectEyebrowBase('無')">無底色</button>
+        <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowHas" onclick="selectEyebrowBase('有')">有底色</button>
+      </div>
+      <div id="eyebrowColorInputWrap" style="display: none; margin-top: 8px;">
+        <input type="text" id="eyebrowColorText" class="form-input" placeholder="請填寫眉毛現在什麼顏色" autocomplete="off" oninput="updateSummary()">
+      </div>
     </div>
 
     <div class="card">
@@ -134,9 +154,9 @@
     <div class="card">
       <div class="card-title">選擇日期與時段</div>
       <div class="cal-header">
-        <button class="cal-btn" onclick="changeMonth(-1)">‹</button>
+        <button type="button" class="cal-btn" onclick="changeMonth(-1)">‹</button>
         <span id="calMonthTitle" style="font-weight: bold; font-size: 14px;"></span>
-        <button class="cal-btn" onclick="changeMonth(1)">›</button>
+        <button type="button" class="cal-btn" onclick="changeMonth(1)">›</button>
       </div>
       <div class="cal-grid" id="calGrid"></div>
       
@@ -174,16 +194,17 @@
         <div style="font-size: 11px; margin-top: 2px;" id="displayTotal">總計：NT$ 0</div>
         <div style="font-size: 11px; margin-top: 1px; color: var(--primary-color); font-weight: 600;" id="displayTime">施作總時間約 0 分鐘</div>
       </div>
-      <button class="btn-submit" id="btnGoPay" onclick="openPayModal()" disabled>下一步：付款與確認</button>
+      <button type="button" class="btn-submit" id="btnGoPay" onclick="openPayModal()" disabled>下一步：付款與確認</button>
     </div>
   </div>
 
+  <!-- 後台管理區 -->
   <div id="adminView" style="display: none;">
     <div id="adminTabServices" class="admin-tab-content">
       <div class="card">
         <div class="card-title">
           <span>主服務清單管理</span>
-          <button class="btn-secondary" onclick="openServiceModal('main', 'add')">+ 新增服務</button>
+          <button type="button" class="btn-secondary" onclick="openServiceModal('main', 'add')">+ 新增服務</button>
         </div>
         <div id="adminMainServicesList"></div>
       </div>
@@ -193,7 +214,7 @@
       <div class="card">
         <div class="card-title">
           <span>加購項目管理</span>
-          <button class="btn-secondary" onclick="openServiceModal('addon', 'add')">+ 新增加購</button>
+          <button type="button" class="btn-secondary" onclick="openServiceModal('addon', 'add')">+ 新增加購</button>
         </div>
         <div id="adminAddonServicesList"></div>
       </div>
@@ -203,7 +224,7 @@
       <div class="card">
         <div class="card-title">
           <span>卸睫項目管理</span>
-          <button class="btn-secondary" onclick="openServiceModal('removal', 'add')">+ 新增卸睫</button>
+          <button type="button" class="btn-secondary" onclick="openServiceModal('removal', 'add')">+ 新增卸睫</button>
         </div>
         <div id="adminRemovalServicesList"></div>
       </div>
@@ -213,9 +234,9 @@
       <div class="card">
         <div class="card-title">設定日期與開放時段</div>
         <div class="cal-header">
-          <button class="cal-btn" onclick="changeAdminMonth(-1)">‹</button>
+          <button type="button" class="cal-btn" onclick="changeAdminMonth(-1)">‹</button>
           <span id="adminCalMonthTitle" style="font-weight: bold;"></span>
-          <button class="cal-btn" onclick="changeAdminMonth(1)">›</button>
+          <button type="button" class="cal-btn" onclick="changeAdminMonth(1)">›</button>
         </div>
         <div class="cal-grid" id="adminCalGrid"></div>
         
@@ -224,7 +245,7 @@
           <div style="font-weight: bold; margin-bottom: 8px;" id="adminSelectedDateTitle"></div>
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
             <input type="time" id="newTimeInput" class="form-input" style="width: 60%;" value="10:00">
-            <button class="btn-submit" style="border-radius: var(--radius-md); padding: 0 16px;" onclick="addCustomTime()">新增時段</button>
+            <button type="button" class="btn-submit" style="border-radius: var(--radius-md); padding: 0 16px;" onclick="addCustomTime()">新增時段</button>
           </div>
           <div id="adminTimeSlotsList"></div>
         </div>
@@ -253,14 +274,14 @@
         <div class="card-title">
           <span>每月記帳管理</span>
           <div style="display:flex; gap:6px;">
-            <button class="btn-secondary" onclick="openExpenseModal('income')">+ 手動收入</button>
-            <button class="btn-secondary" onclick="openExpenseModal('expense')">+ 新增支出</button>
+            <button type="button" class="btn-secondary" onclick="openExpenseModal('income')">+ 手動收入</button>
+            <button type="button" class="btn-secondary" onclick="openExpenseModal('expense')">+ 新增支出</button>
           </div>
         </div>
 
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-          <button id="accTabIncomeBtn" class="btn-submit" style="flex:1; padding:8px; font-size:12px; border-radius:8px;" onclick="switchAccountingTab('income')">💰 收入紀錄</button>
-          <button id="accTabExpenseBtn" class="btn-secondary" style="flex:1; padding:8px; font-size:12px; border-radius:8px;" onclick="switchAccountingTab('expense')">🧾 支出紀錄</button>
+          <button type="button" id="accTabIncomeBtn" class="btn-submit" style="flex:1; padding:8px; font-size:12px; border-radius:8px;" onclick="switchAccountingTab('income')">💰 收入紀錄</button>
+          <button type="button" id="accTabExpenseBtn" class="btn-secondary" style="flex:1; padding:8px; font-size:12px; border-radius:8px;" onclick="switchAccountingTab('expense')">🧾 支出紀錄</button>
         </div>
 
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -281,7 +302,7 @@
 
     <div id="adminTabSettings" class="admin-tab-content" style="display: none;">
       <div class="card">
-        <div class="card-title">轉帳銀行資訊設定</div>
+        <div class="card-title">轉帳銀行與Google日曆設定</div>
         <div class="form-group">
           <label>銀行代碼 (如 812)</label>
           <input type="text" id="settingBankCode" class="form-input">
@@ -298,7 +319,11 @@
           <label>戶名</label>
           <input type="text" id="settingBankHolder" class="form-input">
         </div>
-        <button class="btn-submit" style="width: 100%;" onclick="saveSettings()">儲存銀行設定</button>
+        <div class="form-group">
+          <label>Google Apps Script 雲端同步網址 (Web App URL)</label>
+          <input type="text" id="settingGCalUrl" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <button type="button" class="btn-submit" style="width: 100%;" onclick="saveSettings()">儲存系統設定</button>
       </div>
     </div>
   </div>
@@ -339,10 +364,41 @@
       <input type="text" id="payLast5" class="form-input" placeholder="請輸入 5 碼數字" maxlength="5" oninput="validatePayForm()" autocomplete="off">
     </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
-      <button class="btn-secondary" style="width: 40%; padding: 12px;" onclick="closePayModal()">返回修改</button>
-      <button class="btn-submit" id="btnSubmitPay" style="width: 60%; font-size: 12px; line-height: 1.4;" onclick="submitOrderAndNotify()" disabled>
+      <button type="button" class="btn-secondary" style="width: 40%; padding: 12px;" onclick="closePayModal()">返回修改</button>
+      <button type="button" class="btn-submit" id="btnSubmitPay" style="width: 60%; font-size: 12px; line-height: 1.4;" onclick="submitOrderAndNotify()" disabled>
         匯款完成請按我<br>才會完成預約！
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- 查詢我的預約 Modal -->
+<div class="modal-overlay" id="queryModal" onclick="checkModalClose(event, 'queryModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="color: var(--primary-color); margin-bottom: 12px;">查詢我的預約紀錄</h3>
+    <div id="queryModalBody" style="font-size: 13px; line-height: 1.6;"></div>
+    <div style="margin-top: 16px; text-align: right;">
+      <button type="button" class="btn-secondary" style="padding: 8px 16px;" onclick="document.getElementById('queryModal').classList.remove('active')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<!-- 自助改期 Modal -->
+<div class="modal-overlay" id="rescheduleModal" onclick="checkModalClose(event, 'rescheduleModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="color: var(--primary-color); margin-bottom: 12px;">自主更改預約日期</h3>
+    <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 10px;">請選擇新的預約日期與時段（須至少三天前，僅限修改一次）：</div>
+    <div class="form-group">
+      <label>新日期 *</label>
+      <input type="date" id="reschedDateInput" class="form-input" onchange="loadReschedSlots()">
+    </div>
+    <div class="form-group">
+      <label>新時段 *</label>
+      <div id="reschedTimeGrid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:4px;"></div>
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button type="button" class="btn-secondary" style="width: 50%; padding: 10px;" onclick="document.getElementById('rescheduleModal').classList.remove('active')">取消</button>
+      <button type="button" class="btn-submit" id="btnConfirmResched" style="width: 50%; padding: 10px;" onclick="confirmReschedule()" disabled>確認改期</button>
     </div>
   </div>
 </div>
@@ -372,8 +428,8 @@
       <input type="number" id="editItemDeposit" class="form-input" value="500">
     </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
-      <button class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeServiceModal()">取消</button>
-      <button class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveServiceItem()">儲存</button>
+      <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeServiceModal()">取消</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveServiceItem()">儲存</button>
     </div>
   </div>
 </div>
@@ -395,8 +451,8 @@
       <input type="date" id="expDate" class="form-input">
     </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
-      <button class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeExpenseModal()">取消</button>
-      <button class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveExpenseItem()">儲存</button>
+      <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeExpenseModal()">取消</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveExpenseItem()">儲存</button>
     </div>
   </div>
 </div>
@@ -405,7 +461,8 @@
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "28881024671561", bankHolder: "徐若嫣" },
     mainServices: [
       { id: 'm1', name: '日系精緻美睫 120 根', desc: '自然輕透感，適合日常素顏', time: 90, price: 1200, deposit: 500 },
-      { id: 'm2', name: '韓系單根單色霧眉', desc: '微柔霧感，免去每天畫眉困擾', time: 150, price: 4500, deposit: 1000 }
+      { id: 'm2', name: '微針霧眉', desc: '微柔霧感，免去每天畫眉困擾', time: 150, price: 4500, deposit: 1000 },
+      { id: 'm3', name: '單次霧眉', desc: '快速補色補形', time: 120, price: 3000, deposit: 1000 }
     ],
     addonServices: [
       { id: 'a1', name: '下睫毛嫁接', desc: '讓眼神更深邃有神', time: 20, price: 300, deposit: 100 }
@@ -435,10 +492,16 @@
   let currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth();
   let adminYear = currentYear, adminMonth = currentMonth;
   let selectedDateStr = "", selectedTime = "", selectedMainId = "", selectedAddonIds = [], selectedRemovalId = "", selectedTransportMode = "";
+  let selectedEyebrowBaseMode = ""; 
   let currentAccTab = 'income', currentExpModalType = 'expense', expandedCustomerName = null;
   let expandedAdminTimeSlot = null;
 
-  window.onload = function() { initScheduleDefault(); renderClient(); initAccountingSelectors(); };
+  window.onload = function() {
+    initScheduleDefault();
+    renderClient();
+    initAccountingSelectors();
+    document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
+  };
 
   function initScheduleDefault() {
     let today = new Date();
@@ -477,7 +540,7 @@
     db.mainServices.forEach(item => {
       let isSel = selectedMainId === item.id ? "selected" : "";
       mainHtml += `<div class="item-option ${isSel}" onclick="selectMainService('${item.id}')">
-        <div class="item-info"><div class="title">${item.name}</div>${item.desc?`<div class="desc">${item.desc}</div>`:''}<div class="subtitle">施作時間約 ${item.time||60} 分鐘</div></div>
+        <div class="item-info"><div class="title">${escapeHtml(item.name)}</div>${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}<div class="subtitle">施作時間約 ${item.time||60} 分鐘</div></div>
         <div class="item-price">NT$ ${item.price}</div></div>`;
     });
     document.getElementById('clientServicesList').innerHTML = mainHtml || "<div style='color:var(--text-sub); font-size:13px;'>尚無服務項目</div>";
@@ -486,7 +549,7 @@
     db.addonServices.forEach(item => {
       let isSel = selectedAddonIds.includes(item.id) ? "selected" : "";
       addonHtml += `<div class="item-option ${isSel}" onclick="toggleAddonService('${item.id}')">
-        <div class="item-info"><div class="title">${item.name}</div>${item.desc?`<div class="desc">${item.desc}</div>`:''}<div class="subtitle">+${item.time||0} 分鐘</div></div>
+        <div class="item-info"><div class="title">${escapeHtml(item.name)}</div>${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}<div class="subtitle">+${item.time||0} 分鐘</div></div>
         <div class="item-price">+NT$ ${item.price}</div></div>`;
     });
     document.getElementById('clientAddonsList').innerHTML = addonHtml || "<div style='color:var(--text-sub); font-size:13px;'>無加購項目</div>";
@@ -496,7 +559,7 @@
       let isSel = selectedRemovalId === item.id ? "selected" : "";
       let priceText = item.price > 0 ? `+NT$ ${item.price}` : "免費";
       removalHtml += `<div class="item-option ${isSel}" onclick="selectRemovalService('${item.id}')">
-        <div class="item-info"><div class="title">${item.name}</div>${item.desc?`<div class="desc">${item.desc}</div>`:''}<div class="subtitle">+${item.time||0} 分鐘</div></div>
+        <div class="item-info"><div class="title">${escapeHtml(item.name)}</div>${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}<div class="subtitle">+${item.time||0} 分鐘</div></div>
         <div class="item-price">${priceText}</div></div>`;
     });
     document.getElementById('clientRemovalList').innerHTML = removalHtml || "<div style='color:var(--text-sub); font-size:13px;'>尚無卸睫項目</div>";
@@ -505,12 +568,49 @@
     updateSummary();
   }
 
-  function selectMainService(id) { selectedMainId = id; renderClient(); }
+  function escapeHtml(str) {
+    if(!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  function selectMainService(id) {
+    selectedMainId = id;
+    let mainItem = db.mainServices.find(x => x.id === id);
+    let isEyebrow = mainItem && (mainItem.name.includes("微針霧眉") || mainItem.name.includes("單次霧眉"));
+    
+    let eyebrowCard = document.getElementById('eyebrowBaseColorCard');
+    if(isEyebrow) {
+      eyebrowCard.style.display = 'block';
+    } else {
+      eyebrowCard.style.display = 'none';
+      selectedEyebrowBaseMode = "";
+      document.getElementById('eyebrowColorText').value = "";
+    }
+    renderClient();
+  }
+
+  function selectEyebrowBase(mode) {
+    selectedEyebrowBaseMode = mode;
+    let btnNone = document.getElementById('btnEyebrowNone');
+    let btnHas = document.getElementById('btnEyebrowHas');
+    let inputWrap = document.getElementById('eyebrowColorInputWrap');
+
+    btnNone.style.background = mode === '無' ? 'var(--primary-color)' : '#EFE8DF';
+    btnNone.style.color = mode === '無' ? '#fff' : 'var(--primary-color)';
+    btnHas.style.background = mode === '有' ? 'var(--primary-color)' : '#EFE8DF';
+    btnHas.style.color = mode === '有' ? '#fff' : 'var(--primary-color)';
+
+    inputWrap.style.display = mode === '有' ? 'block' : 'none';
+    if(mode === '無') document.getElementById('eyebrowColorText').value = "";
+    updateSummary();
+  }
+
   function toggleAddonService(id) {
     if(selectedAddonIds.includes(id)) selectedAddonIds = selectedAddonIds.filter(x => x !== id);
     else selectedAddonIds.push(id);
     renderClient();
   }
+
   function selectRemovalService(id) { selectedRemovalId = id; renderClient(); }
 
   function selectTransport(mode) {
@@ -584,7 +684,15 @@
     document.getElementById('displayDeposit').innerText = `NT$ ${totalDeposit}`;
     document.getElementById('displayTotal').innerText = `總計金額：NT$ ${total}`;
     document.getElementById('displayTime').innerText = `施作總時間約 ${totalTime} 分鐘`;
-    document.getElementById('btnGoPay').disabled = !(selectedMainId && selectedRemovalId && selectedDateStr && selectedTime && selectedTransportMode);
+
+    let isEyebrow = mainItem && (mainItem.name.includes("微針霧眉") || mainItem.name.includes("單次霧眉"));
+    let eyebrowValid = true;
+    if(isEyebrow) {
+      if(!selectedEyebrowBaseMode) eyebrowValid = false;
+      if(selectedEyebrowBaseMode === '有' && !document.getElementById('eyebrowColorText').value.trim()) eyebrowValid = false;
+    }
+
+    document.getElementById('btnGoPay').disabled = !(selectedMainId && selectedRemovalId && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid);
   }
 
   function openPayModal() {
@@ -626,9 +734,14 @@
     });
     if(removalItem) { totalDeposit += Number(removalItem.deposit || 0); totalPrice += Number(removalItem.price || 0); totalTime += Number(removalItem.time || 0); }
 
+    let eyebrowBaseText = "";
+    if(selectedEyebrowBaseMode === '無') eyebrowBaseText = "無底色";
+    else if(selectedEyebrowBaseMode === '有') eyebrowBaseText = `有底色 (${document.getElementById('eyebrowColorText').value.trim()})`;
+
     let order = {
       id: Date.now(), name, phone, note, date: selectedDateStr, time: selectedTime,
       mainName: mainItem.name, addons: addonNames, removal: removalItem ? removalItem.name : '無',
+      eyebrowBase: eyebrowBaseText,
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, createdAt: new Date().toLocaleString()
     };
 
@@ -636,8 +749,7 @@
     if(db.schedule[selectedDateStr]) db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
     saveData(); closePayModal();
 
-    // 刪除最下方的分隔線與提示文字
-    let fullMsg = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}`;
+    let fullMsg = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}${eyebrowBaseText?`\n眉毛底色：${eyebrowBaseText}`:''}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}`;
     
     navigator.clipboard.writeText(fullMsg).then(() => {
       alert("預約資料已自動複製！即將前往官方 LINE，請在聊天室「貼上」傳送給店家哦！");
@@ -655,13 +767,13 @@
     document.getElementById('settingBankHolder').value = db.settings.bankHolder || "徐若嫣";
   }
 
-  function switchAdminTab(tabName) {
+  function switchAdminTab(tabName, evt) {
     document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
     
     let tabMap = { services: 'adminTabServices', addons: 'adminTabAddons', removal: 'adminTabRemoval', schedule: 'adminTabSchedule', orders: 'adminTabOrders', customers: 'adminTabCustomers', accounting: 'adminTabAccounting', settings: 'adminTabSettings' };
     if(tabMap[tabName]) document.getElementById(tabMap[tabName]).style.display = 'block';
-    event.target.classList.add('active');
+    if(evt && evt.target) evt.target.classList.add('active');
   }
 
   function renderAdminList(type) {
@@ -670,12 +782,12 @@
     let html = "";
     list.forEach((item, idx) => {
       html += `<div class="item-option" style="background:#fff;">
-        <div class="item-info"><div class="title">${item.name}</div><div class="desc">${item.desc || ''}</div><div class="subtitle">${item.time||0}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div></div>
+        <div class="item-info"><div class="title">${escapeHtml(item.name)}</div><div class="desc">${escapeHtml(item.desc || '')}</div><div class="subtitle">${item.time||0}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div></div>
         <div style="display:flex; gap:4px; align-items:center;">
-          ${idx > 0 ? `<button class="btn-secondary" onclick="moveItem('${type}', ${idx}, -1)">▲</button>` : ''}
-          ${idx < list.length - 1 ? `<button class="btn-secondary" onclick="moveItem('${type}', ${idx}, 1)">▼</button>` : ''}
-          <button class="btn-secondary" onclick="openServiceModal('${type}', 'edit', ${idx})">編輯</button>
-          <button class="btn-danger" onclick="deleteServiceItem('${type}', ${idx})">刪除</button>
+          ${idx > 0 ? `<button type="button" class="btn-secondary" onclick="moveItem('${type}', ${idx}, -1)">▲</button>` : ''}
+          ${idx < list.length - 1 ? `<button type="button" class="btn-secondary" onclick="moveItem('${type}', ${idx}, 1)">▼</button>` : ''}
+          <button type="button" class="btn-secondary" onclick="openServiceModal('${type}', 'edit', ${idx})">編輯</button>
+          <button type="button" class="btn-danger" onclick="deleteServiceItem('${type}', ${idx})">刪除</button>
         </div></div>`;
     });
     document.getElementById(containerId).innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無項目</div>";
@@ -699,10 +811,10 @@
     if(mode === 'edit') {
       let list = type === 'main' ? db.mainServices : (type === 'addon' ? db.addonServices : db.removalServices);
       let item = list[idx];
-      document.getElementById('editItemName').value = item.name;
+      document.getElementById('editItemName').value = item.name || "";
       document.getElementById('editItemDesc').value = item.desc || "";
       document.getElementById('editItemTime').value = item.time || 30;
-      document.getElementById('editItemPrice').value = item.price;
+      document.getElementById('editItemPrice').value = item.price || 0;
       document.getElementById('editItemDeposit').value = item.deposit || 0;
     } else {
       document.getElementById('editItemName').value = "";
@@ -728,13 +840,16 @@
     let newItem = { id: currentEditingMode === 'edit' ? list[currentEditingIndex].id : 'item_' + Date.now(), name, desc, time, price, deposit };
 
     if(currentEditingMode === 'edit') list[currentEditingIndex] = newItem; else list.push(newItem);
-    saveData(); closeServiceModal(); renderAdminList(currentEditingType);
+    saveData(); 
+    closeServiceModal(); 
+    renderAdminList(currentEditingType);
+    renderClient();
   }
 
   function deleteServiceItem(type, idx) {
     if(confirm("確定要刪除此項目嗎？")) {
       let list = type === 'main' ? db.mainServices : (type === 'addon' ? db.addonServices : db.removalServices);
-      list.splice(idx, 1); saveData(); renderAdminList(type);
+      list.splice(idx, 1); saveData(); renderAdminList(type); renderClient();
     }
   }
 
@@ -754,7 +869,6 @@
     renderAdminTimeSlots();
   }
 
-  // 後台設定預約時段：純文字顯示詳細預約清單與正確加總時間
   function renderAdminTimeSlots() {
     let slots = db.schedule[adminSelectedDate] || [], html = "";
     if(slots.length === 0) {
@@ -769,21 +883,22 @@
           if(isExpanded) {
             detailHtml = `
               <div style="background:#fff; padding:10px; border-radius:8px; margin-top:8px; border:1px solid var(--border-color); font-size:12px; line-height:1.6;">
-                <div>顧客姓名：${bookedOrder.name} (${bookedOrder.phone})</div>
-                <div>預約主項目：${bookedOrder.mainName}</div>
-                <div>加購項目：${bookedOrder.addons.join(', ') || '無'}</div>
-                <div>卸睫部分：${bookedOrder.removal || '無'}</div>
+                <div>顧客姓名：${escapeHtml(bookedOrder.name)} (${bookedOrder.phone})</div>
+                <div>預約主項目：${escapeHtml(bookedOrder.mainName)}</div>
+                ${bookedOrder.eyebrowBase ? `<div>眉毛底色：${escapeHtml(bookedOrder.eyebrowBase)}</div>` : ''}
+                <div>加購項目：${escapeHtml(bookedOrder.addons.join(', ')) || '無'}</div>
+                <div>卸睫部分：${escapeHtml(bookedOrder.removal) || '無'}</div>
                 <div>支付定金：NT$ ${bookedOrder.deposit} (末五碼: ${bookedOrder.last5})</div>
                 <div style="color:#D9534F; font-weight:bold;">預估總時間：約 ${bookedOrder.totalTime || 60} 分鐘</div>
-                <div>交通工具：${bookedOrder.transport || '無'}</div>
+                <div>交通工具：${escapeHtml(bookedOrder.transport) || '無'}</div>
               </div>`;
           }
 
           html += `
             <div style="background:var(--input-bg); padding:10px 12px; border-radius:8px; margin-bottom:6px; border: 1.5px solid #dcd3c7;">
               <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAdminTimeExpand('${t}')">
-                <span style="font-size:13px; color:#D9534F; font-weight:bold;">${t} (已預約：${bookedOrder.name}) ${isExpanded ? '▲' : '▼'}</span>
-                <button class="btn-danger" onclick="event.stopPropagation(); deleteAdminTime(${idx})">刪除</button>
+                <span style="font-size:13px; color:#D9534F; font-weight:bold;">${t} (已預約：${escapeHtml(bookedOrder.name)}) ${isExpanded ? '▲' : '▼'}</span>
+                <button type="button" class="btn-danger" onclick="event.stopPropagation(); deleteAdminTime(${idx})">刪除</button>
               </div>
               ${detailHtml}
             </div>`;
@@ -791,7 +906,7 @@
           html += `
             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 12px; border-radius:8px; margin-bottom:6px;">
               <span style="font-size:13px;"><b>${t}</b> (可預約)</span>
-              <button class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button>
+              <button type="button" class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button>
             </div>`;
         }
       });
@@ -826,10 +941,11 @@
       db.orders.forEach(o => {
         html += `<div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; font-size:13px; line-height:1.5; background:#fff;">
           <div style="font-weight:bold; font-size:14px; color:var(--primary-color);">${o.date} ${o.time}</div>
-          <div><strong>姓名：</strong>${o.name} (${o.phone})</div><div><strong>主項目：</strong>${o.mainName}</div>
-          <div><strong>加購：</strong>${o.addons.join(', ') || '無'}</div><div><strong>卸睫：</strong>${o.removal || '無'}</div>
+          <div><strong>姓名：</strong>${escapeHtml(o.name)} (${o.phone})</div><div><strong>主項目：</strong>${escapeHtml(o.mainName)}</div>
+          ${o.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(o.eyebrowBase)}</div>` : ''}
+          <div><strong>加購：</strong>${escapeHtml(o.addons.join(', ')) || '無'}</div><div><strong>卸睫：</strong>${escapeHtml(o.removal) || '無'}</div>
           <div><strong>預估時間：</strong>約 ${o.totalTime || 60} 分鐘</div>
-          <div><strong>交通：</strong>${o.transport || '無'}</div><div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
+          <div><strong>交通：</strong>${escapeHtml(o.transport) || '無'}</div><div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
           <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約時間：${o.createdAt}</div></div>`;
       });
     }
@@ -859,16 +975,18 @@
           cust.visits.forEach(v => {
             visitsHtml += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:8px; font-size:12px; line-height:1.5;">
               <div style="font-weight:bold; color:var(--primary-color);">${v.date} ${v.time}</div>
-              <div><strong>主項目：</strong>${v.mainName}</div><div><strong>加購：</strong>${v.addons.join(',') || '無'}</div>
-              <div><strong>卸睫：</strong>${v.removal || '無'}</div><div><strong>預估時間：</strong>約 ${v.totalTime || 60} 分鐘</div>
-              <div><strong>交通：</strong>${v.transport || '無'}</div>
+              <div><strong>主項目：</strong>${escapeHtml(v.mainName)}</div>
+              ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
+              <div><strong>加購：</strong>${escapeHtml(v.addons.join(',')) || '無'}</div>
+              <div><strong>卸睫：</strong>${escapeHtml(v.removal) || '無'}</div><div><strong>預估時間：</strong>約 ${v.totalTime || 60} 分鐘</div>
+              <div><strong>交通：</strong>${escapeHtml(v.transport) || '無'}</div>
               <div style="color:#D9534F; font-weight:bold; margin-top:2px;">該次消費總金額：NT$ ${v.totalPrice || 0} (定金 $${v.deposit})</div></div>`;
           });
         }
 
-        html += `<div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; background:#fff; cursor:pointer;" onclick="toggleCustomerExpand('${name}')">
+        html += `<div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; background:#fff; cursor:pointer;" onclick="toggleCustomerExpand('${escapeHtml(name)}')">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:bold; font-size:15px; color:var(--primary-color);">${cust.name} ${isExpanded ? '▲' : '▼'}</span>
+            <span style="font-weight:bold; font-size:15px; color:var(--primary-color);">${escapeHtml(cust.name)} ${isExpanded ? '▲' : '▼'}</span>
             <span style="font-size:12px; color:var(--text-sub);">來店 ${cust.visits.length} 次 | 總消費 NT$ ${totalSpent}</span></div>
           <div style="font-size:12px; color:var(--text-sub); margin-top:2px;">電話：${cust.phone}</div>${visitsHtml}</div>`;
       });
@@ -920,16 +1038,16 @@
         if(o.date && o.date.startsWith(selectedYM)) {
           hasInc = true;
           html += `<div style="background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:bold;">${o.date} ${o.time} - ${o.name} (預約)</span><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.totalPrice || 0}</span></div>
-            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${o.mainName}</div></div>`;
+            <div style="display:flex; justify-content:space-between;"><span style="font-weight:bold;">${o.date} ${o.time} - ${escapeHtml(o.name)} (預約)</span><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.totalPrice || 0}</span></div>
+            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${escapeHtml(o.mainName)}</div></div>`;
         }
       });
       (db.manualIncomes || []).forEach((i, idx) => {
         if(i.date && i.date.startsWith(selectedYM)) {
           hasInc = true;
           html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-            <div><div style="font-weight:bold;">${i.name} (手動收入)</div><div style="color:var(--text-sub); font-size:11px;">${i.date}</div></div>
-            <div style="display:flex; align-items:center; gap:8px;"><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${i.amount}</span><button class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteManualIncome(${idx})">刪除</button></div></div>`;
+            <div><div style="font-weight:bold;">${escapeHtml(i.name)} (手動收入)</div><div style="color:var(--text-sub); font-size:11px;">${i.date}</div></div>
+            <div style="display:flex; align-items:center; gap:8px;"><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${i.amount}</span><button type="button" class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteManualIncome(${idx})">刪除</button></div></div>`;
         }
       });
       if(!hasInc) html += "<div style='color:var(--text-sub); font-size:12px;'>本月尚無收入紀錄</div>";
@@ -940,8 +1058,8 @@
       else {
         filteredExp.forEach((e, idx) => {
           html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-            <div><div style="font-weight:bold;">${e.name}</div><div style="color:var(--text-sub); font-size:11px;">${e.date}</div></div>
-            <div style="display:flex; align-items:center; gap:8px;"><span style="color:#D9534F; font-weight:bold;">-NT$ ${e.amount}</span><button class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteExpense(${idx})">刪除</button></div></div>`;
+            <div><div style="font-weight:bold;">${escapeHtml(e.name)}</div><div style="color:var(--text-sub); font-size:11px;">${e.date}</div></div>
+            <div style="display:flex; align-items:center; gap:8px;"><span style="color:#D9534F; font-weight:bold;">-NT$ ${e.amount}</span><button type="button" class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteExpense(${idx})">刪除</button></div></div>`;
         });
       }
     }
