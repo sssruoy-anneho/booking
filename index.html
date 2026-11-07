@@ -11,8 +11,6 @@
       --text-main: #3D2E24;
       --text-sub: #8C7C73;
       --primary-color: #4A3B32;
-      --primary-hover: #362A23;
-      --accent-color: #D4B28C;
       --border-color: #EFE8DF;
       --input-bg: #FAF6F0;
       --radius-lg: 20px;
@@ -20,7 +18,7 @@
       --radius-sm: 8px;
       --shadow: 0 4px 15px rgba(74, 59, 50, 0.05);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 12px; }
     .app-container { width: 100%; max-width: 480px; background: var(--bg-main); min-height: 100vh; position: relative; padding-bottom: 90px; }
     .header { text-align: center; padding: 20px 0 10px; cursor: pointer; user-select: none; }
@@ -34,7 +32,6 @@
     .item-info .subtitle { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
     .item-price { font-weight: 600; color: var(--primary-color); font-size: 14px; }
     
-    /* 日曆樣式 */
     .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .cal-btn { background: none; border: none; font-size: 16px; color: var(--primary-color); cursor: pointer; padding: 4px 8px; font-weight: bold; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 13px; }
@@ -44,26 +41,22 @@
     .cal-day.selected { background: var(--primary-color); color: #fff; font-weight: bold; }
     .cal-day.disabled { opacity: 0.3; cursor: not-allowed; }
     
-    /* 時段樣式 */
     .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
     .time-btn { padding: 10px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); background: #fff; text-align: center; font-size: 13px; cursor: pointer; color: var(--text-main); }
     .time-btn.selected { border-color: var(--primary-color); background: var(--primary-color); color: #fff; }
     .time-btn.disabled { opacity: 0.3; text-decoration: line-through; cursor: not-allowed; }
 
-    /* 表單元件 */
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
     .form-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--input-bg); font-size: 14px; outline: none; }
     .form-input:focus { border-color: var(--primary-color); }
 
-    /* 底部固定欄 */
     .bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--card-bg); border-top: 1px solid var(--border-color); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); }
     .price-summary { font-size: 12px; color: var(--text-sub); }
     .price-summary .total { font-size: 16px; font-weight: bold; color: var(--primary-color); }
     .btn-submit { background: var(--primary-color); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* 店家頁面特有 */
     .admin-bar { background: var(--primary-color); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .admin-tab-group { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
     .admin-tab { padding: 8px 14px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; }
@@ -71,7 +64,6 @@
     .btn-danger { background: #D9534F; color: white; border: none; padding: 6px 10px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; }
     .btn-secondary { background: #EFE8DF; color: var(--primary-color); border: none; padding: 8px 12px; border-radius: var(--radius-md); font-size: 12px; cursor: pointer; }
 
-    /* Modal 視窗 */
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 200; padding: 16px; }
     .modal-overlay.active { display: flex; }
     .modal-content { background: #fff; border-radius: var(--radius-lg); padding: 20px; width: 100%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
@@ -80,13 +72,11 @@
 <body>
 
 <div class="app-container">
-  <!-- 頂部 Header -->
   <div class="header" onclick="handleHeaderClick()">
     <h1 id="shopTitle">安,你好ANNEHO</h1>
     <p id="shopSubTitle">線上預約系統</p>
   </div>
 
-  <!-- 店家管理模式頂部資訊 (預設隱藏) -->
   <div id="adminHeader" style="display: none;">
     <div class="admin-bar">
       <span>👑 店家管理後台</span>
@@ -100,21 +90,17 @@
     </div>
   </div>
 
-  <!-- ==================== 顧客頁面 ==================== -->
   <div id="clientView">
-    <!-- 主服務 -->
     <div class="card">
       <div class="card-title">選擇主服務項目</div>
       <div id="clientServicesList"></div>
     </div>
 
-    <!-- 加購項目 -->
     <div class="card">
       <div class="card-title">加購項目</div>
       <div id="clientAddonsList"></div>
     </div>
 
-    <!-- 月曆選擇 -->
     <div class="card">
       <div class="card-title">選擇日期與時段</div>
       <div class="cal-header">
@@ -128,7 +114,6 @@
       <div class="time-grid" id="timeGrid"></div>
     </div>
 
-    <!-- 顧客基本資料 -->
     <div class="card">
       <div class="card-title">填寫預約資料</div>
       <div class="form-group">
@@ -145,7 +130,6 @@
       </div>
     </div>
 
-    <!-- 底部固定預約按鈕 -->
     <div class="bottom-bar">
       <div class="price-summary">
         <div>訂金合計：<span class="total" id="displayDeposit">NT$ 0</span></div>
@@ -155,9 +139,7 @@
     </div>
   </div>
 
-  <!-- ==================== 後台頁面 ==================== -->
   <div id="adminView" style="display: none;">
-    <!-- 1. 服務項目管理 -->
     <div id="adminTabServices" class="admin-tab-content">
       <div class="card">
         <div class="card-title">
@@ -175,7 +157,6 @@
       </div>
     </div>
 
-    <!-- 2. 月曆排班與時段管理 -->
     <div id="adminTabSchedule" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">設定日期與開放時段</div>
@@ -198,7 +179,6 @@
       </div>
     </div>
 
-    <!-- 3. 預約紀錄管理 -->
     <div id="adminTabOrders" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">收到預約總覽</div>
@@ -206,7 +186,6 @@
       </div>
     </div>
 
-    <!-- 4. 店家與轉帳設定 -->
     <div id="adminTabSettings" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">轉帳銀行資訊</div>
@@ -226,4 +205,521 @@
           <label>戶名</label>
           <input type="text" id="settingBankHolder" class="form-input">
         </div>
-        <div class
+        <div class="form-group">
+          <label>預設單項訂金金額 (NT$)</label>
+          <input type="number" id="settingDeposit" class="form-input">
+        </div>
+        <button class="btn-submit" style="width: 100%;" onclick="saveSettings()">儲存設定</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="payModal">
+  <div class="modal-content">
+    <h3 style="color: var(--primary-color); margin-bottom: 12px;">轉帳支付訂金</h3>
+    <div style="background: var(--input-bg); padding: 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.6; margin-bottom: 14px;">
+      <div><strong>銀行代碼：</strong><span id="payBankCode"></span> (<span id="payBankName"></span>)</div>
+      <div><strong>帳號：</strong><span id="payBankAcc" style="font-weight: bold; font-size: 15px; color: var(--primary-color);"></span></div>
+      <div><strong>戶名：</strong><span id="payBankHolder"></span></div>
+      <div style="color: #D9534F; font-weight: bold; margin-top: 4px;">應付訂金金額：NT$ <span id="payDepositAmount"></span></div>
+    </div>
+    <div class="form-group">
+      <label style="color: #D9534F; font-weight: bold;">您的銀行帳號末五碼 *</label>
+      <input type="text" id="payLast5" class="form-input" placeholder="請輸入 5 碼數字" maxlength="5" oninput="validatePayForm()">
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button class="btn-secondary" style="width: 40%;" onclick="closePayModal()">返回修改</button>
+      <button class="btn-submit" id="btnSubmitPay" style="width: 60%;" onclick="submitOrderAndNotify()" disabled>已匯款完成 (開啟 LINE)</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="serviceModal">
+  <div class="modal-content">
+    <h3 id="serviceModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增項目</h3>
+    <div class="form-group">
+      <label>項目名稱</label>
+      <input type="text" id="editItemName" class="form-input">
+    </div>
+    <div class="form-group">
+      <label>預估時間 (分鐘)</label>
+      <input type="number" id="editItemTime" class="form-input" value="60">
+    </div>
+    <div class="form-group">
+      <label>價格 (NT$)</label>
+      <input type="number" id="editItemPrice" class="form-input" value="1000">
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button class="btn-secondary" style="width: 50%;" onclick="closeServiceModal()">取消</button>
+      <button class="btn-submit" style="width: 50%;" onclick="saveServiceItem()">儲存</button>
+    </div>
+  </div>
+</div>
+<script>
+  let db = {
+    settings: {
+      bankCode: "808",
+      bankName: "玉山銀行",
+      bankAcc: "0123-456-789012",
+      bankHolder: "安,你好工作室",
+      depositAmount: 500
+    },
+    mainServices: [
+      { id: 'm1', name: '日系精緻美睫 120 根', time: 90, price: 1200 },
+      { id: 'm2', name: '韓系單根單色霧眉', time: 150, price: 4500 }
+    ],
+    addonServices: [
+      { id: 'a1', name: '睫開保養 / 深層清潔', time: 15, price: 300 },
+      { id: 'a2', name: '溫和卸睫服務', time: 20, price: 400 }
+    ],
+    schedule: {},
+    orders: []
+  };
+
+  if(localStorage.getItem('anneho_db')) {
+    try { db = JSON.parse(localStorage.getItem('anneho_db')); } catch(e){}
+  }
+  function saveData() {
+    localStorage.setItem('anneho_db', JSON.stringify(db));
+  }
+
+  let currentView = 'client';
+  let clickHeaderCount = 0;
+  let clickHeaderTimer = null;
+  let currentYear = new Date().getFullYear();
+  let currentMonth = new Date().getMonth();
+  let adminYear = currentYear;
+  let adminMonth = currentMonth;
+  let selectedDateStr = "";
+  let selectedTime = "";
+  let selectedMainId = "";
+  let selectedAddonIds = [];
+
+  window.onload = function() {
+    initScheduleDefault();
+    renderClient();
+  };
+
+  function initScheduleDefault() {
+    let today = new Date();
+    for(let i=0; i<30; i++) {
+      let d = new Date(today);
+      d.setDate(today.getDate() + i);
+      let dateKey = formatDateKey(d.getFullYear(), d.getMonth(), d.getDate());
+      if(!db.schedule[dateKey]) {
+        db.schedule[dateKey] = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
+      }
+    }
+  }
+
+  function formatDateKey(y, m, d) {
+    let mm = String(m + 1).padStart(2, '0');
+    let dd = String(d).padStart(2, '0');
+    return `${y}-${mm}-${dd}`;
+  }
+
+  function handleHeaderClick() {
+    clickHeaderCount++;
+    clearTimeout(clickHeaderTimer);
+    clickHeaderTimer = setTimeout(() => { clickHeaderCount = 0; }, 2000);
+    if(clickHeaderCount >= 5) {
+      clickHeaderCount = 0;
+      if(currentView === 'client') {
+        let pwd = prompt("請輸入店家管理員密碼：");
+        if(pwd === "anneho0921827360") {
+          switchView('admin');
+        } else if(pwd !== null) {
+          alert("密碼不正確！");
+        }
+      }
+    }
+  }
+
+  function switchView(view) {
+    currentView = view;
+    if(view === 'admin') {
+      document.getElementById('clientView').style.display = 'none';
+      document.getElementById('adminView').style.display = 'block';
+      document.getElementById('adminHeader').style.display = 'block';
+      renderAdmin();
+    } else {
+      document.getElementById('clientView').style.display = 'block';
+      document.getElementById('adminView').style.display = 'none';
+      document.getElementById('adminHeader').style.display = 'none';
+      renderClient();
+    }
+  }
+
+  function renderClient() {
+    let mainHtml = "";
+    db.mainServices.forEach(item => {
+      let isSel = selectedMainId === item.id ? "selected" : "";
+      mainHtml += `
+        <div class="item-option ${isSel}" onclick="selectMainService('${item.id}')">
+          <div class="item-info">
+            <div class="title">${item.name}</div>
+            <div class="subtitle">施作時間約 ${item.time} 分鐘</div>
+          </div>
+          <div class="item-price">NT$ ${item.price}</div>
+        </div>`;
+    });
+    document.getElementById('clientServicesList').innerHTML = mainHtml || "<div style='color:var(--text-sub); font-size:13px;'>尚無項目</div>";
+
+    let addonHtml = "";
+    db.addonServices.forEach(item => {
+      let isSel = selectedAddonIds.includes(item.id) ? "selected" : "";
+      addonHtml += `
+        <div class="item-option ${isSel}" onclick="toggleAddonService('${item.id}')">
+          <div class="item-info">
+            <div class="title">${item.name}</div>
+            <div class="subtitle">+${item.time} 分鐘</div>
+          </div>
+          <div class="item-price">+NT$ ${item.price}</div>
+        </div>`;
+    });
+    document.getElementById('clientAddonsList').innerHTML = addonHtml || "<div style='color:var(--text-sub); font-size:13px;'>無加購項目</div>";
+
+    renderCalendar(currentYear, currentMonth, 'client');
+    updateSummary();
+  }
+
+  function selectMainService(id) {
+    selectedMainId = id;
+    renderClient();
+  }
+
+  function toggleAddonService(id) {
+    if(selectedAddonIds.includes(id)) {
+      selectedAddonIds = selectedAddonIds.filter(x => x !== id);
+    } else {
+      selectedAddonIds.push(id);
+    }
+    renderClient();
+  }
+
+  function renderCalendar(y, m, type) {
+    let monthTitle = `${y} 年 ${m + 1} 月`;
+    let firstDay = new Date(y, m, 1).getDay();
+    let daysInMonth = new Date(y, m + 1, 0).getDate();
+    let todayStr = formatDateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+
+    let gridHtml = `
+      <div class="cal-day-label">日</div><div class="cal-day-label">一</div>
+      <div class="cal-day-label">二</div><div class="cal-day-label">三</div>
+      <div class="cal-day-label">四</div><div class="cal-day-label">五</div>
+      <div class="cal-day-label">六</div>`;
+
+    for(let i=0; i<firstDay; i++) {
+      gridHtml += `<div class="cal-day empty"></div>`;
+    }
+
+    for(let d=1; d<=daysInMonth; d++) {
+      let dateKey = formatDateKey(y, m, d);
+      let isPast = dateKey < todayStr;
+      
+      if(type === 'client') {
+        let isSel = selectedDateStr === dateKey ? "selected" : "";
+        let dis = isPast ? "disabled" : "";
+        gridHtml += `<div class="cal-day ${isSel} ${dis}" onclick="${isPast?'':'selectClientDate(\''+dateKey+'\')'}">${d}</div>`;
+      } else {
+        let isSel = adminSelectedDate === dateKey ? "selected" : "";
+        gridHtml += `<div class="cal-day ${isSel}" onclick="selectAdminDate('${dateKey}')">${d}</div>`;
+      }
+    }
+
+    if(type === 'client') {
+      document.getElementById('calMonthTitle').innerText = monthTitle;
+      document.getElementById('calGrid').innerHTML = gridHtml;
+    } else {
+      document.getElementById('adminCalMonthTitle').innerText = monthTitle;
+      document.getElementById('adminCalGrid').innerHTML = gridHtml;
+    }
+  }
+
+  function changeMonth(dir) {
+    currentMonth += dir;
+    if(currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if(currentMonth < 0) { currentMonth = 11; currentYear--; }
+    renderCalendar(currentYear, currentMonth, 'client');
+  }
+
+  function selectClientDate(dateKey) {
+    selectedDateStr = dateKey;
+    selectedTime = "";
+    document.getElementById('selectedDateText').innerText = `已選擇日期：${dateKey}`;
+    renderCalendar(currentYear, currentMonth, 'client');
+    renderTimeGrid(dateKey);
+    updateSummary();
+  }
+
+  function renderTimeGrid(dateKey) {
+    let slots = db.schedule[dateKey] || [];
+    let html = "";
+    if(slots.length === 0) {
+      html = "<div style='grid-column: span 3; color: var(--text-sub); font-size:13px;'>該日期無開放時段</div>";
+    } else {
+      slots.forEach(t => {
+        let isSel = selectedTime === t ? "selected" : "";
+        html += `<div class="time-btn ${isSel}" onclick="selectClientTime('${t}')">${t}</div>`;
+      });
+    }
+    document.getElementById('timeGrid').innerHTML = html;
+  }
+
+  function selectClientTime(t) {
+    selectedTime = t;
+    renderTimeGrid(selectedDateStr);
+    updateSummary();
+  }
+
+  function updateSummary() {
+    let total = 0;
+    let mainItem = db.mainServices.find(x => x.id === selectedMainId);
+    if(mainItem) total += mainItem.price;
+
+    selectedAddonIds.forEach(id => {
+      let add = db.addonServices.find(x => x.id === id);
+      if(add) total += add.price;
+    });
+
+    let deposit = (selectedMainId ? Number(db.settings.depositAmount) : 0);
+    document.getElementById('displayDeposit').innerText = `NT$ ${deposit}`;
+    document.getElementById('displayTotal').innerText = `總計金額：NT$ ${total}`;
+
+    let isValid = selectedMainId && selectedDateStr && selectedTime;
+    document.getElementById('btnGoPay').disabled = !isValid;
+  }
+
+  function openPayModal() {
+    let name = document.getElementById('custName').value.trim();
+    let phone = document.getElementById('custPhone').value.trim();
+    if(!name || !phone) {
+      alert("請輸入您的姓名與聯絡電話！");
+      return;
+    }
+    document.getElementById('payBankCode').innerText = db.settings.bankCode;
+    document.getElementById('payBankName').innerText = db.settings.bankName;
+    document.getElementById('payBankAcc').innerText = db.settings.bankAcc;
+    document.getElementById('payBankHolder').innerText = db.settings.bankHolder;
+    document.getElementById('payDepositAmount').innerText = db.settings.depositAmount;
+    document.getElementById('payModal').classList.add('active');
+  }
+
+  function closePayModal() {
+    document.getElementById('payModal').classList.remove('active');
+  }
+
+  function validatePayForm() {
+    let val = document.getElementById('payLast5').value.trim();
+    document.getElementById('btnSubmitPay').disabled = (val.length !== 5);
+  }
+
+  function submitOrderAndNotify() {
+    let last5 = document.getElementById('payLast5').value.trim();
+    let name = document.getElementById('custName').value.trim();
+    let phone = document.getElementById('custPhone').value.trim();
+    let note = document.getElementById('custNote').value.trim();
+    
+    let mainItem = db.mainServices.find(x => x.id === selectedMainId);
+    let addonNames = selectedAddonIds.map(id => db.addonServices.find(x => x.id === id)?.name).filter(Boolean);
+
+    let order = {
+      id: Date.now(),
+      name, phone, note,
+      date: selectedDateStr,
+      time: selectedTime,
+      mainName: mainItem.name,
+      addons: addonNames,
+      deposit: db.settings.depositAmount,
+      last5: last5,
+      createdAt: new Date().toLocaleString()
+    };
+
+    db.orders.unshift(order);
+    saveData();
+    closePayModal();
+
+    let msg = `【安,你好ANNEHO】收到線上預約囉！\n-------------------\n👤 顧客姓名：${name}\n📞 聯絡電話：${phone}\n📅 預約日期：${selectedDateStr}\n⏰ 預約時段：${selectedTime}\n💇 主項目：${mainItem.name}\n➕ 加購：${addonNames.join(', ') || '無'}\n💰 已付訂金：NT$ ${db.settings.depositAmount}\n💳 帳戶末五碼：${last5}\n📝 備註：${note || '無'}`;
+    
+    let lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
+    window.location.href = lineUrl;
+  }
+
+  function renderAdmin() {
+    renderAdminServices();
+    renderCalendar(adminYear, adminMonth, 'admin');
+    renderAdminOrders();
+    document.getElementById('settingBankCode').value = db.settings.bankCode;
+    document.getElementById('settingBankName').value = db.settings.bankName;
+    document.getElementById('settingBankAcc').value = db.settings.bankAcc;
+    document.getElementById('settingBankHolder').value = db.settings.bankHolder;
+    document.getElementById('settingDeposit').value = db.settings.depositAmount;
+  }
+
+  function switchAdminTab(tabName) {
+    document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+    
+    if(tabName === 'services') {
+      document.getElementById('adminTabServices').style.display = 'block';
+    } else if(tabName === 'schedule') {
+      document.getElementById('adminTabSchedule').style.display = 'block';
+    } else if(tabName === 'orders') {
+      document.getElementById('adminTabOrders').style.display = 'block';
+    } else if(tabName === 'settings') {
+      document.getElementById('adminTabSettings').style.display = 'block';
+    }
+    event.target.classList.add('active');
+  }
+
+  function renderAdminServices() {
+    let mainHtml = "";
+    db.mainServices.forEach((item, idx) => {
+      mainHtml += `
+        <div class="item-option">
+          <div class="item-info">
+            <div class="title">${item.name}</div>
+            <div class="subtitle">${item.time} 分鐘 | NT$ ${item.price}</div>
+          </div>
+          <button class="btn-danger" onclick="deleteService('main', ${idx})">刪除</button>
+        </div>`;
+    });
+    document.getElementById('adminMainServicesList').innerHTML = mainHtml;
+
+    let addonHtml = "";
+    db.addonServices.forEach((item, idx) => {
+      addonHtml += `
+        <div class="item-option">
+          <div class="item-info">
+            <div class="title">${item.name}</div>
+            <div class="subtitle">${item.time} 分鐘 | NT$ ${item.price}</div>
+          </div>
+          <button class="btn-danger" onclick="deleteService('addon', ${idx})">刪除</button>
+        </div>`;
+    });
+    document.getElementById('adminAddonServicesList').innerHTML = addonHtml;
+  }
+
+  let editingType = 'main';
+  function openAddServiceModal(type) {
+    editingType = type;
+    document.getElementById('serviceModalTitle').innerText = type === 'main' ? "新增主服務" : "新增加購項目";
+    document.getElementById('editItemName').value = "";
+    document.getElementById('editItemTime').value = 60;
+    document.getElementById('editItemPrice').value = 1000;
+    document.getElementById('serviceModal').classList.add('active');
+  }
+
+  function closeServiceModal() {
+    document.getElementById('serviceModal').classList.remove('active');
+  }
+
+  function saveServiceItem() {
+    let name = document.getElementById('editItemName').value.trim();
+    let time = Number(document.getElementById('editItemTime').value);
+    let price = Number(document.getElementById('editItemPrice').value);
+    if(!name) return alert("請輸入名稱");
+
+    let newItem = { id: 'item_' + Date.now(), name, time, price };
+    if(editingType === 'main') {
+      db.mainServices.push(newItem);
+    } else {
+      db.addonServices.push(newItem);
+    }
+    saveData();
+    closeServiceModal();
+    renderAdminServices();
+  }
+
+  function deleteService(type, idx) {
+    if(confirm("確定要刪除此項目嗎？")) {
+      if(type === 'main') db.mainServices.splice(idx, 1);
+      else db.addonServices.splice(idx, 1);
+      saveData();
+      renderAdminServices();
+    }
+  }
+
+  let adminSelectedDate = "";
+  function changeAdminMonth(dir) {
+    adminMonth += dir;
+    if(adminMonth > 11) { adminMonth = 0; adminYear++; }
+    if(adminMonth < 0) { adminMonth = 11; adminYear--; }
+    renderCalendar(adminYear, adminMonth, 'admin');
+  }
+
+  function selectAdminDate(dateKey) {
+    adminSelectedDate = dateKey;
+    renderCalendar(adminYear, adminMonth, 'admin');
+    document.getElementById('adminDateScheduleArea').style.display = 'block';
+    document.getElementById('adminSelectedDateTitle').innerText = `修改 ${dateKey} 開放時段：`;
+    renderAdminTimeSlots();
+  }
+
+  function renderAdminTimeSlots() {
+    let slots = db.schedule[adminSelectedDate] || [];
+    let html = "";
+    if(slots.length === 0) {
+      html = "<div style='color:var(--text-sub); font-size:13px;'>當日完全不開放預約 (公休日)</div>";
+    } else {
+      slots.forEach((t, idx) => {
+        html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 12px; border-radius:8px; margin-bottom:6px;">
+            <span style="font-size:14px; font-weight:bold;">${t}</span>
+            <button class="btn-danger" onclick="deleteAdminTime(${idx})">刪除時段</button>
+          </div>`;
+      });
+    }
+    document.getElementById('adminTimeSlotsList').innerHTML = html;
+  }
+
+  function addCustomTime() {
+    let val = document.getElementById('newTimeInput').value;
+    if(!val) return;
+    if(!db.schedule[adminSelectedDate]) db.schedule[adminSelectedDate] = [];
+    if(!db.schedule[adminSelectedDate].includes(val)) {
+      db.schedule[adminSelectedDate].push(val);
+      db.schedule[adminSelectedDate].sort();
+      saveData();
+      renderAdminTimeSlots();
+    }
+  }
+
+  function deleteAdminTime(idx) {
+    db.schedule[adminSelectedDate].splice(idx, 1);
+    saveData();
+    renderAdminTimeSlots();
+  }
+
+  function renderAdminOrders() {
+    let html = "";
+    if(db.orders.length === 0) {
+      html = "<div style='color:var(--text-sub); font-size:13px;'>目前尚無預約紀錄</div>";
+    } else {
+      db.orders.forEach(o => {
+        html += `
+          <div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; font-size:13px; line-height:1.5;">
+            <div style="font-weight:bold; font-size:14px; color:var(--primary-color);">${o.date} ${o.time}</div>
+            <div><strong>姓名：</strong>${o.name} (${o.phone})</div>
+            <div><strong>項目：</strong>${o.mainName}</div>
+            <div><strong>訂金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
+            <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約時間：${o.createdAt}</div>
+          </div>`;
+      });
+    }
+    document.getElementById('adminOrdersList').innerHTML = html;
+  }
+
+  function saveSettings() {
+    db.settings.bankCode = document.getElementById('settingBankCode').value.trim();
+    db.settings.bankName = document.getElementById('settingBankName').value.trim();
+    db.settings.bankAcc = document.getElementById('settingBankAcc').value.trim();
+    db.settings.bankHolder = document.getElementById('settingBankHolder').value.trim();
+    db.settings.depositAmount = document.getElementById('settingDeposit').value.trim();
+    saveData();
+    alert("店家與銀行設定已成功儲存！");
+  }
+</script>
+</body>
+</html>
