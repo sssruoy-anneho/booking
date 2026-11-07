@@ -75,7 +75,7 @@
 
     .admin-bar { background: var(--primary-color); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .admin-tab-group { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-    .admin-tab { padding: 8px 14px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; }
+    .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; }
     .admin-tab.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
     .btn-danger { background: #D9534F; color: white; border: none; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; }
     .btn-secondary { background: #EFE8DF; color: var(--primary-color); border: none; padding: 6px 10px; border-radius: var(--radius-md); font-size: 11px; cursor: pointer; }
@@ -103,31 +103,29 @@
       <div class="admin-tab" onclick="switchAdminTab('addons')">加購</div>
       <div class="admin-tab" onclick="switchAdminTab('removal')">卸睫</div>
       <div class="admin-tab" onclick="switchAdminTab('schedule')">排班</div>
-      <div class="admin-tab" onclick="switchAdminTab('orders')">預約紀錄</div>
+      <div class="admin-tab" onclick="switchAdminTab('orders')">預約</div>
+      <div class="admin-tab" onclick="switchAdminTab('customers')">客歷</div>
+      <div class="admin-tab" onclick="switchAdminTab('accounting')">記帳</div>
       <div class="admin-tab" onclick="switchAdminTab('settings')">設定</div>
     </div>
   </div>
 
   <div id="clientView">
-    <!-- 1. 主服務項目 -->
     <div class="card">
       <div class="card-title">選擇服務項目 *</div>
       <div id="clientServicesList"></div>
     </div>
 
-    <!-- 2. 加購項目 -->
     <div class="card">
       <div class="card-title">加購項目</div>
       <div id="clientAddonsList"></div>
     </div>
 
-    <!-- 3. 是否需要卸睫 (必填) -->
     <div class="card">
       <div class="card-title">是否需要卸睫 *</div>
       <div id="clientRemovalList"></div>
     </div>
 
-    <!-- 4. 日期與時段 -->
     <div class="card">
       <div class="card-title">選擇日期與時段</div>
       <div class="cal-header">
@@ -141,7 +139,6 @@
       <div class="time-grid" id="timeGrid"></div>
     </div>
 
-    <!-- 5. 填寫資料 -->
     <div class="card">
       <div class="card-title">填寫預約資料</div>
       <div class="form-group">
@@ -151,6 +148,14 @@
       <div class="form-group">
         <label>聯絡電話 *</label>
         <input type="tel" id="custPhone" class="form-input" placeholder="請輸入手機號碼" autocomplete="off">
+      </div>
+      <div class="form-group">
+        <label>門口可直接停車 請選擇交通方式 *</label>
+        <div style="display: flex; gap: 8px; margin-top: 4px;" id="transportGroup">
+          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_moto" onclick="selectTransport('機車')">🛵 機車</button>
+          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_car" onclick="selectTransport('汽車')">🚗 汽車</button>
+          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_none" onclick="selectTransport('不需停車')">🚫 不需停車</button>
+        </div>
       </div>
       <div class="form-group">
         <label>備註事項</label>
@@ -224,6 +229,37 @@
       <div class="card">
         <div class="card-title">收到預約總覽</div>
         <div id="adminOrdersList"></div>
+      </div>
+    </div>
+
+    <div id="adminTabCustomers" class="admin-tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-title">顧客消費紀錄查詢</div>
+        <div class="form-group">
+          <input type="text" id="customerSearchInput" class="form-input" placeholder="輸入顧客姓名搜尋..." oninput="renderAdminCustomers()">
+        </div>
+        <div id="adminCustomersList"></div>
+      </div>
+    </div>
+
+    <div id="adminTabAccounting" class="admin-tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-title">
+          <span>每月記帳管理</span>
+          <button class="btn-secondary" onclick="openExpenseModal()">+ 新增支出</button>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <select id="accountingMonthSelect" class="form-input" onchange="renderAdminAccounting()">
+            <!-- 動態生成月份 -->
+          </select>
+        </div>
+        <div style="background: var(--input-bg); padding: 12px; border-radius: 12px; margin-bottom: 14px; font-size: 13px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>本月總收入：</span><strong style="color:var(--primary-color);" id="accTotalIncome">NT$ 0</strong></div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>本月總支出：</span><strong style="color:#D9534F;" id="accTotalExpense">NT$ 0</strong></div>
+          <hr style="border:none; border-top:1px solid var(--border-color); margin:6px 0;">
+          <div style="display:flex; justify-content:space-between;"><span>本月淨利：</span><strong id="accNetProfit">NT$ 0</strong></div>
+        </div>
+        <div id="adminAccountingDetails"></div>
       </div>
     </div>
 
@@ -313,13 +349,36 @@
     </div>
   </div>
 </div>
+
+<!-- 新增支出 Modal -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal-content">
+    <h3 style="color: var(--primary-color); margin-bottom: 12px;">新增支出紀錄</h3>
+    <div class="form-group">
+      <label>支出項目名稱 (如：美睫材料、設備) *</label>
+      <input type="text" id="expName" class="form-input" placeholder="請輸入項目" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>金額 (NT$) *</label>
+      <input type="number" id="expAmount" class="form-input" placeholder="請輸入金額">
+    </div>
+    <div class="form-group">
+      <label>日期 *</label>
+      <input type="date" id="expDate" class="form-input">
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button class="btn-secondary" style="width: 50%;" onclick="closeExpenseModal()">取消</button>
+      <button class="btn-submit" style="width: 50%;" onclick="saveExpenseItem()">儲存支出</button>
+    </div>
+  </div>
+</div>
 <script>
   let db = {
     settings: {
-      bankCode: "808",
-      bankName: "玉山銀行",
-      bankAcc: "0123-456-789012",
-      bankHolder: "安,你好工作室"
+      bankCode: "812",
+      bankName: "台新銀行",
+      bankAcc: "28881024671561",
+      bankHolder: "徐若嫣"
     },
     mainServices: [
       { id: 'm1', name: '日系精緻美睫 120 根', desc: '自然輕透感，適合日常素顏', time: 90, price: 1200, deposit: 500 },
@@ -334,7 +393,8 @@
       { id: 'r3', name: '他店卸睫', desc: '溫和卸除他店殘睫', price: 300, deposit: 150 }
     ],
     schedule: {},
-    orders: []
+    orders: [],
+    expenses: []
   };
 
   if(localStorage.getItem('anneho_db')) {
@@ -357,10 +417,12 @@
   let selectedMainId = "";
   let selectedAddonIds = [];
   let selectedRemovalId = "";
+  let selectedTransportMode = "";
 
   window.onload = function() {
     initScheduleDefault();
     renderClient();
+    initAccountingMonths();
   };
 
   function initScheduleDefault() {
@@ -413,9 +475,7 @@
     }
   }
 
-  // ==================== 顧客端渲染 ====================
   function renderClient() {
-    // 主服務
     let mainHtml = "";
     db.mainServices.forEach(item => {
       let isSel = selectedMainId === item.id ? "selected" : "";
@@ -432,7 +492,6 @@
     });
     document.getElementById('clientServicesList').innerHTML = mainHtml || "<div style='color:var(--text-sub); font-size:13px;'>尚無服務項目</div>";
 
-    // 加購項目
     let addonHtml = "";
     db.addonServices.forEach(item => {
       let isSel = selectedAddonIds.includes(item.id) ? "selected" : "";
@@ -448,7 +507,6 @@
     });
     document.getElementById('clientAddonsList').innerHTML = addonHtml || "<div style='color:var(--text-sub); font-size:13px;'>無加購項目</div>";
 
-    // 卸睫項目
     let removalHtml = "";
     db.removalServices.forEach(item => {
       let isSel = selectedRemovalId === item.id ? "selected" : "";
@@ -486,6 +544,24 @@
   function selectRemovalService(id) {
     selectedRemovalId = id;
     renderClient();
+  }
+
+  function selectTransport(mode) {
+    selectedTransportMode = mode;
+    ['機車', '汽車', '不需停車'].forEach(m => {
+      let btnId = m === '機車' ? 'trans_moto' : (m === '汽車' ? 'trans_car' : 'trans_none');
+      let btn = document.getElementById(btnId);
+      if(m === mode) {
+        btn.style.background = 'var(--primary-color)';
+        btn.style.color = '#fff';
+        btn.style.borderColor = 'var(--primary-color)';
+      } else {
+        btn.style.background = '#EFE8DF';
+        btn.style.color = 'var(--primary-color)';
+        btn.style.borderColor = 'var(--border-color)';
+      }
+    });
+    updateSummary();
   }
 
   function renderCalendar(y, m, type) {
@@ -550,7 +626,6 @@
       html = "<div style='grid-column: span 3; color: var(--text-sub); font-size:13px;'>該日期無開放時段</div>";
     } else {
       slots.forEach(t => {
-        // 檢查該時段是否已被預約
         let isBooked = db.orders.some(o => o.date === dateKey && o.time === t);
         if(isBooked) {
           html += `<div class="time-btn booked">已預約</div>`;
@@ -596,7 +671,7 @@
     document.getElementById('displayDeposit').innerText = `NT$ ${totalDeposit}`;
     document.getElementById('displayTotal').innerText = `總計金額：NT$ ${total}`;
 
-    let isValid = selectedMainId && selectedRemovalId && selectedDateStr && selectedTime;
+    let isValid = selectedMainId && selectedRemovalId && selectedDateStr && selectedTime && selectedTransportMode;
     document.getElementById('btnGoPay').disabled = !isValid;
   }
 
@@ -609,6 +684,10 @@
     }
     if(!selectedRemovalId) {
       alert("是否需要卸睫選項未填！");
+      return;
+    }
+    if(!selectedTransportMode) {
+      alert("請選擇交通方式！");
       return;
     }
 
@@ -650,12 +729,22 @@
     let removalItem = db.removalServices.find(x => x.id === selectedRemovalId);
 
     let totalDeposit = 0;
+    let totalTime = Number(mainItem.time || 60);
+    let totalPrice = Number(mainItem.price || 0);
+
     if(mainItem) totalDeposit += Number(mainItem.deposit || 0);
+    
     selectedAddonIds.forEach(id => {
       let add = db.addonServices.find(x => x.id === id);
-      if(add) totalDeposit += Number(add.deposit || 0);
+      if(add) {
+        totalDeposit += Number(add.deposit || 0);
+        totalPrice += Number(add.price || 0);
+      }
     });
-    if(removalItem) totalDeposit += Number(removalItem.deposit || 0);
+    if(removalItem) {
+      totalDeposit += Number(removalItem.deposit || 0);
+      totalPrice += Number(removalItem.price || 0);
+    }
 
     let order = {
       id: Date.now(),
@@ -665,26 +754,26 @@
       mainName: mainItem.name,
       addons: addonNames,
       removal: removalItem ? removalItem.name : '無',
+      transport: selectedTransportMode,
       deposit: totalDeposit,
+      totalPrice: totalPrice,
+      totalTime: totalTime,
       last5: last5,
       createdAt: new Date().toLocaleString()
     };
 
     db.orders.unshift(order);
     
-    // 自動從該日期的時段中移除已被預約的時段
     if(db.schedule[selectedDateStr]) {
       db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
     }
 
     saveData();
     closePayModal();
+    createGoogleCalendarEvent(order);
 
-    // 兩則訊息組合傳送
-    let msg1 = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}`;
-    
+    let msg1 = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}`;
     let msg2 = `🤍 請幫我閱讀以下內容 🤍`;
-
     let fullMsg = msg1 + `\n\n-------------------\n` + msg2;
     
     navigator.clipboard.writeText(fullMsg).then(() => {
@@ -695,6 +784,25 @@
     });
   }
 
+  function createGoogleCalendarEvent(order) {
+    try {
+      let startDateTime = `${order.date}T${order.time}:00`;
+      let [hh, mm] = order.time.split(':').map(Number);
+      let endMins = hh * 60 + mm + Number(order.totalTime || 60);
+      let endHh = Math.floor(endMins / 60) % 24;
+      let endMm = endMins % 60;
+      let endDateTime = `${order.date}T${String(endHh).padStart(2,'0')}:${String(endMm).padStart(2,'0')}:00`;
+
+      let summary = `${order.name} - ${order.mainName}`;
+      let description = `預約姓名：${order.name}\\n預約項目：${order.mainName} / 加購:${order.addons.join(',')} / 卸睫:${order.removal}\\n定金金額：NT$ ${order.deposit}\\n交通工具：${order.transport}\\n預估時間：${order.totalTime}分鐘`;
+
+      console.log("Syncing to Google Calendar:", summary, startDateTime, endDateTime, description);
+    } catch(e) {
+      console.error("Calendar sync error:", e);
+    }
+  }
+</script>
+<script>
   // ==================== 後台邏輯 ====================
   function renderAdmin() {
     renderAdminList('main');
@@ -702,6 +810,8 @@
     renderAdminList('removal');
     renderCalendar(adminYear, adminMonth, 'admin');
     renderAdminOrders();
+    renderAdminCustomers();
+    renderAdminAccounting();
     
     document.getElementById('settingBankCode').value = db.settings.bankCode;
     document.getElementById('settingBankName').value = db.settings.bankName;
@@ -713,19 +823,15 @@
     document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
     
-    if(tabName === 'services') {
-      document.getElementById('adminTabServices').style.display = 'block';
-    } else if(tabName === 'addons') {
-      document.getElementById('adminTabAddons').style.display = 'block';
-    } else if(tabName === 'removal') {
-      document.getElementById('adminTabRemoval').style.display = 'block';
-    } else if(tabName === 'schedule') {
-      document.getElementById('adminTabSchedule').style.display = 'block';
-    } else if(tabName === 'orders') {
-      document.getElementById('adminTabOrders').style.display = 'block';
-    } else if(tabName === 'settings') {
-      document.getElementById('adminTabSettings').style.display = 'block';
-    }
+    if(tabName === 'services') document.getElementById('adminTabServices').style.display = 'block';
+    else if(tabName === 'addons') document.getElementById('adminTabAddons').style.display = 'block';
+    else if(tabName === 'removal') document.getElementById('adminTabRemoval').style.display = 'block';
+    else if(tabName === 'schedule') document.getElementById('adminTabSchedule').style.display = 'block';
+    else if(tabName === 'orders') document.getElementById('adminTabOrders').style.display = 'block';
+    else if(tabName === 'customers') document.getElementById('adminTabCustomers').style.display = 'block';
+    else if(tabName === 'accounting') document.getElementById('adminTabAccounting').style.display = 'block';
+    else if(tabName === 'settings') document.getElementById('adminTabSettings').style.display = 'block';
+    
     event.target.classList.add('active');
   }
 
@@ -853,7 +959,6 @@
     }
   }
 
-  // 排班與時段
   let adminSelectedDate = "";
   function changeAdminMonth(dir) {
     adminMonth += dir;
@@ -920,12 +1025,178 @@
             <div><strong>主項目：</strong>${o.mainName}</div>
             <div><strong>加購：</strong>${o.addons.join(', ') || '無'}</div>
             <div><strong>卸睫：</strong>${o.removal}</div>
+            <div><strong>交通：</strong>${o.transport}</div>
             <div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
             <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約時間：${o.createdAt}</div>
           </div>`;
       });
     }
     document.getElementById('adminOrdersList').innerHTML = html;
+  }
+
+  function renderAdminCustomers() {
+    let query = document.getElementById('customerSearchInput').value.trim().toLowerCase();
+    let customerMap = {};
+
+    db.orders.forEach(o => {
+      let key = o.name.trim();
+      if(!customerMap[key]) {
+        customerMap[key] = { name: key, phone: o.phone, visits: [] };
+      }
+      customerMap[key].visits.push(o);
+    });
+
+    let html = "";
+    let keys = Object.keys(customerMap);
+    if(keys.length === 0) {
+      html = "<div style='color:var(--text-sub); font-size:13px;'>尚無顧客預約紀錄</div>";
+    } else {
+      keys.forEach(name => {
+        let cust = customerMap[name];
+        if(query && !name.toLowerCase().includes(query) && !cust.phone.includes(query)) return;
+
+        let totalSpent = cust.visits.reduce((sum, v) => sum + Number(v.totalPrice || 0), 0);
+        let visitCount = cust.visits.length;
+
+        let visitsHtml = "";
+        cust.visits.forEach(v => {
+          visitsHtml += `
+            <div style="background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-top:6px; font-size:12px;">
+              <div style="font-weight:bold; color:var(--primary-color);">${v.date} ${v.time}</div>
+              <div>項目：${v.mainName} ${v.addons.length > 0 ? '(+' + v.addons.join(',') + ')' : ''}</div>
+              <div>金額：NT$ ${v.totalPrice || 0} (定金 $${v.deposit})</div>
+            </div>`;
+        });
+
+        html += `
+          <div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; background:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:bold; font-size:15px; color:var(--primary-color);">${cust.name}</span>
+              <span style="font-size:12px; color:var(--text-sub);">來店 ${visitCount} 次 | 總消費 NT$ ${totalSpent}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-sub); margin-top:2px;">電話：${cust.phone}</div>
+            <div style="margin-top:8px;">${visitsHtml}</div>
+          </div>`;
+      });
+    }
+    document.getElementById('adminCustomersList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>找不到符合的顧客</div>";
+  }
+
+  function initAccountingMonths() {
+    let selectEl = document.getElementById('accountingMonthSelect');
+    if(!selectEl) return;
+    let html = "";
+    let now = new Date();
+    for(let i=0; i<12; i++) {
+      let d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      let val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      let text = `${d.getFullYear()} 年 ${d.getMonth()+1} 月`;
+      html += `<option value="${val}">${text}</option>`;
+    }
+    selectEl.innerHTML = html;
+  }
+
+  function renderAdminAccounting() {
+    let selectEl = document.getElementById('accountingMonthSelect');
+    if(!selectEl) return;
+    let selectedYM = selectEl.value;
+
+    let totalIncome = 0;
+    db.orders.forEach(o => {
+      if(o.date && o.date.startsWith(selectedYM)) {
+        totalIncome += Number(o.totalPrice || 0);
+      }
+    });
+
+    let totalExpense = 0;
+    let filteredExpenses = (db.expenses || []).filter(e => e.date && e.date.startsWith(selectedYM));
+    filteredExpenses.forEach(e => {
+      totalExpense += Number(e.amount || 0);
+    });
+
+    let netProfit = totalIncome - totalExpense;
+
+    document.getElementById('accTotalIncome').innerText = `NT$ ${totalIncome}`;
+    document.getElementById('accTotalExpense').innerText = `NT$ ${totalExpense}`;
+    let profitEl = document.getElementById('accNetProfit');
+    profitEl.innerText = `NT$ ${netProfit}`;
+    profitEl.style.color = netProfit >= 0 ? 'var(--primary-color)' : '#D9534F';
+
+    let html = "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>本月支出明細：</div>";
+    if(filteredExpenses.length === 0) {
+      html += "<div style='color:var(--text-sub); font-size:12px; margin-bottom:12px;'>本月尚無支出紀錄</div>";
+    } else {
+      filteredExpenses.forEach((e, idx) => {
+        let globalIdx = db.expenses.findIndex(x => x === e);
+        html += `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
+            <div>
+              <div style="font-weight:bold;">${e.name}</div>
+              <div style="color:var(--text-sub); font-size:11px;">${e.date}</div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:#D9534F; font-weight:bold;">-NT$ ${e.amount}</span>
+              <button class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteExpense(${globalIdx})">刪除</button>
+            </div>
+          </div>`;
+      });
+    }
+
+    html += "<div style='font-weight:bold; font-size:13px; margin: 12px 0 8px 0;'>本月預約收入明細：</div>";
+    let monthOrders = db.orders.filter(o => o.date && o.date.startsWith(selectedYM));
+    if(monthOrders.length === 0) {
+      html += "<div style='color:var(--text-sub); font-size:12px;'>本月尚無收入紀錄</div>";
+    } else {
+      monthOrders.forEach(o => {
+        html += `
+          <div style="background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-weight:bold;">${o.date} ${o.time} - ${o.name}</span>
+              <span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.totalPrice || 0}</span>
+            </div>
+            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${o.mainName}</div>
+          </div>`;
+      });
+    }
+
+    document.getElementById('adminAccountingDetails').innerHTML = html;
+  }
+
+  function openExpenseModal() {
+    document.getElementById('expName').value = "";
+    document.getElementById('expAmount').value = "";
+    let today = new Date().toISOString().split('T')[0];
+    document.getElementById('expDate').value = today;
+    document.getElementById('expenseModal').classList.add('active');
+  }
+
+  function closeExpenseModal() {
+    document.getElementById('expenseModal').classList.remove('active');
+  }
+
+  function saveExpenseItem() {
+    let name = document.getElementById('expName').value.trim();
+    let amount = Number(document.getElementById('expAmount').value);
+    let date = document.getElementById('expDate').value;
+
+    if(!name || !amount || !date) {
+      alert("請完整填寫支出名稱、金額與日期！");
+      return;
+    }
+
+    if(!db.expenses) db.expenses = [];
+    db.expenses.push({ name, amount, date });
+    saveData();
+    closeExpenseModal();
+    renderAdminAccounting();
+  }
+
+  function deleteExpense(idx) {
+    if(confirm("確定要刪除這筆支出紀錄嗎？")) {
+      db.expenses.splice(idx, 1);
+      saveData();
+      renderAdminAccounting();
+    }
   }
 
   function saveSettings() {
