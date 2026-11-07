@@ -117,86 +117,116 @@
   </div>
 
   <div id="clientView">
-    <div class="card">
-      <div class="card-title">🔍 查詢我的預約</div>
-      <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">輸入預約時的手機號碼即可查詢</div>
-      <div style="display: flex; gap: 8px;">
-        <input type="tel" id="searchPhoneInput" class="form-input" placeholder="請輸入手機號碼" autocomplete="off" style="flex:1;">
-        <button type="button" class="btn-submit" style="padding: 0 16px; border-radius: var(--radius-md); font-size: 13px;" onclick="clientSearchOrder()">查詢</button>
-      </div>
-      <div id="clientSearchResult" style="margin-top: 12px;"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">選擇服務項目 *</div>
-      <div id="clientServicesList"></div>
-    </div>
-
-    <div class="card" id="eyebrowBaseColorCard" style="display: none;">
-      <div class="card-title">眉毛有無底色 *</div>
-      <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-        <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowNone" onclick="selectEyebrowBase('無')">無底色</button>
-        <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowHas" onclick="selectEyebrowBase('有')">有底色</button>
-      </div>
-      <div id="eyebrowColorInputWrap" style="display: none; margin-top: 8px;">
-        <input type="text" id="eyebrowColorText" class="form-input" placeholder="請填寫眉毛現在什麼顏色" autocomplete="off" oninput="updateSummary()">
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">加購項目</div>
-      <div id="clientAddonsList"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">是否需要卸睫 *</div>
-      <div id="clientRemovalList"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">選擇日期與時段</div>
-      <div class="cal-header">
-        <button type="button" class="cal-btn" onclick="changeMonth(-1)">‹</button>
-        <span id="calMonthTitle" style="font-weight: bold; font-size: 14px;"></span>
-        <button type="button" class="cal-btn" onclick="changeMonth(1)">›</button>
-      </div>
-      <div class="cal-grid" id="calGrid"></div>
-      
-      <div style="margin-top: 16px; font-size: 13px; font-weight: 600;" id="selectedDateText">請選擇日期</div>
-      <div class="time-grid" id="timeGrid"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">填寫預約資料</div>
-      <div class="form-group">
-        <label>您的姓名 *</label>
-        <input type="text" id="custName" class="form-input" placeholder="請輸入姓名" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label>聯絡電話 *</label>
-        <input type="tel" id="custPhone" class="form-input" placeholder="請輸入手機號碼" autocomplete="off">
-      </div>
-      <div class="form-group">
-        <label>門口可直接停車 請選擇交通方式 *</label>
-        <div style="display: flex; gap: 8px; margin-top: 4px;" id="transportGroup">
-          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_moto" onclick="selectTransport('機車')">🛵 機車</button>
-          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_car" onclick="selectTransport('汽車')">🚗 汽車</button>
-          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_none" onclick="selectTransport('不需停車')">🚫 不需停車</button>
+    <!-- 第一頁：預約須知與注意事項 -->
+    <div id="stepNoticeView">
+      <div class="card">
+        <div class="card-title">⚠️ 重要請閱讀‼️</div>
+        <div style="font-size: 13px; line-height: 1.6; color: var(--text-main); margin-bottom: 14px;">
+          預約霧眉 ➡️ 選單請點<strong>「霧眉須知」</strong><br>
+          預約美睫 ➡️ 選單請點<strong>「美睫須知」</strong><br>
+          預約淡色 ➡️ 選單請點<strong>「無創淡色」</strong><br><br>
+          <span style="color: var(--primary-color); font-weight: bold;">「選單」在當前LINE畫面最下方✨🤍</span>
+        </div>
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
+        <div style="font-size: 13px; line-height: 1.6; color: var(--text-main);">
+          🅿️ <strong>汽/機車皆可停放門口</strong><br>
+          ❌ <strong>個人工作室 不開放攜伴</strong><br>
+          💰 <strong>支付方式：現金、轉帳</strong>
         </div>
       </div>
-      <div class="form-group">
-        <label>備註事項</label>
-        <input type="text" id="custNote" class="form-input" placeholder="例如：有無特殊需求或情況" autocomplete="off">
+      
+      <div style="padding: 0 4px; margin-top: 20px;">
+        <button type="button" class="btn-submit" style="width: 100%; padding: 14px; font-size: 15px; border-radius: var(--radius-md);" onclick="goToStepService()">下一步：選擇服務項目</button>
       </div>
     </div>
 
-    <div class="bottom-bar">
-      <div class="price-summary">
-        <div>定金合計：<span class="total" id="displayDeposit">NT$ 0</span></div>
-        <div style="font-size: 11px; margin-top: 2px;" id="displayTotal">總計：NT$ 0</div>
-        <div style="font-size: 11px; margin-top: 1px; color: var(--primary-color); font-weight: 600;" id="displayTime">施作總時間約 0 分鐘</div>
+    <!-- 第二頁開始：服務項目、時間、資料填寫 -->
+    <div id="stepBookingView" style="display: none;">
+      <div style="margin-bottom: 12px;">
+        <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="backToNotice()">‹ 返回閱讀預約須知</button>
       </div>
-      <button type="button" class="btn-submit" id="btnGoPay" onclick="openPayModal()" disabled>下一步：付款與確認</button>
+
+      <div class="card">
+        <div class="card-title">🔍 查詢我的預約</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">輸入預約時的手機號碼即可查詢</div>
+        <div style="display: flex; gap: 8px;">
+          <input type="tel" id="searchPhoneInput" class="form-input" placeholder="請輸入手機號碼" autocomplete="off" style="flex:1;">
+          <button type="button" class="btn-submit" style="padding: 0 16px; border-radius: var(--radius-md); font-size: 13px;" onclick="clientSearchOrder()">查詢</button>
+        </div>
+        <div id="clientSearchResult" style="margin-top: 12px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">選擇服務項目 *</div>
+        <div id="clientServicesList"></div>
+      </div>
+
+      <div class="card" id="eyebrowBaseColorCard" style="display: none;">
+        <div class="card-title">眉毛有無底色 *</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowNone" onclick="selectEyebrowBase('無')">無底色</button>
+          <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowHas" onclick="selectEyebrowBase('有')">有底色</button>
+        </div>
+        <div id="eyebrowColorInputWrap" style="display: none; margin-top: 8px;">
+          <input type="text" id="eyebrowColorText" class="form-input" placeholder="請填寫眉毛現在什麼顏色" autocomplete="off" oninput="updateSummary()">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">加購項目</div>
+        <div id="clientAddonsList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">是否需要卸睫 *</div>
+        <div id="clientRemovalList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">選擇日期與時段</div>
+        <div class="cal-header">
+          <button type="button" class="cal-btn" onclick="changeMonth(-1)">‹</button>
+          <span id="calMonthTitle" style="font-weight: bold; font-size: 14px;"></span>
+          <button type="button" class="cal-btn" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        
+        <div style="margin-top: 16px; font-size: 13px; font-weight: 600;" id="selectedDateText">請選擇日期</div>
+        <div class="time-grid" id="timeGrid"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">填寫預約資料</div>
+        <div class="form-group">
+          <label>您的姓名 *</label>
+          <input type="text" id="custName" class="form-input" placeholder="請輸入姓名" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>聯絡電話 *</label>
+          <input type="tel" id="custPhone" class="form-input" placeholder="請輸入手機號碼" autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label>門口可直接停車 請選擇交通方式 *</label>
+          <div style="display: flex; gap: 8px; margin-top: 4px;" id="transportGroup">
+            <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_moto" onclick="selectTransport('機車')">🛵 機車</button>
+            <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_car" onclick="selectTransport('汽車')">🚗 汽車</button>
+            <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="trans_none" onclick="selectTransport('不需停車')">🚫 不需停車</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>備註事項</label>
+          <input type="text" id="custNote" class="form-input" placeholder="例如：有無特殊需求或情況" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <div class="price-summary">
+          <div>定金合計：<span class="total" id="displayDeposit">NT$ 0</span></div>
+          <div style="font-size: 11px; margin-top: 2px;" id="displayTotal">總計：NT$ 0</div>
+          <div style="font-size: 11px; margin-top: 1px; color: var(--primary-color); font-weight: 600;" id="displayTime">施作總時間約 0 分鐘</div>
+        </div>
+        <button type="button" class="btn-submit" id="btnGoPay" onclick="openPayModal()" disabled>下一步：付款與確認</button>
+      </div>
     </div>
   </div>
 
@@ -497,6 +527,19 @@
     if(view === 'admin') renderAdmin(); else renderClient();
   }
 
+  // 步驟切換控制
+  function goToStepService() {
+    document.getElementById('stepNoticeView').style.display = 'none';
+    document.getElementById('stepBookingView').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function backToNotice() {
+    document.getElementById('stepBookingView').style.display = 'none';
+    document.getElementById('stepNoticeView').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
   function checkModalClose(event, modalId) {
     if(event.target.id === modalId) document.getElementById(modalId).classList.remove('active');
   }
@@ -710,7 +753,6 @@
   function closePayModal() { document.getElementById('payModal').classList.remove('active'); }
   function validatePayForm() { document.getElementById('btnSubmitPay').disabled = (document.getElementById('payLast5').value.trim().length !== 5); }
 
-  // 顧客完成預約，複製全新訊息內容
   function submitOrderAndNotify() {
     let last5 = document.getElementById('payLast5').value.trim();
     let name = document.getElementById('custName').value.trim();
@@ -865,7 +907,6 @@
     renderAdminTimeSlots();
   }
 
-  // 後台時段管理：補上「編輯按鈕」、同步精確預估時間、刪除時一併移除該預約訂單
   function renderAdminTimeSlots() {
     let slots = db.schedule[adminSelectedDate] || [], html = "";
     if(slots.length === 0) {
@@ -929,14 +970,12 @@
     if(!db.schedule[adminSelectedDate].includes(val)) { db.schedule[adminSelectedDate].push(val); db.schedule[adminSelectedDate].sort(); saveData(); renderAdminTimeSlots(); }
   }
 
-  // 編輯時段時間
   function editAdminTime(idx) {
     let oldTime = db.schedule[adminSelectedDate][idx];
     let newTime = prompt("請修改時段時間 (格式如 10:30)：", oldTime);
     if(newTime && newTime !== oldTime) {
       db.schedule[adminSelectedDate][idx] = newTime;
       db.schedule[adminSelectedDate].sort();
-      // 同步更新該時間的預約紀錄
       db.orders.forEach(o => {
         if(o.date === adminSelectedDate && o.time === oldTime) o.time = newTime;
       });
@@ -946,7 +985,6 @@
     }
   }
 
-  // 刪除時段：刪除時會同步清理該預約，讓 24h 不會再發送提醒
   function deleteAdminTime(idx) {
     let targetTime = db.schedule[adminSelectedDate][idx];
     if(confirm("確定要刪除這個時段嗎？（若該時段已被預約，刪除後將會一併取消該預約紀錄，不再進行提醒）")) {
