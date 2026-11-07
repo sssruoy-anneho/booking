@@ -18,12 +18,12 @@
       --radius-sm: 8px;
       --shadow: 0 4px 15px rgba(74, 59, 50, 0.05);
     }
-    /* 文青微圓字體 */
     * { 
       box-sizing: border-box; 
       margin: 0; 
       padding: 0; 
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Quicksand", "Microsoft JhengHei", sans-serif; 
+      -webkit-tap-highlight-color: transparent; /* 移除手機點擊藍色陰影框 */
     }
     body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 12px; }
     .app-container { width: 100%; max-width: 480px; background: var(--bg-main); min-height: 100vh; position: relative; padding-bottom: 90px; }
@@ -33,16 +33,15 @@
     .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
     .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
     
-    /* 按鈕點擊變色回饋效果 */
-    .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: all 0.15s ease; background-color: #fff; }
-    .item-option:active { transform: scale(0.98); }
-    .item-option.selected { border-color: var(--primary-color); background-color: #F8F3EC; }
+    /* 改進的按鈕點擊變色：點擊時變成溫潤米白色，無奇怪長方形框 */
+    .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; background-color: #fff; }
+    .item-option:active { background-color: #F4EBE1; }
+    .item-option.selected { border-color: var(--primary-color); background-color: #F4EBE1; }
     .item-info .title { font-size: 14px; font-weight: 600; }
     .item-info .desc { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
     .item-info .subtitle { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
     .item-price { font-weight: 600; color: var(--primary-color); font-size: 14px; text-align: right; }
     
-    /* 修正輸入框自動填入變黃的問題 */
     input:-webkit-autofill,
     input:-webkit-autofill:hover, 
     input:-webkit-autofill:focus {
@@ -55,16 +54,16 @@
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 13px; }
     .cal-day-label { font-weight: 600; color: var(--text-sub); padding-bottom: 6px; }
     .cal-day { padding: 10px 0; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; background: var(--input-bg); transition: background 0.15s; }
-    .cal-day:active { background: #e2d9cd; }
+    .cal-day:active { background: #E8DFD3; }
     .cal-day.empty { background: transparent; cursor: default; }
     .cal-day.selected { background: var(--primary-color); color: #fff; font-weight: bold; }
     .cal-day.disabled { opacity: 0.3; cursor: not-allowed; }
     
     .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
     .time-btn { padding: 10px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); background: #fff; text-align: center; font-size: 13px; cursor: pointer; color: var(--text-main); position: relative; transition: all 0.15s; }
-    .time-btn:active { transform: scale(0.97); }
+    .time-btn:active { background: #F4EBE1; }
     .time-btn.selected { border-color: var(--primary-color); background: var(--primary-color); color: #fff; }
-    .time-btn.booked { background: #f2ede4; color: #8c7c73; border-color: #dcd6ce; cursor: not-allowed; font-size: 11px; }
+    .time-btn.booked { background: #f2ede4; color: #8c7c73; border-color: #dcd6ce; cursor: pointer; font-size: 12px; font-weight: 500; }
 
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
@@ -210,6 +209,7 @@
       </div>
     </div>
 
+    <!-- 設定預約時段 (支援點擊已預約時段展開詳細資料) -->
     <div id="adminTabSchedule" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">設定日期與開放時段</div>
@@ -305,7 +305,7 @@
   </div>
 </div>
 
-<!-- 轉帳付款 Modal (更新後的權益與退定說明) -->
+<!-- 轉帳付款 Modal -->
 <div class="modal-overlay" id="payModal" onclick="checkModalClose(event, 'payModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 style="color: var(--primary-color); margin-bottom: 12px;">轉帳支付定金</h3>
@@ -379,7 +379,7 @@
   </div>
 </div>
 
-<!-- 新增記帳 (收入/支出) Modal -->
+<!-- 新增記帳 Modal -->
 <div class="modal-overlay" id="expenseModal" onclick="checkModalClose(event, 'expenseModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="expenseModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增記帳紀錄</h3>
@@ -437,6 +437,7 @@
   let adminYear = currentYear, adminMonth = currentMonth;
   let selectedDateStr = "", selectedTime = "", selectedMainId = "", selectedAddonIds = [], selectedRemovalId = "", selectedTransportMode = "";
   let currentAccTab = 'income', currentExpModalType = 'expense', expandedCustomerName = null;
+  let expandedAdminTimeSlot = null;
 
   window.onload = function() { initScheduleDefault(); renderClient(); initAccountingSelectors(); };
 
@@ -636,7 +637,7 @@
     if(db.schedule[selectedDateStr]) db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
     saveData(); closePayModal();
 
-    let fullMsg = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}\n\n-------------------\n🤍 請幫我閱讀以下內容 🤍`;
+    let fullMsg = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}\n\n-------------------\n🤍 請幫我閱讀以下內容 🤍`;
     
     navigator.clipboard.writeText(fullMsg).then(() => {
       alert("預約資料已自動複製！即將前往官方 LINE，請在聊天室「貼上」傳送給店家哦！");
@@ -746,7 +747,8 @@
   }
 
   function selectAdminDate(dateKey) {
-    adminSelectedDate = dateKey; renderCalendar(adminYear, adminMonth, 'admin');
+    adminSelectedDate = dateKey; expandedAdminTimeSlot = null;
+    renderCalendar(adminYear, adminMonth, 'admin');
     document.getElementById('adminDateScheduleArea').style.display = 'block';
     document.getElementById('adminSelectedDateTitle').innerText = `修改 ${dateKey} 開放時段：`;
     renderAdminTimeSlots();
@@ -754,16 +756,51 @@
 
   function renderAdminTimeSlots() {
     let slots = db.schedule[adminSelectedDate] || [], html = "";
-    if(slots.length === 0) html = "<div style='color:var(--text-sub); font-size:13px;'>當日無開放時段</div>";
-    else {
+    if(slots.length === 0) {
+      html = "<div style='color:var(--text-sub); font-size:13px;'>當日無開放時段</div>";
+    } else {
       slots.forEach((t, idx) => {
         let bookedOrder = db.orders.find(o => o.date === adminSelectedDate && o.time === t);
-        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 12px; border-radius:8px; margin-bottom:6px;">
-          <span style="font-size:13px;"><b>${t}</b>${bookedOrder ? ` <span style="color:#D9534F; font-weight:bold;">(已預約：${bookedOrder.name})</span>` : ''}</span>
-          <button class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button></div>`;
+        let isExpanded = (expandedAdminTimeSlot === t);
+
+        if(bookedOrder) {
+          let detailHtml = "";
+          if(isExpanded) {
+            detailHtml = `
+              <div style="background:#fff; padding:10px; border-radius:8px; margin-top:8px; border:1px solid var(--border-color); font-size:12px; line-height:1.6;">
+                <div>👤 <strong>顧客姓名：</strong>${bookedOrder.name} (${bookedOrder.phone})</div>
+                <div>✨ <strong>預約主項目：</strong>${bookedOrder.mainName}</div>
+                <div>➕ <strong>加購項目：</strong>${bookedOrder.addons.join(', ') || '無'}</div>
+                <div>👁️ <strong>卸睫部分：</strong>${bookedOrder.removal}</div>
+                <div>💰 <strong>支付定金：</strong>NT$ ${bookedOrder.deposit} (末五碼: ${bookedOrder.last5})</div>
+                <div style="color:#D9534F; font-weight:bold;">⏱️ 預估總時間：約 ${bookedOrder.totalTime || 60} 分鐘</div>
+                <div>🛵 <strong>交通工具：</strong>${bookedOrder.transport}</div>
+              </div>`;
+          }
+
+          html += `
+            <div style="background:var(--input-bg); padding:10px 12px; border-radius:8px; margin-bottom:6px; border: 1.5px solid #dcd3c7;">
+              <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAdminTimeExpand('${t}')">
+                <span style="font-size:13px; color:#D9534F; font-weight:bold;">📅 ${t} (已預約：${bookedOrder.name}) ${isExpanded ? '▲' : '▼'}</span>
+                <button class="btn-danger" onclick="event.stopPropagation(); deleteAdminTime(${idx})">刪除</button>
+              </div>
+              ${detailHtml}
+            </div>`;
+        } else {
+          html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 12px; border-radius:8px; margin-bottom:6px;">
+              <span style="font-size:13px;"><b>${t}</b> (可預約)</span>
+              <button class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button>
+            </div>`;
+        }
       });
     }
     document.getElementById('adminTimeSlotsList').innerHTML = html;
+  }
+
+  function toggleAdminTimeExpand(timeStr) {
+    expandedAdminTimeSlot = (expandedAdminTimeSlot === timeStr ? null : timeStr);
+    renderAdminTimeSlots();
   }
 
   function addCustomTime() {
@@ -773,7 +810,13 @@
     if(!db.schedule[adminSelectedDate].includes(val)) { db.schedule[adminSelectedDate].push(val); db.schedule[adminSelectedDate].sort(); saveData(); renderAdminTimeSlots(); }
   }
 
-  function deleteAdminTime(idx) { db.schedule[adminSelectedDate].splice(idx, 1); saveData(); renderAdminTimeSlots(); }
+  function deleteAdminTime(idx) {
+    if(confirm("確定要刪除這個時段嗎？")) {
+      db.schedule[adminSelectedDate].splice(idx, 1);
+      saveData();
+      renderAdminTimeSlots();
+    }
+  }
 
   function renderAdminOrders() {
     let html = "";
@@ -784,6 +827,7 @@
           <div style="font-weight:bold; font-size:14px; color:var(--primary-color);">${o.date} ${o.time}</div>
           <div><strong>姓名：</strong>${o.name} (${o.phone})</div><div><strong>主項目：</strong>${o.mainName}</div>
           <div><strong>加購：</strong>${o.addons.join(', ') || '無'}</div><div><strong>卸睫：</strong>${o.removal}</div>
+          <div><strong>預估時間：</strong>約 ${o.totalTime || 60} 分鐘</div>
           <div><strong>交通：</strong>${o.transport}</div><div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
           <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約時間：${o.createdAt}</div></div>`;
       });
@@ -815,7 +859,7 @@
             visitsHtml += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:8px; font-size:12px; line-height:1.5;">
               <div style="font-weight:bold; color:var(--primary-color);">📅 ${v.date} ${v.time}</div>
               <div><strong>主項目：</strong>${v.mainName}</div><div><strong>加購：</strong>${v.addons.join(',') || '無'}</div>
-              <div><strong>卸睫：</strong>${v.removal}</div><div><strong>交通：</strong>${v.transport}</div>
+              <div><strong>卸睫：</strong>${v.removal}</div><div><strong>預估時間：</strong>約 ${v.totalTime || 60} 分鐘</div>
               <div style="color:#D9534F; font-weight:bold; margin-top:2px;">該次消費總金額：NT$ ${v.totalPrice || 0} (定金 $${v.deposit})</div></div>`;
           });
         }
