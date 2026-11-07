@@ -33,7 +33,6 @@
     .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
     .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
     
-    /* 極速點擊反應與色彩回饋 */
     .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background-color 0.1s ease, border-color 0.1s ease, transform 0.05s ease; background-color: #fff; }
     .item-option:active { background-color: #F4EBE1; transform: scale(0.99); }
     .item-option.selected { border-color: var(--primary-color); background-color: #F4EBE1; }
@@ -118,7 +117,6 @@
   </div>
 
   <div id="clientView">
-    <!-- 查詢我的預約卡片 (已移除自助改期) -->
     <div class="card">
       <div class="card-title">🔍 查詢我的預約</div>
       <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">輸入預約時的手機號碼即可查詢</div>
@@ -134,7 +132,6 @@
       <div id="clientServicesList"></div>
     </div>
 
-    <!-- 眉毛底色選擇區 -->
     <div class="card" id="eyebrowBaseColorCard" style="display: none;">
       <div class="card-title">眉毛有無底色 *</div>
       <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -713,6 +710,7 @@
   function closePayModal() { document.getElementById('payModal').classList.remove('active'); }
   function validatePayForm() { document.getElementById('btnSubmitPay').disabled = (document.getElementById('payLast5').value.trim().length !== 5); }
 
+  // 顧客完成預約，複製全新訊息內容
   function submitOrderAndNotify() {
     let last5 = document.getElementById('payLast5').value.trim();
     let name = document.getElementById('custName').value.trim();
@@ -745,8 +743,10 @@
     if(db.schedule[selectedDateStr]) db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
     saveData(); closePayModal();
 
-    let fullMsg = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}${eyebrowBaseText?`\n眉毛底色：${eyebrowBaseText}`:''}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}`;
+    let mainProjectStr = mainItem.name + (eyebrowBaseText ? ` (${eyebrowBaseText})` : '');
     
+    let fullMsg = `感謝您的信任及預約\n期待為您服務✨🤍\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainProjectStr}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}\n\n-\n\n⚠️重要請閱讀‼️\n\n預約霧眉 ➡️ 選單請點「霧眉須知」\n預約美睫 ➡️ 選單請點「美睫須知」\n預約淡色 ➡️ 選單請點「無創淡色」\n\n「選單」在當前LINE畫面最下方✨🤍\n\n-\n\n🅿️汽/機車皆可停放門口\n❌個人工作室 不開放攜伴\n💰支付方式：現金、轉帳`;
+
     navigator.clipboard.writeText(fullMsg).then(() => {
       alert("預約資料已自動複製！即將前往官方 LINE，請在聊天室「貼上」傳送給店家哦！");
       window.location.href = "https://lin.ee/VSCbEG1";
@@ -865,6 +865,7 @@
     renderAdminTimeSlots();
   }
 
+  // 後台時段管理：補上「編輯按鈕」、同步精確預估時間、刪除時一併移除該預約訂單
   function renderAdminTimeSlots() {
     let slots = db.schedule[adminSelectedDate] || [], html = "";
     if(slots.length === 0) {
@@ -894,7 +895,10 @@
             <div style="background:var(--input-bg); padding:10px 12px; border-radius:8px; margin-bottom:6px; border: 1.5px solid #dcd3c7;">
               <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAdminTimeExpand('${t}')">
                 <span style="font-size:13px; color:#D9534F; font-weight:bold;">${t} (已預約：${escapeHtml(bookedOrder.name)}) ${isExpanded ? '▲' : '▼'}</span>
-                <button type="button" class="btn-danger" onclick="event.stopPropagation(); deleteAdminTime(${idx})">刪除</button>
+                <div style="display:flex; gap:4px;">
+                  <button type="button" class="btn-secondary" onclick="event.stopPropagation(); editAdminTime(${idx})">編輯</button>
+                  <button type="button" class="btn-danger" onclick="event.stopPropagation(); deleteAdminTime(${idx})">刪除</button>
+                </div>
               </div>
               ${detailHtml}
             </div>`;
@@ -902,7 +906,10 @@
           html += `
             <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 12px; border-radius:8px; margin-bottom:6px;">
               <span style="font-size:13px;"><b>${t}</b> (可預約)</span>
-              <button type="button" class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button>
+              <div style="display:flex; gap:4px;">
+                <button type="button" class="btn-secondary" onclick="editAdminTime(${idx})">編輯</button>
+                <button type="button" class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button>
+              </div>
             </div>`;
         }
       });
@@ -922,11 +929,32 @@
     if(!db.schedule[adminSelectedDate].includes(val)) { db.schedule[adminSelectedDate].push(val); db.schedule[adminSelectedDate].sort(); saveData(); renderAdminTimeSlots(); }
   }
 
-  function deleteAdminTime(idx) {
-    if(confirm("確定要刪除這個時段嗎？")) {
-      db.schedule[adminSelectedDate].splice(idx, 1);
+  // 編輯時段時間
+  function editAdminTime(idx) {
+    let oldTime = db.schedule[adminSelectedDate][idx];
+    let newTime = prompt("請修改時段時間 (格式如 10:30)：", oldTime);
+    if(newTime && newTime !== oldTime) {
+      db.schedule[adminSelectedDate][idx] = newTime;
+      db.schedule[adminSelectedDate].sort();
+      // 同步更新該時間的預約紀錄
+      db.orders.forEach(o => {
+        if(o.date === adminSelectedDate && o.time === oldTime) o.time = newTime;
+      });
       saveData();
       renderAdminTimeSlots();
+      renderAdminOrders();
+    }
+  }
+
+  // 刪除時段：刪除時會同步清理該預約，讓 24h 不會再發送提醒
+  function deleteAdminTime(idx) {
+    let targetTime = db.schedule[adminSelectedDate][idx];
+    if(confirm("確定要刪除這個時段嗎？（若該時段已被預約，刪除後將會一併取消該預約紀錄，不再進行提醒）")) {
+      db.schedule[adminSelectedDate].splice(idx, 1);
+      db.orders = db.orders.filter(o => !(o.date === adminSelectedDate && o.time === targetTime));
+      saveData();
+      renderAdminTimeSlots();
+      renderAdminOrders();
     }
   }
 
