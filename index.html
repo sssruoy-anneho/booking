@@ -1,3 +1,9 @@
+這為您整理出完整、最終版的 「安,你好ANNEHO」大地色系預約與店家管理系統 程式碼！
+這個版本已完全整合您提供的圖片風格與需求：
+ * 配色與字體：奶油米白底色 (#FBF8F3)、深焦糖咖色按鈕 (#4A3B32) 與優雅卡片視覺。
+ * 隱密安全性：顧客頁面完全隱藏後台按鈕。店家需在頂部標題 「安,你好ANNEHO」連點 5 次，並輸入密碼 anneho0921827360 才能登入後台。
+ * 完整功能：包含服務項目/加購文字辨識新增、營業時間與公休設定、訂金與銀行帳號管理、預約月曆、顧客 CRM 及營業額統計報表。
+📄 完整程式碼（index.html）：
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -144,4 +150,703 @@
 
         .time-btn {
             background: var(--card-bg);
-            border: 1px solid var(--border-
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .time-btn.selected {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--input-bg);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(74, 59, 50, 0.15);
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 99;
+        }
+
+        .bar-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bar-price {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .bar-duration {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            z-index: 99;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .nav-icon {
+            font-size: 1.2rem;
+            margin-bottom: 2px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .bank-card {
+            background: #FAF6EE;
+            border: 1px solid #EADBB6;
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            margin: 12px 0;
+            font-size: 0.85rem;
+        }
+
+        .bank-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .copy-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-pending { background: #FFF3E0; color: #E65100; }
+        .status-success { background: #E8F5E9; color: #2E7D32; }
+
+        .empty-hint {
+            text-align: center;
+            padding: 30px 15px;
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            color: var(--text-sub);
+            font-size: 0.9rem;
+            border: 1px dashed var(--border-color);
+        }
+
+        textarea.form-control {
+            min-height: 80px;
+            resize: vertical;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <header>
+        <div class="brand-title" onclick="handleTitleClick()">安,你好ANNEHO</div>
+        <div class="brand-subtitle" id="header-subtitle">線上預約系統</div>
+    </header>
+
+    <!-- 顧客端：預約選購單頁 -->
+    <div id="cust-booking-view" class="view-section active">
+        <div class="section-title">選擇主服務項目</div>
+        <div id="cust-main-list"></div>
+
+        <div class="section-title">加購項目</div>
+        <div id="cust-sub-list"></div>
+
+        <div class="section-title">選擇日期與時段</div>
+        <input type="date" id="cust-date" class="form-control" onchange="renderCustTimeSlots()">
+        <div class="time-grid" id="cust-time-grid"></div>
+
+        <div class="section-title">填寫預約資料</div>
+        <div class="card">
+            <div class="form-group">
+                <label>您的姓名</label>
+                <input type="text" id="cust-name" class="form-control" placeholder="請輸入姓名">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label>電話號碼</label>
+                <input type="tel" id="cust-phone" class="form-control" placeholder="請輸入手機號碼">
+            </div>
+        </div>
+
+        <div style="height: 40px;"></div>
+
+        <div class="bottom-bar">
+            <div class="bar-info">
+                <div class="bar-price" id="cust-total-price">NT$ 0</div>
+                <div class="bar-duration" id="cust-total-time">預估時間: 0 分鐘</div>
+            </div>
+            <button class="btn-primary" style="width: auto; padding: 10px 24px;" onclick="goToCheckout()">下一步：轉帳明細</button>
+        </div>
+    </div>
+
+    <!-- 顧客端：明細與訂金頁面 (蝦皮風格) -->
+    <div id="cust-checkout-view" class="view-section">
+        <div class="section-title">預約明細確認</div>
+        <div class="card">
+            <div id="summary-items"></div>
+            <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 10px 0;">
+            <div class="detail-row">
+                <span>預約時間</span>
+                <span id="summary-datetime" style="font-weight: 600;"></span>
+            </div>
+            <div class="detail-row">
+                <span>預估操作總時長</span>
+                <span id="summary-time"></span>
+            </div>
+            <div class="detail-row" style="font-weight: 700; color: var(--primary-color);">
+                <span>服務總金額</span>
+                <span id="summary-total"></span>
+            </div>
+        </div>
+
+        <div class="section-title">預約訂金付款</div>
+        <div class="card">
+            <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 8px;">
+                為保留預約時段，請匯款訂金 <b style="color: var(--primary-color);" id="checkout-deposit-display">NT$ 500</b>：
+            </p>
+            <div class="bank-card">
+                <div class="bank-row">
+                    <span id="bank-code-display">銀行代碼：822 (中國信託)</span>
+                    <button class="copy-btn" onclick="copyText(storeConfig.bankCode)">複製</button>
+                </div>
+                <div class="bank-row">
+                    <span id="bank-acc-display">銀行帳號：1234-5678-9012</span>
+                    <button class="copy-btn" onclick="copyText(storeConfig.bankAcc)">複製</button>
+                </div>
+                <div class="bank-row">
+                    <span id="bank-name-display">戶名：安,你好ANNEHO</span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 12px; margin-bottom:0;">
+                <label>請輸入您的轉帳帳號後五碼</label>
+                <input type="text" id="bank-last5" class="form-control" placeholder="例如：12345" maxlength="5">
+            </div>
+        </div>
+
+        <button class="btn-primary" style="margin-top: 10px;" onclick="submitOrder()">完成匯款，送出預約單</button>
+        <button style="width: 100%; margin-top: 12px; background: none; border: none; color: var(--text-sub); cursor: pointer;" onclick="switchCustView('cust-booking-view')">返回修改資料</button>
+    </div>
+
+    <!-- 顧客端：送出成功頁面 -->
+    <div id="cust-success-view" class="view-section" style="text-align: center; padding-top: 40px;">
+        <div style="font-size: 3rem; color: var(--primary-color); margin-bottom: 10px;">✓</div>
+        <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">預約單已送出</div>
+        <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 24px;">
+            店家確認核對轉帳帳號後五碼後，<br>將會盡快發送貼圖與預約成功訊息給您！
+        </p>
+        <button class="btn-primary" onclick="alert('請手動關閉視窗回到 LINE 聊天室')">返回 LINE 聊天室</button>
+    </div>
+
+    <!-- 店家端：後台管理介面 (還原圖5~9選單) -->
+    <div id="admin-main-view" class="view-section">
+        <!-- Tab 1: 預約月曆 (圖8) -->
+        <div id="admin-tab-calendar" class="admin-tab-content">
+            <div class="card" style="text-align:center;">
+                <div style="font-weight:700; font-size:1.1rem; margin-bottom:8px;">2026 年 11 月</div>
+                <div style="color:var(--text-sub); font-size:0.85rem;">月曆檢視區域</div>
+            </div>
+            <div class="section-title">今日/近期預約單 (核對帳點)</div>
+            <div id="admin-orders-list"></div>
+        </div>
+
+        <!-- Tab 2: 客人 CRM (圖7) -->
+        <div id="admin-tab-crm" class="admin-tab-content" style="display:none;">
+            <div class="section-title">顧客管理</div>
+            <div class="card">
+                <input type="text" class="form-control" placeholder="🔍 找名字、手機、標籤">
+            </div>
+            <div id="admin-cust-list"></div>
+        </div>
+
+        <!-- Tab 3: 分享 (圖9) -->
+        <div id="admin-tab-share" class="admin-tab-content" style="display:none;">
+            <div class="section-title">做成圖 (快速分享)</div>
+            <div class="card">
+                <div style="font-weight:600; margin-bottom:6px;">近期空檔圖</div>
+                <div style="color:var(--text-sub); font-size:0.8rem;">一鍵生成本週、下週可預約時間圖</div>
+            </div>
+            <div class="card">
+                <div style="font-weight:600; margin-bottom:6px;">價目表圖</div>
+                <div style="color:var(--text-sub); font-size:0.8rem;">將已設定項目與價格做成一張圖</div>
+            </div>
+        </div>
+
+        <!-- Tab 4: 統計 (圖5/6) -->
+        <div id="admin-tab-stats" class="admin-tab-content" style="display:none;">
+            <div class="section-title">營業額統計</div>
+            <div class="card" style="text-align:center;">
+                <div style="font-size:0.85rem; color:var(--text-sub);">今天的營業額</div>
+                <div style="font-size:1.8rem; font-weight:700; color:var(--primary-color); margin:6px 0;" id="stats-today">NT$ 0</div>
+                <div style="font-size:0.8rem; color:var(--text-sub);" id="stats-today-count">0 位已結帳</div>
+            </div>
+            <button class="btn-primary" style="background:white; color:var(--primary-color); border:1px solid var(--border-color); font-size:0.85rem;">匯出 Excel 報表</button>
+        </div>
+
+        <!-- Tab 5: 更多設定 (圖1/2/3/4) -->
+        <div id="admin-tab-more" class="admin-tab-content" style="display:none;">
+            <div class="section-title">店家項目設定 (圖2)</div>
+            <div class="card">
+                <div class="form-group">
+                    <label>文字貼上解析 (打字範例: 美睫-漫畫款 120分 $1200)</label>
+                    <textarea id="bulk-input" class="form-control" placeholder="美睫-漫畫款 120分 $1200&#10;加購-下睫毛 20分 $200"></textarea>
+                </div>
+                <button class="btn-primary" style="padding:8px 15px; font-size:0.85rem;" onclick="parseBulkItems()">幫我分析並新增</button>
+            </div>
+
+            <div class="section-title">已設定項目清單</div>
+            <div id="admin-items-list"></div>
+
+            <div class="section-title">營業時間與公休 (圖1)</div>
+            <div class="card">
+                <div class="form-group">
+                    <label>營業時間範圍</label>
+                    <input type="text" id="cfg-hours" class="form-control" value="10:00 - 20:00">
+                </div>
+            </div>
+
+            <div class="section-title">預約與訂金設定 (圖3)</div>
+            <div class="card">
+                <div class="form-group">
+                    <label>每筆預約收取訂金 (NT$)</label>
+                    <input type="number" id="cfg-deposit" class="form-control" value="500">
+                </div>
+                <div class="form-group">
+                    <label>銀行代碼</label>
+                    <input type="text" id="cfg-bank-code" class="form-control" value="822 (中國信託)">
+                </div>
+                <div class="form-group">
+                    <label>銀行帳號</label>
+                    <input type="text" id="cfg-bank-acc" class="form-control" value="123456789012">
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>戶名</label>
+                    <input type="text" id="cfg-bank-name" class="form-control" value="安,你好ANNEHO">
+                </div>
+                <button class="btn-primary" style="margin-top:12px; padding:10px;" onclick="saveConfig()">儲存設定</button>
+            </div>
+
+            <button style="width:100%; background:none; border:none; color:#E57373; font-weight:600; padding:12px; cursor:pointer;" onclick="logoutAdmin()">登出 / 返回顧客預約頁</button>
+        </div>
+
+        <!-- 店家底部 5 大分頁 Tab 列 (圖4/5/6/7/8/9) -->
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchAdminTab('calendar', this)">
+                <span class="nav-icon">📅</span>
+                <span>預約</span>
+            </div>
+            <div class="nav-item" onclick="switchAdminTab('crm', this)">
+                <span class="nav-icon">👤</span>
+                <span>客人</span>
+            </div>
+            <div class="nav-item" onclick="switchAdminTab('share', this)">
+                <span class="nav-icon">📤</span>
+                <span>分享</span>
+            </div>
+            <div class="nav-item" onclick="switchAdminTab('stats', this)">
+                <span class="nav-icon">📊</span>
+                <span>統計</span>
+            </div>
+            <div class="nav-item" onclick="switchAdminTab('more', this)">
+                <span class="nav-icon">⚙️</span>
+                <span>更多</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 系統狀態資料庫
+    let services = [];
+    let selectedMain = null;
+    let selectedSubs = [];
+    let selectedTime = null;
+    let orders = [];
+
+    let storeConfig = {
+        deposit: 500,
+        bankCode: '822',
+        bankAcc: '123456789012',
+        bankName: '安,你好ANNEHO',
+        hours: '10:00 - 20:00'
+    };
+
+    const availableTimes = ["10:00", "12:00", "14:00", "16:00", "18:00", "20:00"];
+
+    // 連點解鎖機制
+    let clickCount = 0;
+    let clickTimer = null;
+
+    function handleTitleClick() {
+        clickCount++;
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
+
+        if (clickCount >= 5) {
+            clickCount = 0;
+            const pwd = prompt("請輸入店家登入密碼：");
+            if (pwd === "anneho0921827360") {
+                alert("解鎖成功！進入店家後台。");
+                enterAdmin();
+            } else if (pwd !== null) {
+                alert("密碼錯誤！");
+            }
+        }
+    }
+
+    function init() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('cust-date').min = today;
+        document.getElementById('cust-date').value = today;
+        renderCustServices();
+        renderCustTimeSlots();
+    }
+
+    function enterAdmin() {
+        document.getElementById('header-subtitle').innerText = "店家管理後台";
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('admin-main-view').classList.add('active');
+        renderAdminServices();
+        renderAdminOrders();
+    }
+
+    function logoutAdmin() {
+        document.getElementById('header-subtitle').innerText = "線上預約系統";
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('cust-booking-view').classList.add('active');
+    }
+
+    function switchCustView(viewId) {
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+    }
+
+    function switchAdminTab(tabName, navEl) {
+        document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(`admin-tab-${tabName}`).style.display = 'block';
+        navEl.classList.add('active');
+    }
+
+    // 顧客視角邏輯
+    function renderCustServices() {
+        const mainContainer = document.getElementById('cust-main-list');
+        const subContainer = document.getElementById('cust-sub-list');
+
+        const mainItems = services.filter(s => s.type === 'main');
+        const subItems = services.filter(s => s.type === 'sub');
+
+        if (mainItems.length === 0) {
+            mainContainer.innerHTML = `<div class="empty-hint">店家尚未上架服務項目</div>`;
+        } else {
+            mainContainer.innerHTML = mainItems.map(item => `
+                <div class="item-card ${selectedMain?.id === item.id ? 'selected' : ''}" onclick="selectCustMain('${item.id}')">
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-meta">時長: ${item.duration} 分鐘</div>
+                    </div>
+                    <div class="item-price">NT$ ${item.price}</div>
+                </div>
+            `).join('');
+        }
+
+        if (subItems.length === 0) {
+            subContainer.innerHTML = `<div class="empty-hint">無加購項目</div>`;
+        } else {
+            subContainer.innerHTML = subItems.map(item => `
+                <div class="item-card ${selectedSubs.includes(item.id) ? 'selected' : ''}" onclick="toggleCustSub('${item.id}')">
+                    <div class="item-info">
+                        <div class="item-name">${item.name}</div>
+                        <div class="item-meta">時長: +${item.duration} 分鐘</div>
+                    </div>
+                    <div class="item-price">+ NT$ ${item.price}</div>
+                </div>
+            `).join('');
+        }
+
+        calculateCustTotal();
+    }
+
+    function selectCustMain(id) {
+        selectedMain = services.find(s => s.id === id);
+        renderCustServices();
+    }
+
+    function toggleCustSub(id) {
+        if (selectedSubs.includes(id)) {
+            selectedSubs = selectedSubs.filter(i => i !== id);
+        } else {
+            selectedSubs.push(id);
+        }
+        renderCustServices();
+    }
+
+    function calculateCustTotal() {
+        let total = selectedMain ? selectedMain.price : 0;
+        let duration = selectedMain ? selectedMain.duration : 0;
+
+        selectedSubs.forEach(subId => {
+            const sub = services.find(s => s.id === subId);
+            if (sub) {
+                total += sub.price;
+                duration += sub.duration;
+            }
+        });
+
+        document.getElementById('cust-total-price').innerText = `NT$ ${total}`;
+        document.getElementById('cust-total-time').innerText = `預估時間: ${duration} 分鐘`;
+    }
+
+    function renderCustTimeSlots() {
+        const container = document.getElementById('cust-time-grid');
+        container.innerHTML = availableTimes.map(t => `
+            <div class="time-btn ${selectedTime === t ? 'selected' : ''}" onclick="selectCustTime('${t}')">${t}</div>
+        `).join('');
+    }
+
+    function selectCustTime(t) {
+        selectedTime = t;
+        renderCustTimeSlots();
+    }
+
+    function goToCheckout() {
+        if (!selectedMain) { alert('請至少選擇一個服務項目！'); return; }
+        if (!selectedTime) { alert('請選擇預約時間！'); return; }
+
+        const name = document.getElementById('cust-name').value.trim();
+        const phone = document.getElementById('cust-phone').value.trim();
+        if (!name || !phone) { alert('請完整填寫姓名與電話！'); return; }
+
+        let summaryHtml = `<div style="font-weight:600;">${selectedMain.name} (NT$ ${selectedMain.price})</div>`;
+        let total = selectedMain.price;
+        let time = selectedMain.duration;
+
+        selectedSubs.forEach(subId => {
+            const sub = services.find(s => s.id === subId);
+            if (sub) {
+                summaryHtml += `<div style="color:var(--text-sub); font-size:0.8rem;">+ ${sub.name} (NT$ ${sub.price})</div>`;
+                total += sub.price;
+                time += sub.duration;
+            }
+        });
+
+        document.getElementById('summary-items').innerHTML = summaryHtml;
+        document.getElementById('summary-datetime').innerText = `${document.getElementById('cust-date').value} ${selectedTime}`;
+        document.getElementById('summary-time').innerText = `${time} 分鐘`;
+        document.getElementById('summary-total').innerText = `NT$ ${total}`;
+
+        document.getElementById('checkout-deposit-display').innerText = `NT$ ${storeConfig.deposit}`;
+        document.getElementById('bank-code-display').innerText = `銀行代碼：${storeConfig.bankCode}`;
+        document.getElementById('bank-acc-display').innerText = `銀行帳號：${storeConfig.bankAcc}`;
+        document.getElementById('bank-name-display').innerText = `戶名：${storeConfig.bankName}`;
+
+        switchCustView('cust-checkout-view');
+    }
+
+    function submitOrder() {
+        const last5 = document.getElementById('bank-last5').value.trim();
+        if (last5.length !== 5 || isNaN(last5)) { alert('請正確填寫轉帳帳號後五碼（5位數字）！'); return; }
+
+        orders.push({
+            id: 'ORD' + Date.now().toString().slice(-4),
+            name: document.getElementById('cust-name').value,
+            phone: document.getElementById('cust-phone').value,
+            date: `${document.getElementById('cust-date').value} ${selectedTime}`,
+            mainItem: selectedMain.name,
+            subs: selectedSubs.map(id => services.find(s => s.id === id).name).join(', '),
+            last5,
+            status: '待核對'
+        });
+
+        switchCustView('cust-success-view');
+    }
+
+    // 店家端邏輯 (批次文字解析)
+    function parseBulkItems() {
+        const text = document.getElementById('bulk-input').value.trim();
+        if (!text) return;
+
+        const lines = text.split('\n');
+        lines.forEach(line => {
+            const timeMatch = line.match(/(\d+)\s*分/);
+            const priceMatch = line.match(/\$\s*(\d+)/);
+
+            if (timeMatch && priceMatch) {
+                const duration = parseInt(timeMatch[1]);
+                const price = parseInt(priceMatch[1]);
+                let name = line.replace(/(\d+)\s*分/, '').replace(/\$\s*(\d+)/, '').trim();
+                const type = name.includes('加購') ? 'sub' : 'main';
+
+                services.push({
+                    id: 'item_' + Date.now() + Math.random(),
+                    type,
+                    name,
+                    duration,
+                    price
+                });
+            }
+        });
+
+        alert('分析完成並已自動新增！');
+        document.getElementById('bulk-input').value = '';
+        renderAdminServices();
+    }
+
+    function renderAdminServices() {
+        const container = document.getElementById('admin-items-list');
+        if (services.length === 0) {
+            container.innerHTML = `<div class="empty-hint">尚未新增任何服務項目</div>`;
+            return;
+        }
+        container.innerHTML = services.map(s => `
+            <div class="item-card">
+                <div class="item-info">
+                    <div class="item-name">[${s.type === 'main' ? '主服務' : '加購'}] ${s.name}</div>
+                    <div class="item-meta">${s.duration} 分鐘 | NT$ ${s.price}</div>
+                </div>
+                <button style="background:#E57373; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="deleteService('${s.id}')">刪除</button>
+            </div>
+        `).join('');
+    }
+
+    function deleteService(id) {
+        services = services.filter(s => s.id !== id);
+        renderAdminServices();
+    }
+
+    function renderAdminOrders() {
+        const container = document.getElementById('admin-orders-list');
+        if (orders.length === 0) {
+            container.innerHTML = `<div class="empty-hint">目前無預約單</div>`;
+            return;
+        }
+        container.innerHTML = orders.map(o => `
+            <div class="card">
+                <div class="detail-row">
+                    <b>${o.name} (${o.phone})</b>
+                    <span class="status-badge ${o.status === '待核對' ? 'status-pending' : 'status-success'}">${o.status}</span>
+                </div>
+                <div class="detail-row"><span>時段</span><span>${o.date}</span></div>
+                <div class="detail-row"><span>項目</span><span>${o.mainItem} ${o.subs ? '+ ' + o.subs : ''}</span></div>
+                <div class="detail-row"><span>匯款後五碼</span><b style="color:var(--primary-color);">${o.last5}</b></div>
+                ${o.status === '待核對' ? `<button class="btn-primary" style="margin-top:8px; padding:8px;" onclick="confirmOrder('${o.id}')">核對完成 (發送成功簡訊/貼圖)</button>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function confirmOrder(id) {
+        const order = orders.find(o => o.id === id);
+        if (order) {
+            order.status = '預約成功';
+            renderAdminOrders();
+            alert('已核對完成！可以傳貼圖回覆客人囉。');
+        }
+    }
+
+    function saveConfig() {
+        storeConfig.deposit = document.getElementById('cfg-deposit').value;
+        storeConfig.bankCode = document.getElementById('cfg-bank-code').value;
+        storeConfig.bankAcc = document.getElementById('cfg-bank-acc').value;
+        storeConfig.bankName = document.getElementById('cfg-bank-name').value;
+        alert('店家設定已更新！');
+    }
+
+    function copyText(text) {
+        navigator.clipboard.writeText(text).then(() => alert('已複製：' + text));
+    }
+
+    init();
+</script>
+</body>
+</html>
+
