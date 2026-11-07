@@ -23,7 +23,7 @@
       margin: 0; 
       padding: 0; 
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Quicksand", "Microsoft JhengHei", sans-serif; 
-      -webkit-tap-highlight-color: transparent; /* 移除手機點擊藍色陰影框 */
+      -webkit-tap-highlight-color: transparent; 
     }
     body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 12px; }
     .app-container { width: 100%; max-width: 480px; background: var(--bg-main); min-height: 100vh; position: relative; padding-bottom: 90px; }
@@ -33,8 +33,8 @@
     .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
     .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
     
-    /* 改進的按鈕點擊變色：點擊時變成溫潤米白色，無奇怪長方形框 */
-    .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background-color 0.2s ease, border-color 0.2s ease; background-color: #fff; }
+    /* 點擊時變成橢圓形溫潤米白色，無奇怪長方形框 */
+    .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; background-color: #fff; }
     .item-option:active { background-color: #F4EBE1; }
     .item-option.selected { border-color: var(--primary-color); background-color: #F4EBE1; }
     .item-info .title { font-size: 14px; font-weight: 600; }
@@ -209,7 +209,6 @@
       </div>
     </div>
 
-    <!-- 設定預約時段 (支援點擊已預約時段展開詳細資料) -->
     <div id="adminTabSchedule" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">設定日期與開放時段</div>
@@ -637,7 +636,8 @@
     if(db.schedule[selectedDateStr]) db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
     saveData(); closePayModal();
 
-    let fullMsg = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}\n\n-------------------\n🤍 請幫我閱讀以下內容 🤍`;
+    // 刪除最下方的分隔線與提示文字
+    let fullMsg = `【安,你好ANNEHO】收到線上預約囉！\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainItem.name}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}`;
     
     navigator.clipboard.writeText(fullMsg).then(() => {
       alert("預約資料已自動複製！即將前往官方 LINE，請在聊天室「貼上」傳送給店家哦！");
@@ -754,6 +754,7 @@
     renderAdminTimeSlots();
   }
 
+  // 後台設定預約時段：純文字顯示詳細預約清單與正確加總時間
   function renderAdminTimeSlots() {
     let slots = db.schedule[adminSelectedDate] || [], html = "";
     if(slots.length === 0) {
@@ -768,20 +769,20 @@
           if(isExpanded) {
             detailHtml = `
               <div style="background:#fff; padding:10px; border-radius:8px; margin-top:8px; border:1px solid var(--border-color); font-size:12px; line-height:1.6;">
-                <div>👤 <strong>顧客姓名：</strong>${bookedOrder.name} (${bookedOrder.phone})</div>
-                <div>✨ <strong>預約主項目：</strong>${bookedOrder.mainName}</div>
-                <div>➕ <strong>加購項目：</strong>${bookedOrder.addons.join(', ') || '無'}</div>
-                <div>👁️ <strong>卸睫部分：</strong>${bookedOrder.removal}</div>
-                <div>💰 <strong>支付定金：</strong>NT$ ${bookedOrder.deposit} (末五碼: ${bookedOrder.last5})</div>
-                <div style="color:#D9534F; font-weight:bold;">⏱️ 預估總時間：約 ${bookedOrder.totalTime || 60} 分鐘</div>
-                <div>🛵 <strong>交通工具：</strong>${bookedOrder.transport}</div>
+                <div>顧客姓名：${bookedOrder.name} (${bookedOrder.phone})</div>
+                <div>預約主項目：${bookedOrder.mainName}</div>
+                <div>加購項目：${bookedOrder.addons.join(', ') || '無'}</div>
+                <div>卸睫部分：${bookedOrder.removal || '無'}</div>
+                <div>支付定金：NT$ ${bookedOrder.deposit} (末五碼: ${bookedOrder.last5})</div>
+                <div style="color:#D9534F; font-weight:bold;">預估總時間：約 ${bookedOrder.totalTime || 60} 分鐘</div>
+                <div>交通工具：${bookedOrder.transport || '無'}</div>
               </div>`;
           }
 
           html += `
             <div style="background:var(--input-bg); padding:10px 12px; border-radius:8px; margin-bottom:6px; border: 1.5px solid #dcd3c7;">
               <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAdminTimeExpand('${t}')">
-                <span style="font-size:13px; color:#D9534F; font-weight:bold;">📅 ${t} (已預約：${bookedOrder.name}) ${isExpanded ? '▲' : '▼'}</span>
+                <span style="font-size:13px; color:#D9534F; font-weight:bold;">${t} (已預約：${bookedOrder.name}) ${isExpanded ? '▲' : '▼'}</span>
                 <button class="btn-danger" onclick="event.stopPropagation(); deleteAdminTime(${idx})">刪除</button>
               </div>
               ${detailHtml}
@@ -826,9 +827,9 @@
         html += `<div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; font-size:13px; line-height:1.5; background:#fff;">
           <div style="font-weight:bold; font-size:14px; color:var(--primary-color);">${o.date} ${o.time}</div>
           <div><strong>姓名：</strong>${o.name} (${o.phone})</div><div><strong>主項目：</strong>${o.mainName}</div>
-          <div><strong>加購：</strong>${o.addons.join(', ') || '無'}</div><div><strong>卸睫：</strong>${o.removal}</div>
+          <div><strong>加購：</strong>${o.addons.join(', ') || '無'}</div><div><strong>卸睫：</strong>${o.removal || '無'}</div>
           <div><strong>預估時間：</strong>約 ${o.totalTime || 60} 分鐘</div>
-          <div><strong>交通：</strong>${o.transport}</div><div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
+          <div><strong>交通：</strong>${o.transport || '無'}</div><div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
           <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約時間：${o.createdAt}</div></div>`;
       });
     }
@@ -857,16 +858,17 @@
         if(isExpanded) {
           cust.visits.forEach(v => {
             visitsHtml += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:8px; font-size:12px; line-height:1.5;">
-              <div style="font-weight:bold; color:var(--primary-color);">📅 ${v.date} ${v.time}</div>
+              <div style="font-weight:bold; color:var(--primary-color);">${v.date} ${v.time}</div>
               <div><strong>主項目：</strong>${v.mainName}</div><div><strong>加購：</strong>${v.addons.join(',') || '無'}</div>
-              <div><strong>卸睫：</strong>${v.removal}</div><div><strong>預估時間：</strong>約 ${v.totalTime || 60} 分鐘</div>
+              <div><strong>卸睫：</strong>${v.removal || '無'}</div><div><strong>預估時間：</strong>約 ${v.totalTime || 60} 分鐘</div>
+              <div><strong>交通：</strong>${v.transport || '無'}</div>
               <div style="color:#D9534F; font-weight:bold; margin-top:2px;">該次消費總金額：NT$ ${v.totalPrice || 0} (定金 $${v.deposit})</div></div>`;
           });
         }
 
         html += `<div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; background:#fff; cursor:pointer;" onclick="toggleCustomerExpand('${name}')">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:bold; font-size:15px; color:var(--primary-color);">👤 ${cust.name} ${isExpanded ? '▲' : '▼'}</span>
+            <span style="font-weight:bold; font-size:15px; color:var(--primary-color);">${cust.name} ${isExpanded ? '▲' : '▼'}</span>
             <span style="font-size:12px; color:var(--text-sub);">來店 ${cust.visits.length} 次 | 總消費 NT$ ${totalSpent}</span></div>
           <div style="font-size:12px; color:var(--text-sub); margin-top:2px;">電話：${cust.phone}</div>${visitsHtml}</div>`;
       });
@@ -912,7 +914,7 @@
 
     let html = "";
     if(currentAccTab === 'income') {
-      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>💰 本月收入明細：</div>";
+      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>本月收入明細：</div>";
       let hasInc = false;
       db.orders.forEach(o => {
         if(o.date && o.date.startsWith(selectedYM)) {
@@ -932,7 +934,7 @@
       });
       if(!hasInc) html += "<div style='color:var(--text-sub); font-size:12px;'>本月尚無收入紀錄</div>";
     } else {
-      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>🧾 本月支出明細：</div>";
+      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>本月支出明細：</div>";
       let filteredExp = (db.expenses || []).filter(e => e.date && e.date.startsWith(selectedYM));
       if(filteredExp.length === 0) html += "<div style='color:var(--text-sub); font-size:12px;'>本月尚無支出紀錄</div>";
       else {
