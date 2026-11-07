@@ -33,13 +33,15 @@
     .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
     .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
     
-    .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease; background-color: #fff; }
-    .item-option:active { background-color: #F4EBE1; }
+    /* 極速點擊反應與色彩回饋 */
+    .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; transition: background-color 0.1s ease, border-color 0.1s ease, transform 0.05s ease; background-color: #fff; }
+    .item-option:active { background-color: #F4EBE1; transform: scale(0.99); }
     .item-option.selected { border-color: var(--primary-color); background-color: #F4EBE1; }
-    .item-info .title { font-size: 14px; font-weight: 600; }
-    .item-info .desc { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
+    .item-info { flex: 1; padding-right: 12px; min-width: 0; }
+    .item-info .title { font-size: 14px; font-weight: 600; word-break: break-all; }
+    .item-info .desc { font-size: 12px; color: var(--text-sub); margin-top: 2px; word-break: break-all; }
     .item-info .subtitle { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-    .item-price { font-weight: 600; color: var(--primary-color); font-size: 14px; text-align: right; }
+    .item-price { font-weight: 600; color: var(--primary-color); font-size: 14px; white-space: nowrap; text-align: right; }
     
     input:-webkit-autofill,
     input:-webkit-autofill:hover, 
@@ -52,14 +54,14 @@
     .cal-btn { background: none; border: none; font-size: 16px; color: var(--primary-color); cursor: pointer; padding: 4px 8px; font-weight: bold; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 13px; }
     .cal-day-label { font-weight: 600; color: var(--text-sub); padding-bottom: 6px; }
-    .cal-day { padding: 10px 0; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; background: var(--input-bg); transition: background 0.15s; }
+    .cal-day { padding: 10px 0; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; background: var(--input-bg); transition: background 0.1s; }
     .cal-day:active { background: #E8DFD3; }
     .cal-day.empty { background: transparent; cursor: default; }
     .cal-day.selected { background: var(--primary-color); color: #fff; font-weight: bold; }
     .cal-day.disabled { opacity: 0.3; cursor: not-allowed; }
     
     .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
-    .time-btn { padding: 10px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); background: #fff; text-align: center; font-size: 13px; cursor: pointer; color: var(--text-main); position: relative; transition: all 0.15s; }
+    .time-btn { padding: 10px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); background: #fff; text-align: center; font-size: 13px; cursor: pointer; color: var(--text-main); position: relative; transition: all 0.1s; }
     .time-btn:active { background: #F4EBE1; }
     .time-btn.selected { border-color: var(--primary-color); background: var(--primary-color); color: #fff; }
     .time-btn.booked { background: #f2ede4; color: #8c7c73; border-color: #dcd6ce; cursor: pointer; font-size: 12px; font-weight: 500; }
@@ -72,16 +74,17 @@
     .bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--card-bg); border-top: 1px solid var(--border-color); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); }
     .price-summary { font-size: 12px; color: var(--text-sub); }
     .price-summary .total { font-size: 16px; font-weight: bold; color: var(--primary-color); }
-    .btn-submit { background: var(--primary-color); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
-    .btn-submit:active { transform: scale(0.98); }
+    .btn-submit { background: var(--primary-color); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.15s, transform 0.05s; }
+    .btn-submit:active { transform: scale(0.98); background: #332720; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .admin-bar { background: var(--primary-color); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .admin-tab-group { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
     .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; }
     .admin-tab.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
-    .btn-danger { background: #D9534F; color: white; border: none; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; }
-    .btn-secondary { background: #EFE8DF; color: var(--primary-color); border: none; padding: 6px 10px; border-radius: var(--radius-md); font-size: 11px; cursor: pointer; transition: background 0.15s; }
+    .btn-danger { background: #D9534F; color: white; border: none; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; transition: opacity 0.1s; }
+    .btn-danger:active { opacity: 0.8; }
+    .btn-secondary { background: #EFE8DF; color: var(--primary-color); border: none; padding: 6px 10px; border-radius: var(--radius-md); font-size: 11px; cursor: pointer; transition: background 0.1s; }
     .btn-secondary:active { background: #dcd3c7; }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 200; padding: 16px; }
@@ -115,14 +118,15 @@
   </div>
 
   <div id="clientView">
-    <!-- 查詢我的預約入口卡片 -->
-    <div class="card" style="background: linear-gradient(135deg, #FAF6F0 0%, #F4EBE1 100%); border: 1.5px solid var(--primary-color);">
-      <div class="card-title" style="margin-bottom: 8px;">🔍 查詢我的預約 / 自助改期</div>
-      <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 10px;">輸入預約時的手機號碼，即可查詢或在 3 天前自主改期/取消。</div>
+    <!-- 查詢我的預約卡片 (已移除自助改期) -->
+    <div class="card">
+      <div class="card-title">🔍 查詢我的預約</div>
+      <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">輸入預約時的手機號碼即可查詢</div>
       <div style="display: flex; gap: 8px;">
-        <input type="tel" id="queryPhoneInput" class="form-input" placeholder="請輸入手機號碼" autocomplete="off" style="background:#fff;">
-        <button type="button" class="btn-submit" style="padding: 10px 16px; border-radius: var(--radius-md); white-space: nowrap;" onclick="openQueryModal()">查詢</button>
+        <input type="tel" id="searchPhoneInput" class="form-input" placeholder="請輸入手機號碼" autocomplete="off" style="flex:1;">
+        <button type="button" class="btn-submit" style="padding: 0 16px; border-radius: var(--radius-md); font-size: 13px;" onclick="clientSearchOrder()">查詢</button>
       </div>
+      <div id="clientSearchResult" style="margin-top: 12px;"></div>
     </div>
 
     <div class="card">
@@ -130,6 +134,7 @@
       <div id="clientServicesList"></div>
     </div>
 
+    <!-- 眉毛底色選擇區 -->
     <div class="card" id="eyebrowBaseColorCard" style="display: none;">
       <div class="card-title">眉毛有無底色 *</div>
       <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -198,7 +203,6 @@
     </div>
   </div>
 
-  <!-- 後台管理區 -->
   <div id="adminView" style="display: none;">
     <div id="adminTabServices" class="admin-tab-content">
       <div class="card">
@@ -302,7 +306,7 @@
 
     <div id="adminTabSettings" class="admin-tab-content" style="display: none;">
       <div class="card">
-        <div class="card-title">轉帳銀行與Google日曆設定</div>
+        <div class="card-title">轉帳銀行資訊設定</div>
         <div class="form-group">
           <label>銀行代碼 (如 812)</label>
           <input type="text" id="settingBankCode" class="form-input">
@@ -319,11 +323,7 @@
           <label>戶名</label>
           <input type="text" id="settingBankHolder" class="form-input">
         </div>
-        <div class="form-group">
-          <label>Google Apps Script 雲端同步網址 (Web App URL)</label>
-          <input type="text" id="settingGCalUrl" class="form-input" placeholder="https://script.google.com/macros/s/.../exec">
-        </div>
-        <button type="button" class="btn-submit" style="width: 100%;" onclick="saveSettings()">儲存系統設定</button>
+        <button type="button" class="btn-submit" style="width: 100%;" onclick="saveSettings()">儲存銀行設定</button>
       </div>
     </div>
   </div>
@@ -368,37 +368,6 @@
       <button type="button" class="btn-submit" id="btnSubmitPay" style="width: 60%; font-size: 12px; line-height: 1.4;" onclick="submitOrderAndNotify()" disabled>
         匯款完成請按我<br>才會完成預約！
       </button>
-    </div>
-  </div>
-</div>
-
-<!-- 查詢我的預約 Modal -->
-<div class="modal-overlay" id="queryModal" onclick="checkModalClose(event, 'queryModal')">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 style="color: var(--primary-color); margin-bottom: 12px;">查詢我的預約紀錄</h3>
-    <div id="queryModalBody" style="font-size: 13px; line-height: 1.6;"></div>
-    <div style="margin-top: 16px; text-align: right;">
-      <button type="button" class="btn-secondary" style="padding: 8px 16px;" onclick="document.getElementById('queryModal').classList.remove('active')">關閉</button>
-    </div>
-  </div>
-</div>
-
-<!-- 自助改期 Modal -->
-<div class="modal-overlay" id="rescheduleModal" onclick="checkModalClose(event, 'rescheduleModal')">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 style="color: var(--primary-color); margin-bottom: 12px;">自主更改預約日期</h3>
-    <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 10px;">請選擇新的預約日期與時段（須至少三天前，僅限修改一次）：</div>
-    <div class="form-group">
-      <label>新日期 *</label>
-      <input type="date" id="reschedDateInput" class="form-input" onchange="loadReschedSlots()">
-    </div>
-    <div class="form-group">
-      <label>新時段 *</label>
-      <div id="reschedTimeGrid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:4px;"></div>
-    </div>
-    <div style="display: flex; gap: 8px; margin-top: 16px;">
-      <button type="button" class="btn-secondary" style="width: 50%; padding: 10px;" onclick="document.getElementById('rescheduleModal').classList.remove('active')">取消</button>
-      <button type="button" class="btn-submit" id="btnConfirmResched" style="width: 50%; padding: 10px;" onclick="confirmReschedule()" disabled>確認改期</button>
     </div>
   </div>
 </div>
@@ -461,8 +430,8 @@
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "28881024671561", bankHolder: "徐若嫣" },
     mainServices: [
       { id: 'm1', name: '日系精緻美睫 120 根', desc: '自然輕透感，適合日常素顏', time: 90, price: 1200, deposit: 500 },
-      { id: 'm2', name: '微針霧眉', desc: '微柔霧感，免去每天畫眉困擾', time: 150, price: 4500, deposit: 1000 },
-      { id: 'm3', name: '單次霧眉', desc: '快速補色補形', time: 120, price: 3000, deposit: 1000 }
+      { id: 'm2', name: '微針霧眉 含三個月內補色一次', desc: '眉毛無底色建議選此，顏色更飽和漂亮😊', time: 150, price: 6000, deposit: 1000 },
+      { id: 'm3', name: '單次霧眉 不含補色', desc: '想補色選我！眉毛底色為橘/紅/藍，建議先除色', time: 150, price: 3500, deposit: 1000 }
     ],
     addonServices: [
       { id: 'a1', name: '下睫毛嫁接', desc: '讓眼神更深邃有神', time: 20, price: 300, deposit: 100 }
@@ -571,6 +540,33 @@
   function escapeHtml(str) {
     if(!str) return '';
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  function clientSearchOrder() {
+    let phone = document.getElementById('searchPhoneInput').value.trim();
+    let resDiv = document.getElementById('clientSearchResult');
+    if(!phone) { alert("請輸入手機號碼！"); return; }
+
+    let matched = db.orders.filter(o => o.phone === phone);
+    if(matched.length === 0) {
+      resDiv.innerHTML = `<div style="background:var(--input-bg); padding:10px; border-radius:8px; font-size:12px; color:#D9534F;">查無此手機號碼的預約紀錄。</div>`;
+      return;
+    }
+
+    let html = "";
+    matched.forEach(v => {
+      html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:6px; font-size:12px; line-height:1.5; border:1px solid var(--border-color);">
+        <div style="font-weight:bold; color:var(--primary-color);">📅 ${v.date} ${v.time}</div>
+        <div><strong>姓名：</strong>${escapeHtml(v.name)}</div>
+        <div><strong>預約項目：</strong>${escapeHtml(v.mainName)}</div>
+        ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
+        <div><strong>加購項目：</strong>${escapeHtml(v.addons.join(',')) || '無'}</div>
+        <div><strong>卸睫部分：</strong>${escapeHtml(v.removal) || '無'}</div>
+        <div><strong>時間預估：</strong>約 ${v.totalTime || 60} 分鐘</div>
+        <div><strong>交通工具：</strong>${escapeHtml(v.transport) || '無'}</div>
+        <div style="color:#D9534F; font-weight:bold; margin-top:2px;">已付定金：NT$ ${v.deposit} (總計 NT$ ${v.totalPrice})</div></div>`;
+    });
+    resDiv.innerHTML = html;
   }
 
   function selectMainService(id) {
@@ -1018,7 +1014,13 @@
     if(!yearSelect || !monthSelect) return;
     let selectedYM = `${yearSelect.value}-${monthSelect.value}`;
 
-    let bookingIncome = 0; db.orders.forEach(o => { if(o.date && o.date.startsWith(selectedYM)) bookingIncome += Number(o.totalPrice || 0); });
+    let bookingIncome = 0; 
+    db.orders.forEach(o => { 
+      if(o.date && o.date.startsWith(selectedYM)) {
+        bookingIncome += Number(o.deposit || 0); 
+      }
+    });
+
     let manualIncome = 0; (db.manualIncomes || []).forEach(i => { if(i.date && i.date.startsWith(selectedYM)) manualIncome += Number(i.amount || 0); });
     let totalIncome = bookingIncome + manualIncome;
 
@@ -1032,14 +1034,14 @@
 
     let html = "";
     if(currentAccTab === 'income') {
-      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>本月收入明細：</div>";
+      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>本月收入明細 (以定金計算)：</div>";
       let hasInc = false;
       db.orders.forEach(o => {
         if(o.date && o.date.startsWith(selectedYM)) {
           hasInc = true;
           html += `<div style="background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:bold;">${o.date} ${o.time} - ${escapeHtml(o.name)} (預約)</span><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.totalPrice || 0}</span></div>
-            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${escapeHtml(o.mainName)}</div></div>`;
+            <div style="display:flex; justify-content:space-between;"><span style="font-weight:bold;">${o.date} ${o.time} - ${escapeHtml(o.name)} (預約定金)</span><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.deposit || 0}</span></div>
+            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${escapeHtml(o.mainName)} (總價 NT$ ${o.totalPrice})</div></div>`;
         }
       });
       (db.manualIncomes || []).forEach((i, idx) => {
