@@ -79,12 +79,18 @@
 
     .admin-bar { background: var(--primary-color); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .admin-tab-group { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-    .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; }
+    .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; position: relative; }
     .admin-tab.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
+    .badge-unread { position: absolute; top: -4px; right: -4px; background: #D9534F; color: #fff; font-size: 10px; font-weight: bold; border-radius: 10px; padding: 2px 5px; min-width: 16px; text-align: center; }
+
     .btn-danger { background: #D9534F; color: white; border: none; padding: 5px 8px; border-radius: var(--radius-sm); font-size: 11px; cursor: pointer; transition: opacity 0.1s; }
     .btn-danger:active { opacity: 0.8; }
     .btn-secondary { background: #EFE8DF; color: var(--primary-color); border: none; padding: 6px 10px; border-radius: var(--radius-md); font-size: 11px; cursor: pointer; transition: background 0.1s; }
     .btn-secondary:active { background: #dcd3c7; }
+
+    .notice-accordion { border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden; background: #fff; }
+    .notice-header { padding: 14px; font-size: 14px; font-weight: bold; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #FAF6F0; }
+    .notice-body { padding: 14px; font-size: 13px; line-height: 1.6; display: none; border-top: 1px solid var(--border-color); }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 200; padding: 16px; }
     .modal-overlay.active { display: flex; }
@@ -109,7 +115,9 @@
       <div class="admin-tab" onclick="switchAdminTab('addons', event)">加購</div>
       <div class="admin-tab" onclick="switchAdminTab('removal', event)">卸睫</div>
       <div class="admin-tab" onclick="switchAdminTab('schedule', event)">設定預約時段</div>
-      <div class="admin-tab" onclick="switchAdminTab('orders', event)">已接收預約</div>
+      <div class="admin-tab" id="tabOrdersHeader" onclick="switchAdminTab('orders', event)">
+        已接收預約 <span id="adminUnreadBadge" class="badge-unread" style="display:none;">0</span>
+      </div>
       <div class="admin-tab" onclick="switchAdminTab('customers', event)">客歷</div>
       <div class="admin-tab" onclick="switchAdminTab('accounting', event)">記帳</div>
       <div class="admin-tab" onclick="switchAdminTab('settings', event)">設定</div>
@@ -117,33 +125,97 @@
   </div>
 
   <div id="clientView">
-    <!-- 第一頁：預約須知與注意事項 -->
+    <!-- 第一頁：⚠️重要請詳細閱讀您預約的項目‼️ -->
     <div id="stepNoticeView">
       <div class="card">
-        <div class="card-title">⚠️ 重要請閱讀‼️</div>
-        <div style="font-size: 13px; line-height: 1.6; color: var(--text-main); margin-bottom: 14px;">
-          預約霧眉 ➡️ 選單請點<strong>「霧眉須知」</strong><br>
-          預約美睫 ➡️ 選單請點<strong>「美睫須知」</strong><br>
-          預約淡色 ➡️ 選單請點<strong>「無創淡色」</strong><br><br>
-          <span style="color: var(--primary-color); font-weight: bold;">「選單」在當前LINE畫面最下方✨🤍</span>
+        <div class="card-title">⚠️ 重要請詳細閱讀您預約的項目‼️</div>
+        
+        <!-- 霧眉須知 -->
+        <div class="notice-accordion">
+          <div class="notice-header" onclick="toggleAccordion('accEyebrow')">
+            <span>✨ 預約霧眉須知</span><span id="icon_accEyebrow">▼</span>
+          </div>
+          <div class="notice-body" id="accEyebrow">
+            請避開生理期❗️<br>
+            前一天勿熬夜、飲酒❗️<br>
+            做好保濕，皮膚狀態好留色更好<br>
+            當天素眉來即可<br>
+            眉毛處有傷口、痘痘建議修復後再霧眉<br>
+            保留原有眉毛，不修眉<br><br>
+            兩邊眉毛生長位置不同<br>
+            兩邊眉骨高低不同<br>
+            兩邊表情肌肌肉位置不同<br>
+            兩邊太陽穴凹陷位置不同<br>
+            設計眉型講求相對協調<br>
+            沒有100%對稱的臉型，所以沒有100%對稱的眉型
+          </div>
         </div>
-        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 12px 0;">
-        <div style="font-size: 13px; line-height: 1.6; color: var(--text-main);">
+
+        <!-- 美睫須知 -->
+        <div class="notice-accordion">
+          <div class="notice-header" onclick="toggleAccordion('accEyelash')">
+            <span>✨ 預約美睫須知</span><span id="icon_accEyelash">▼</span>
+          </div>
+          <div class="notice-body" id="accEyelash">
+            預約當天請勿化任何眼妝/睫毛膏/隔離/防曬❗️<br>
+            三個月內做過角蛋白不可做美睫❌<br>
+            近三個月有做「眼周醫美」請主動告知<br>
+            本身有在使用睫毛生長液，嫁接的睫毛會因為生長週期而掉落更快
+          </div>
+        </div>
+
+        <!-- 淡色須知 -->
+        <div class="notice-accordion">
+          <div class="notice-header" onclick="toggleAccordion('accRemoval')">
+            <span>✨ 預約淡色須知</span><span id="icon_accRemoval">▼</span>
+          </div>
+          <div class="notice-body" id="accRemoval">
+            <strong>- 關於無創除色 -</strong><br>
+            利用光點與熱能<br>
+            將卡在皮層裡的大分子色素分解成小分子<br>
+            讓皮膚得以開始自行代謝<br><br>
+            <strong>- 無創除色優點 -</strong><br>
+            非藥水侵入式洗眉<br>
+            非傳統雷射洗眉<br>
+            安全無創、無傷口、不流血，不結痂不用剃毛，效果明顯<br>
+            隔天可以正常畫眉毛<br><br>
+            <strong>- 除色需要幾次 -</strong><br>
+            <span style="color: #D9534F; font-weight: bold;">沒有一定</span><br>
+            要看當初霧眉時<br>
+            紋繡師使用的色乳和手法<br>
+            刺入皮膚深度，色乳品質<br>
+            做完淡色後自身代謝速度<br>
+            以上都會影響淡色效果<br><br>
+            <strong>- 除色間隔時間 -</strong><br>
+            眉毛顏色較淺 - 最快兩星期可以做一次<br>
+            眉毛顏色較飽和 - 最快一個月可以做一次
+          </div>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+        <div style="font-size: 13px; line-height: 1.6; color: var(--text-main); margin-bottom: 14px;">
           🅿️ <strong>汽/機車皆可停放門口</strong><br>
           ❌ <strong>個人工作室 不開放攜伴</strong><br>
           💰 <strong>支付方式：現金、轉帳</strong>
         </div>
+
+        <div style="margin-top: 16px; background: var(--input-bg); padding: 12px; border-radius: var(--radius-md);">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+            <input type="checkbox" id="chkNoticeAgree" onchange="checkNoticeValid()" style="width: 18px; height: 18px; accent-color: var(--primary-color);">
+            <span style="color: #D9534F; font-weight: bold; font-size: 13px;">我已詳細閱讀完畢，確認沒問題👌</span>
+          </label>
+        </div>
       </div>
       
-      <div style="padding: 0 4px; margin-top: 20px;">
-        <button type="button" class="btn-submit" style="width: 100%; padding: 14px; font-size: 15px; border-radius: var(--radius-md);" onclick="goToStepService()">下一步：選擇服務項目</button>
+      <div style="padding: 0 4px; margin-top: 16px;">
+        <button type="button" class="btn-submit" id="btnStepNoticeNext" style="width: 100%; padding: 14px; font-size: 15px; border-radius: var(--radius-md);" onclick="goToStepService()" disabled>下一步：選擇服務項目</button>
       </div>
     </div>
 
-    <!-- 第二頁開始：服務項目、時間、資料填寫 -->
+    <!-- 第二頁：選擇服務項目、時間與填寫資料 -->
     <div id="stepBookingView" style="display: none;">
       <div style="margin-bottom: 12px;">
-        <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="backToNotice()">‹ 返回閱讀預約須知</button>
+        <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="backToNotice()">‹ 返回閱讀須知</button>
       </div>
 
       <div class="card">
@@ -161,6 +233,7 @@
         <div id="clientServicesList"></div>
       </div>
 
+      <!-- 霧眉底色卡片 -->
       <div class="card" id="eyebrowBaseColorCard" style="display: none;">
         <div class="card-title">眉毛有無底色 *</div>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -172,13 +245,33 @@
         </div>
       </div>
 
+      <!-- 眉毛無創除色卡片 -->
+      <div class="card" id="eyebrowRemovalCard" style="display: none;">
+        <div class="card-title">無創除色評估資料 *</div>
+        <div class="form-group">
+          <label>最後一次霧眉時間：</label>
+          <input type="text" id="remLastTime" class="form-input" placeholder="例如：半年前、1年前" oninput="updateSummary()">
+        </div>
+        <div class="form-group">
+          <label>目前眉毛底色顏色：</label>
+          <input type="text" id="remCurrentColor" class="form-input" placeholder="例如：偏橘紅、藍紫色" oninput="updateSummary()">
+        </div>
+        <div class="form-group">
+          <label>有無做過眉毛除色/多久之前/次數：</label>
+          <input type="text" id="remHistory" class="form-input" placeholder="例如：做過1次，大約3個月前" oninput="updateSummary()">
+        </div>
+        <div style="color: #D9534F; font-weight: bold; font-size: 12px; margin-top: 4px;">
+          早期繡眉，底色為：青綠/藍/紫，恐無效。
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title">加購項目</div>
         <div id="clientAddonsList"></div>
       </div>
 
-      <div class="card">
-        <div class="card-title">是否需要卸睫 *</div>
+      <div class="card" id="clientRemovalCardWrap">
+        <div class="card-title" id="clientRemovalTitle">是否需要卸睫 *</div>
         <div id="clientRemovalList"></div>
       </div>
 
@@ -333,7 +426,7 @@
 
     <div id="adminTabSettings" class="admin-tab-content" style="display: none;">
       <div class="card">
-        <div class="card-title">轉帳銀行資訊設定</div>
+        <div class="card-title">轉帳銀行資訊與預約規則設定</div>
         <div class="form-group">
           <label>銀行代碼 (如 812)</label>
           <input type="text" id="settingBankCode" class="form-input">
@@ -350,7 +443,18 @@
           <label>戶名</label>
           <input type="text" id="settingBankHolder" class="form-input">
         </div>
-        <button type="button" class="btn-submit" style="width: 100%;" onclick="saveSettings()">儲存銀行設定</button>
+
+        <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
+        
+        <div class="form-group">
+          <label>預約介面是否必須選擇「卸睫」？</label>
+          <select id="settingRequireRemoval" class="form-input">
+            <option value="yes">是 (預約介面必須點選卸睫才可下一步)</option>
+            <option value="no">否 (預約介面無須點選卸睫也可下一步)</option>
+          </select>
+        </div>
+
+        <button type="button" class="btn-submit" style="width: 100%; margin-top: 10px;" onclick="saveSettings()">儲存後台設定</button>
       </div>
     </div>
   </div>
@@ -393,7 +497,7 @@
     <div style="display: flex; gap: 8px; margin-top: 16px;">
       <button type="button" class="btn-secondary" style="width: 40%; padding: 12px;" onclick="closePayModal()">返回修改</button>
       <button type="button" class="btn-submit" id="btnSubmitPay" style="width: 60%; font-size: 12px; line-height: 1.4;" onclick="submitOrderAndNotify()" disabled>
-        匯款完成請按我<br>才會完成預約！
+        匯款完成請按我<br>完成預約！
       </button>
     </div>
   </div>
@@ -454,11 +558,12 @@
 </div>
 <script>
   let db = {
-    settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "28881024671561", bankHolder: "徐若嫣" },
+    settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "28881024671561", bankHolder: "徐若嫣", requireRemoval: "no" },
     mainServices: [
       { id: 'm1', name: '日系精緻美睫 120 根', desc: '自然輕透感，適合日常素顏', time: 90, price: 1200, deposit: 500 },
       { id: 'm2', name: '微針霧眉 含三個月內補色一次', desc: '眉毛無底色建議選此，顏色更飽和漂亮😊', time: 150, price: 6000, deposit: 1000 },
-      { id: 'm3', name: '單次霧眉 不含補色', desc: '想補色選我！眉毛底色為橘/紅/藍，建議先除色', time: 150, price: 3500, deposit: 1000 }
+      { id: 'm3', name: '單次霧眉 不含補色', desc: '想補色選我！眉毛底色為橘/紅/藍，建議先除色', time: 150, price: 3500, deposit: 1000 },
+      { id: 'm4', name: '眉毛無創除色', desc: '溫和分解色素，安全不傷面板', time: 60, price: 2000, deposit: 500 }
     ],
     addonServices: [
       { id: 'a1', name: '下睫毛嫁接', desc: '讓眼神更深邃有神', time: 20, price: 300, deposit: 100 }
@@ -480,6 +585,7 @@
       if(!db.settings.bankName) db.settings.bankName = "台新銀行";
       if(!db.settings.bankAcc) db.settings.bankAcc = "28881024671561";
       if(!db.settings.bankHolder) db.settings.bankHolder = "徐若嫣";
+      if(!db.settings.requireRemoval) db.settings.requireRemoval = "no";
     } catch(e){}
   }
   function saveData() { localStorage.setItem('anneho_db', JSON.stringify(db)); }
@@ -496,8 +602,21 @@
     initScheduleDefault();
     renderClient();
     initAccountingSelectors();
+    requestNotificationPermission();
     document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
   };
+
+  function requestNotificationPermission() {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission();
+    }
+  }
+
+  function sendDeviceNotification(title, body) {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, { body: body, icon: "https://fav.farm/✨" });
+    }
+  }
 
   function initScheduleDefault() {
     let today = new Date();
@@ -527,7 +646,23 @@
     if(view === 'admin') renderAdmin(); else renderClient();
   }
 
-  // 步驟切換控制
+  function toggleAccordion(id) {
+    let body = document.getElementById(id);
+    let icon = document.getElementById('icon_' + id);
+    if(body.style.display === 'block') {
+      body.style.display = 'none';
+      icon.innerText = '▼';
+    } else {
+      body.style.display = 'block';
+      icon.innerText = '▲';
+    }
+  }
+
+  function checkNoticeValid() {
+    let chk = document.getElementById('chkNoticeAgree').checked;
+    document.getElementById('btnStepNoticeNext').disabled = !chk;
+  }
+
   function goToStepService() {
     document.getElementById('stepNoticeView').style.display = 'none';
     document.getElementById('stepBookingView').style.display = 'block';
@@ -573,6 +708,9 @@
     });
     document.getElementById('clientRemovalList').innerHTML = removalHtml || "<div style='color:var(--text-sub); font-size:13px;'>尚無卸睫項目</div>";
 
+    let isRequireRemoval = (db.settings.requireRemoval || "no") === "yes";
+    document.getElementById('clientRemovalTitle').innerText = isRequireRemoval ? "是否需要卸睫 *" : "是否需要卸睫";
+
     renderCalendar(currentYear, currentMonth, 'client');
     updateSummary();
   }
@@ -600,6 +738,7 @@
         <div><strong>姓名：</strong>${escapeHtml(v.name)}</div>
         <div><strong>預約項目：</strong>${escapeHtml(v.mainName)}</div>
         ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
+        ${v.removalDetails ? `<div><strong>無創除色評估：</strong>${escapeHtml(v.removalDetails)}</div>` : ''}
         <div><strong>加購項目：</strong>${escapeHtml(v.addons.join(',')) || '無'}</div>
         <div><strong>卸睫部分：</strong>${escapeHtml(v.removal) || '無'}</div>
         <div><strong>時間預估：</strong>約 ${v.totalTime || 60} 分鐘</div>
@@ -613,15 +752,18 @@
     selectedMainId = id;
     let mainItem = db.mainServices.find(x => x.id === id);
     let isEyebrow = mainItem && (mainItem.name.includes("微針霧眉") || mainItem.name.includes("單次霧眉"));
-    
-    let eyebrowCard = document.getElementById('eyebrowBaseColorCard');
-    if(isEyebrow) {
-      eyebrowCard.style.display = 'block';
-    } else {
-      eyebrowCard.style.display = 'none';
-      selectedEyebrowBaseMode = "";
-      document.getElementById('eyebrowColorText').value = "";
+    let isEyebrowRemoval = mainItem && mainItem.name.includes("眉毛無創除色");
+
+    document.getElementById('eyebrowBaseColorCard').style.display = isEyebrow ? 'block' : 'none';
+    if(!isEyebrow) { selectedEyebrowBaseMode = ""; document.getElementById('eyebrowColorText').value = ""; }
+
+    document.getElementById('eyebrowRemovalCard').style.display = isEyebrowRemoval ? 'block' : 'none';
+    if(!isEyebrowRemoval) {
+      document.getElementById('remLastTime').value = "";
+      document.getElementById('remCurrentColor').value = "";
+      document.getElementById('remHistory').value = "";
     }
+
     renderClient();
   }
 
@@ -728,12 +870,22 @@
       if(selectedEyebrowBaseMode === '有' && !document.getElementById('eyebrowColorText').value.trim()) eyebrowValid = false;
     }
 
-    document.getElementById('btnGoPay').disabled = !(selectedMainId && selectedRemovalId && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid);
+    let isEyebrowRemoval = mainItem && mainItem.name.includes("眉毛無創除色");
+    let removalValid = true;
+    if(isEyebrowRemoval) {
+      if(!document.getElementById('remLastTime').value.trim() || !document.getElementById('remCurrentColor').value.trim() || !document.getElementById('remHistory').value.trim()) removalValid = false;
+    }
+
+    let isRequireRemoval = (db.settings.requireRemoval || "no") === "yes";
+    let removalSelectValid = isRequireRemoval ? Boolean(selectedRemovalId) : true;
+
+    document.getElementById('btnGoPay').disabled = !(selectedMainId && removalSelectValid && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid && removalValid);
   }
 
   function openPayModal() {
     if(!document.getElementById('custName').value.trim() || !document.getElementById('custPhone').value.trim()) { alert("請填寫您的姓名與聯絡電話！"); return; }
-    if(!selectedRemovalId) { alert("是否需要卸睫選項未填！"); return; }
+    let isRequireRemoval = (db.settings.requireRemoval || "no") === "yes";
+    if(isRequireRemoval && !selectedRemovalId) { alert("請選擇是否需要卸睫！"); return; }
     if(!selectedTransportMode) { alert("請選擇交通方式！"); return; }
 
     let totalDeposit = 0, mainItem = db.mainServices.find(x => x.id === selectedMainId);
@@ -753,6 +905,7 @@
   function closePayModal() { document.getElementById('payModal').classList.remove('active'); }
   function validatePayForm() { document.getElementById('btnSubmitPay').disabled = (document.getElementById('payLast5').value.trim().length !== 5); }
 
+  // 完成預約：寫入資料庫並觸發手機鎖屏通知
   function submitOrderAndNotify() {
     let last5 = document.getElementById('payLast5').value.trim();
     let name = document.getElementById('custName').value.trim();
@@ -774,25 +927,32 @@
     if(selectedEyebrowBaseMode === '無') eyebrowBaseText = "無底色";
     else if(selectedEyebrowBaseMode === '有') eyebrowBaseText = `有底色 (${document.getElementById('eyebrowColorText').value.trim()})`;
 
+    let removalDetailsText = "";
+    if(mainItem.name.includes("眉毛無創除色")) {
+      removalDetailsText = `最後一次霧眉：${document.getElementById('remLastTime').value.trim()} | 底色：${document.getElementById('remCurrentColor').value.trim()} | 紀錄：${document.getElementById('remHistory').value.trim()}`;
+    }
+
     let order = {
       id: Date.now(), name, phone, note, date: selectedDateStr, time: selectedTime,
       mainName: mainItem.name, addons: addonNames, removal: removalItem ? removalItem.name : '無',
-      eyebrowBase: eyebrowBaseText,
-      transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, createdAt: new Date().toLocaleString()
+      eyebrowBase: eyebrowBaseText, removalDetails: removalDetailsText,
+      transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
+      createdAt: new Date().toLocaleString(), isRead: false
     };
 
     db.orders.unshift(order);
     if(db.schedule[selectedDateStr]) db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
-    saveData(); closePayModal();
+    saveData(); 
+    closePayModal();
 
-    let mainProjectStr = mainItem.name + (eyebrowBaseText ? ` (${eyebrowBaseText})` : '');
-    
-    let fullMsg = `感謝您的信任及預約\n期待為您服務✨🤍\n\n顧客姓名：${name}\n聯絡電話：${phone}\n\n預約日期：${selectedDateStr}\n預約時段：${selectedTime}\n\n預約項目：${mainProjectStr}\n加購項目：${addonNames.join(', ') || '無'}\n卸睫部分：${removalItem ? removalItem.name : '無'}\n時間預估：約 ${totalTime} 分鐘\n交通工具：${selectedTransportMode}\n\n已付定金：NT$ ${totalDeposit}\n帳戶末五碼：${last5}\n備註：${note || '無'}\n\n-\n\n⚠️重要請閱讀‼️\n\n預約霧眉 ➡️ 選單請點「霧眉須知」\n預約美睫 ➡️ 選單請點「美睫須知」\n預約淡色 ➡️ 選單請點「無創淡色」\n\n「選單」在當前LINE畫面最下方✨🤍\n\n-\n\n🅿️汽/機車皆可停放門口\n❌個人工作室 不開放攜伴\n💰支付方式：現金、轉帳`;
+    // 觸發手機鎖屏通知
+    sendDeviceNotification(
+      `🔔 收到新的預約通知！`,
+      `顧客：${name} (${phone})\n預約時間：${selectedDateStr} ${selectedTime}\n項目：${mainItem.name}`
+    );
 
-    navigator.clipboard.writeText(fullMsg).then(() => {
-      alert("預約資料已自動複製！即將前往官方 LINE，請在聊天室「貼上」傳送給店家哦！");
-      window.location.href = "https://lin.ee/VSCbEG1";
-    }).catch(() => { window.location.href = "https://lin.ee/VSCbEG1"; });
+    alert("🎉 預約完成！系統已發送預約通知給店家，感謝您的預約✨🤍");
+    location.reload();
   }
 </script>
 <script>
@@ -803,6 +963,19 @@
     document.getElementById('settingBankName').value = db.settings.bankName || "台新銀行";
     document.getElementById('settingBankAcc').value = db.settings.bankAcc || "28881024671561";
     document.getElementById('settingBankHolder').value = db.settings.bankHolder || "徐若嫣";
+    document.getElementById('settingRequireRemoval').value = db.settings.requireRemoval || "no";
+    updateUnreadBadge();
+  }
+
+  function updateUnreadBadge() {
+    let unreadCount = db.orders.filter(o => !o.isRead).length;
+    let badge = document.getElementById('adminUnreadBadge');
+    if(unreadCount > 0) {
+      badge.style.display = 'inline-block';
+      badge.innerText = unreadCount;
+    } else {
+      badge.style.display = 'none';
+    }
   }
 
   function switchAdminTab(tabName, evt) {
@@ -924,6 +1097,7 @@
                 <div>顧客姓名：${escapeHtml(bookedOrder.name)} (${bookedOrder.phone})</div>
                 <div>預約主項目：${escapeHtml(bookedOrder.mainName)}</div>
                 ${bookedOrder.eyebrowBase ? `<div>眉毛底色：${escapeHtml(bookedOrder.eyebrowBase)}</div>` : ''}
+                ${bookedOrder.removalDetails ? `<div>無創除色評估：${escapeHtml(bookedOrder.removalDetails)}</div>` : ''}
                 <div>加購項目：${escapeHtml(bookedOrder.addons.join(', ')) || '無'}</div>
                 <div>卸睫部分：${escapeHtml(bookedOrder.removal) || '無'}</div>
                 <div>支付定金：NT$ ${bookedOrder.deposit} (末五碼: ${bookedOrder.last5})</div>
@@ -993,25 +1167,48 @@
       saveData();
       renderAdminTimeSlots();
       renderAdminOrders();
+      updateUnreadBadge();
     }
   }
 
+  // 渲染已接收預約：支援「未讀高亮顯色」與右上角「☑️ 已閱打勾框」
   function renderAdminOrders() {
     let html = "";
     if(db.orders.length === 0) html = "<div style='color:var(--text-sub); font-size:13px;'>目前尚無預約紀錄</div>";
     else {
-      db.orders.forEach(o => {
-        html += `<div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; font-size:13px; line-height:1.5; background:#fff;">
-          <div style="font-weight:bold; font-size:14px; color:var(--primary-color);">${o.date} ${o.time}</div>
-          <div><strong>姓名：</strong>${escapeHtml(o.name)} (${o.phone})</div><div><strong>主項目：</strong>${escapeHtml(o.mainName)}</div>
+      db.orders.forEach((o, idx) => {
+        let isUnread = !o.isRead;
+        let cardBg = isUnread ? "#FFF8F2" : "#FFFFFF";
+        let cardBorder = isUnread ? "2px solid #E28670" : "1px solid var(--border-color)";
+
+        html += `<div style="border:${cardBorder}; padding:12px; border-radius:12px; margin-bottom:10px; font-size:13px; line-height:1.5; background:${cardBg}; position:relative;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:bold; font-size:14px; color:var(--primary-color);">${o.date} ${o.time} ${isUnread?'<span style="color:#D9534F; font-size:11px;">[新預約!]</span>':''}</span>
+            <label style="font-size:12px; cursor:pointer; color:var(--primary-color); font-weight:bold; display:flex; align-items:center; gap:4px; background:#EFE8DF; padding:3px 8px; border-radius:6px;">
+              <input type="checkbox" ${o.isRead ? 'checked' : ''} onchange="toggleOrderRead(${idx})"> 已閱
+            </label>
+          </div>
+          <div><strong>姓名：</strong>${escapeHtml(o.name)} (${o.phone})</div>
+          <div><strong>主項目：</strong>${escapeHtml(o.mainName)}</div>
           ${o.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(o.eyebrowBase)}</div>` : ''}
-          <div><strong>加購：</strong>${escapeHtml(o.addons.join(', ')) || '無'}</div><div><strong>卸睫：</strong>${escapeHtml(o.removal) || '無'}</div>
+          ${o.removalDetails ? `<div style="color:#666;"><strong>除色評估：</strong>${escapeHtml(o.removalDetails)}</div>` : ''}
+          <div><strong>加購：</strong>${escapeHtml(o.addons.join(', ')) || '無'}</div>
+          <div><strong>卸睫：</strong>${escapeHtml(o.removal) || '無'}</div>
           <div><strong>預估時間：</strong>約 ${o.totalTime || 60} 分鐘</div>
-          <div><strong>交通：</strong>${escapeHtml(o.transport) || '無'}</div><div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
-          <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約時間：${o.createdAt}</div></div>`;
+          <div><strong>交通：</strong>${escapeHtml(o.transport) || '無'}</div>
+          <div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
+          <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約建立時間：${o.createdAt}</div>
+        </div>`;
       });
     }
     document.getElementById('adminOrdersList').innerHTML = html;
+    updateUnreadBadge();
+  }
+
+  function toggleOrderRead(idx) {
+    db.orders[idx].isRead = !db.orders[idx].isRead;
+    saveData();
+    renderAdminOrders();
   }
 
   function renderAdminCustomers() {
@@ -1039,6 +1236,7 @@
               <div style="font-weight:bold; color:var(--primary-color);">${v.date} ${v.time}</div>
               <div><strong>主項目：</strong>${escapeHtml(v.mainName)}</div>
               ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
+              ${v.removalDetails ? `<div><strong>除色評估：</strong>${escapeHtml(v.removalDetails)}</div>` : ''}
               <div><strong>加購：</strong>${escapeHtml(v.addons.join(',')) || '無'}</div>
               <div><strong>卸睫：</strong>${escapeHtml(v.removal) || '無'}</div><div><strong>預估時間：</strong>約 ${v.totalTime || 60} 分鐘</div>
               <div><strong>交通：</strong>${escapeHtml(v.transport) || '無'}</div>
@@ -1161,6 +1359,9 @@
     db.settings.bankName = document.getElementById('settingBankName').value.trim();
     db.settings.bankAcc = document.getElementById('settingBankAcc').value.trim();
     db.settings.bankHolder = document.getElementById('settingBankHolder').value.trim();
-    saveData(); alert("銀行設定已成功儲存，且會永久保留！");
+    db.settings.requireRemoval = document.getElementById('settingRequireRemoval').value;
+    saveData(); 
+    alert("後台設定已成功儲存！");
+    renderClient();
   }
 </script>
