@@ -230,7 +230,7 @@
     </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
       <button class="btn-secondary" style="width: 40%;" onclick="closePayModal()">返回修改</button>
-      <button class="btn-submit" id="btnSubmitPay" style="width: 60%;" onclick="submitOrderAndNotify()" disabled>已匯款完成 (開啟 LINE)</button>
+      <button class="btn-submit" id="btnSubmitPay" style="width: 60%; font-size: 12px;" onclick="submitOrderAndNotify()" disabled>匯款完成請按我，才會完成預約！</button>
     </div>
   </div>
 </div>
@@ -542,8 +542,13 @@
 
     let msg = `【安,你好ANNEHO】收到線上預約囉！\n-------------------\n👤 顧客姓名：${name}\n📞 聯絡電話：${phone}\n📅 預約日期：${selectedDateStr}\n⏰ 預約時段：${selectedTime}\n💇 主項目：${mainItem.name}\n➕ 加購：${addonNames.join(', ') || '無'}\n💰 已付訂金：NT$ ${db.settings.depositAmount}\n💳 帳戶末五碼：${last5}\n📝 備註：${note || '無'}`;
     
-    let lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(msg)}`;
-    window.location.href = lineUrl;
+    // 自動複製預約資訊到剪貼簿，然後跳轉您的官方 LINE
+    navigator.clipboard.writeText(msg).then(() => {
+      alert("預約資料已自動複製！即將前往官方 LINE，請在聊天室「貼上」傳送給店家哦！");
+      window.location.href = "https://lin.ee/VSCbEG1";
+    }).catch(() => {
+      window.location.href = "https://lin.ee/VSCbEG1";
+    });
   }
 
   function renderAdmin() {
@@ -721,5 +726,3 @@
     alert("店家與銀行設定已成功儲存！");
   }
 </script>
-</body>
-</html>
