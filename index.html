@@ -207,6 +207,7 @@
         <button type="button" class="btn-submit" id="btnStepNoticeNext" style="width: 100%; padding: 14px; font-size: 15px; border-radius: var(--radius-md);" onclick="goToStepService()" disabled>下一步：選擇服務項目</button>
       </div>
     </div>
+
     <!-- 第二頁：選擇服務項目、時間與填寫資料 -->
     <div id="stepBookingView" style="display: none;">
       <div style="margin-bottom: 12px;">
@@ -559,29 +560,13 @@
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
   const LOCAL_DB_KEY = "anneho_db";
 
-  // 最完整預設服務清單 Fallback 防呆機制（若本機與雲端皆無資料時自動載入）
-  const DEFAULT_FALLBACK_DB = {
+  // 保護防呆設計：預設為空陣列，絕對不覆蓋您親自辛苦設定的主服務項目！
+  let db = {
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "28881024671561", bankHolder: "徐若嫣" },
-    mainServices: [
-      { id: 'm1', name: '日系精緻美睫 120 根', desc: '自然輕透感，適合日常素顏', time: 90, price: 1200, deposit: 500, requireRemoval: 'yes' },
-      { id: 'm2', name: '微針霧眉 含三個月內補色一次', desc: '眉毛無底色建議選此，顏色更飽和漂亮😊', time: 150, price: 6000, deposit: 1000, requireRemoval: 'no' },
-      { id: 'm3', name: '單次霧眉 不含補色', desc: '想補色選我！眉毛底色為橘/紅/藍，建議先除色', time: 150, price: 3500, deposit: 1000, requireRemoval: 'no' },
-      { id: 'm4', name: '眉毛無創除色', desc: '溫和分解色素，安全不傷膚', time: 60, price: 2000, deposit: 500, requireRemoval: 'no' }
-    ],
-    addonServices: [
-      { id: 'a1', name: '下睫毛嫁接', desc: '讓眼神更深邃有神', time: 20, price: 300, deposit: 100 }
-    ],
-    removalServices: [
-      { id: 'r1', name: '不需要卸睫', desc: '本身無睫毛殘留', time: 0, price: 0, deposit: 0, isSolo: 'no' },
-      { id: 'r2', name: '本店卸睫', desc: '溫和卸除乾淨', time: 20, price: 200, deposit: 100, isSolo: 'no' },
-      { id: 'r3', name: '他店卸睫', desc: '溫和卸除他店殘睫', time: 30, price: 300, deposit: 150, isSolo: 'no' },
-      { id: 'r4', name: '單純來卸睫（不續作睫毛）', desc: '僅卸除睫毛，不需選主服務', time: 30, price: 300, deposit: 150, isSolo: 'yes' }
-    ],
-    schedule: {}, orders: [], expenses: [], manualIncomes: []
+    mainServices: [], addonServices: [], removalServices: [], schedule: {}, orders: [], expenses: [], manualIncomes: []
   };
 
-  let db = JSON.parse(JSON.stringify(DEFAULT_FALLBACK_DB));
-
+  // 1. 初始化讀取：優先完整保留您本機辛苦設定的項目與心血資料，並自動上傳至雲端同步
   function initDataSync() {
     let localSaved = localStorage.getItem(LOCAL_DB_KEY);
     if(localSaved) {
@@ -597,6 +582,7 @@
     fetchCloudData();
   }
 
+  // 從 Google 雲端抓取最新的全域資料（若雲端有資料才更新，否則保留本機）
   function fetchCloudData(callback) {
     fetch(GOOGLE_SCRIPT_URL)
       .then(res => res.json())
@@ -604,24 +590,17 @@
         if(cloudData && cloudData.mainServices && cloudData.mainServices.length > 0) {
           db = { ...db, ...cloudData };
           localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
-        } else {
-          if(!db.mainServices || db.mainServices.length === 0) {
-            db = JSON.parse(JSON.stringify(DEFAULT_FALLBACK_DB));
-          }
-          syncDataToCloud();
         }
         if(callback) callback();
         else { if(currentView === 'admin') renderAdmin(); else renderClient(); }
       })
       .catch(err => {
         console.log("雲端同步載入中...", err);
-        if(!db.mainServices || db.mainServices.length === 0) {
-          db = JSON.parse(JSON.stringify(DEFAULT_FALLBACK_DB));
-        }
         if(callback) callback();
       });
   }
 
+  // 寫入雲端資料庫
   function syncDataToCloud() {
     localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
     fetch(GOOGLE_SCRIPT_URL, {
@@ -650,6 +629,7 @@
     requestNotificationPermission();
     document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
 
+    // 每 15 秒自動跟雲端同步一次，確保新預約即時跳出
     setInterval(() => {
       fetchCloudData(() => {
         if(currentView === 'admin') { renderAdminOrders(); updateUnreadBadge(); }
@@ -732,8 +712,7 @@
   function checkModalClose(event, modalId) {
     if(event.target.id === modalId) document.getElementById(modalId).classList.remove('active');
   }
-</script>
-<script>
+
   function renderClient() {
     let mainHtml = "";
     (db.mainServices || []).forEach(item => {
@@ -1043,7 +1022,8 @@
     alert("🎉 預約完成！系統已即時連線傳送預約至店家雲端後台，感謝您的預約✨🤍");
     location.reload();
   }
-
+</script>
+<script>
   function renderAdmin() {
     renderAdminList('main'); renderAdminList('addon'); renderAdminList('removal');
     renderCalendar(adminYear, adminMonth, 'admin'); renderAdminOrders(); renderAdminCustomers(); renderAdminAccounting();
