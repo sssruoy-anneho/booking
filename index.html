@@ -42,13 +42,6 @@
     .item-info .subtitle { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
     .item-price { font-weight: 600; color: var(--primary-color); font-size: 14px; white-space: nowrap; text-align: right; }
     
-    input:-webkit-autofill,
-    input:-webkit-autofill:hover, 
-    input:-webkit-autofill:focus {
-      -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
-      -webkit-text-fill-color: var(--text-main) !important;
-    }
-
     .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .cal-btn { background: none; border: none; font-size: 16px; color: var(--primary-color); cursor: pointer; padding: 4px 8px; font-weight: bold; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 13px; }
@@ -103,13 +96,11 @@
 
   <div id="adminHeader" style="display: none;">
     <div class="admin-bar">
-      <span>👑 店家管理後台 <span id="syncStatusTag" style="font-size: 10px; opacity: 0.8;">(雲端連線中)</span></span>
+      <span>👑 店家管理後台 <button type="button" class="btn-secondary" onclick="requestPushPermission()" style="margin-left:6px; font-size:10px;">🔔 開啟推播</button></span>
       <button type="button" class="btn-secondary" onclick="switchView('client')">👁️ 預覽顧客頁面</button>
     </div>
     <div class="admin-tab-group">
-      <div class="admin-tab active" onclick="switchAdminTab('services', event)">主服務</div>
-      <div class="admin-tab" onclick="switchAdminTab('addons', event)">加購</div>
-      <div class="admin-tab" onclick="switchAdminTab('removal', event)">卸睫</div>
+      <div class="admin-tab active" onclick="switchAdminTab('services', event)">服務分類與項目</div>
       <div class="admin-tab" onclick="switchAdminTab('schedule', event)">設定預約時段</div>
       <div class="admin-tab" id="tabOrdersHeader" onclick="switchAdminTab('orders', event)">
         已接收預約 <span id="adminUnreadBadge" class="badge-unread" style="display:none;">0</span>
@@ -124,36 +115,7 @@
     <div id="stepNoticeView">
       <div class="card">
         <div class="card-title">⚠️ 重要請詳細閱讀您預約的項目‼️</div>
-        
-        <div class="notice-accordion">
-          <div class="notice-header" onclick="toggleAccordion('accEyebrow')">
-            <span>✨ 預約霧眉須知</span><span id="icon_accEyebrow">▼</span>
-          </div>
-          <div class="notice-body" id="accEyebrow">
-            請避開生理期❗️<br>前一天勿熬夜、飲酒❗️<br>做好保濕，皮膚狀態好留色更好<br>當天素眉來即可<br>眉毛處有傷口、痘痘建議修復後再霧眉<br>保留原有眉毛，不修眉<br><br>兩邊眉毛生長位置不同<br>兩邊眉骨高低不同<br>兩邊表情肌肌肉位置不同<br>兩邊太陽穴凹陷位置不同<br>設計眉型講求相對協調<br>沒有100%對稱的臉型，所以沒有100%對稱的眉型
-          </div>
-        </div>
-
-        <div class="notice-accordion">
-          <div class="notice-header" onclick="toggleAccordion('accEyelash')">
-            <span>✨ 預約美睫須知</span><span id="icon_accEyelash">▼</span>
-          </div>
-          <div class="notice-body" id="accEyelash">
-            預約當天請勿化任何眼妝/睫毛膏/隔離/防曬❗️<br>三個月內做過角蛋白不可做美睫❌<br>近三個月有做「眼周醫美」請主動告知<br>本身有在使用睫毛生長液，嫁接的睫毛會因為生長週期而掉落更快
-          </div>
-        </div>
-
-        <div class="notice-accordion">
-          <div class="notice-header" onclick="toggleAccordion('accRemoval')">
-            <span>✨ 預約淡色須知</span><span id="icon_accRemoval">▼</span>
-          </div>
-          <div class="notice-body" id="accRemoval">
-            <strong>- 關於無創除色 -</strong><br>利用光點與熱能，將卡在皮層裡的大分子色素分解成小分子，讓皮膚得以開始自行代謝<br><br>
-            <strong>- 無創除色優點 -</strong><br>非藥水侵入式洗眉、非傳統雷射洗眉。安全無創、無傷口、不流血，不結痂不用剃毛，效果明顯，隔天可以正常畫眉毛<br><br>
-            <strong>- 除色需要幾次 -</strong><br><span style="color: #D9534F; font-weight: bold;">沒有一定</span>，要看當初霧眉時紋繡師使用的色乳、深度及自身代謝速度而定<br><br>
-            <strong>- 除色間隔時間 -</strong><br>眉毛顏色較淺 - 最快兩星期做一次<br>眉毛顏色較飽和 - 最快一個月做一次
-          </div>
-        </div>
+        <div id="clientNoticesContainer"></div>
 
         <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
         <div style="font-size: 13px; line-height: 1.6; color: var(--text-main); margin-bottom: 14px;">
@@ -190,10 +152,8 @@
         <div id="clientSearchResult" style="margin-top: 12px;"></div>
       </div>
 
-      <div class="card">
-        <div class="card-title">選擇服務項目 *</div>
-        <div id="clientServicesList"></div>
-      </div>
+      <!-- 動態載入所有分類與項目 -->
+      <div id="clientDynamicCategoriesContainer"></div>
 
       <div class="card" id="eyebrowBaseColorCard" style="display: none;">
         <div class="card-title">眉毛有無底色 *</div>
@@ -221,16 +181,6 @@
           <input type="text" id="remHistory" class="form-input" placeholder="例如：做過1次，大約3個月前" oninput="updateSummary()">
         </div>
         <div style="color: #D9534F; font-weight: bold; font-size: 12px; margin-top: 4px;">早期繡眉，底色為：青綠/藍/紫，恐無效。</div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">加購項目</div>
-        <div id="clientAddonsList"></div>
-      </div>
-
-      <div class="card" id="clientRemovalCardWrap">
-        <div class="card-title" id="clientRemovalTitle">是否需要卸睫 *</div>
-        <div id="clientRemovalList"></div>
       </div>
 
       <div class="card">
@@ -285,30 +235,11 @@
     <div id="adminTabServices" class="admin-tab-content">
       <div class="card">
         <div class="card-title">
-          <span>主服務清單管理</span>
-          <button type="button" class="btn-secondary" onclick="openServiceModal('main', 'add')">+ 新增服務</button>
+          <span>服務分類與項目管理</span>
+          <button type="button" class="btn-submit" style="padding:6px 12px; font-size:12px;" onclick="openCategoryModal('add')">+ 新增分類</button>
         </div>
-        <div id="adminMainServicesList"></div>
-      </div>
-    </div>
-
-    <div id="adminTabAddons" class="admin-tab-content" style="display: none;">
-      <div class="card">
-        <div class="card-title">
-          <span>加購項目管理</span>
-          <button type="button" class="btn-secondary" onclick="openServiceModal('addon', 'add')">+ 新增加購</button>
-        </div>
-        <div id="adminAddonServicesList"></div>
-      </div>
-    </div>
-
-    <div id="adminTabRemoval" class="admin-tab-content" style="display: none;">
-      <div class="card">
-        <div class="card-title">
-          <span>卸睫項目管理</span>
-          <button type="button" class="btn-secondary" onclick="openServiceModal('removal', 'add')">+ 新增卸睫</button>
-        </div>
-        <div id="adminRemovalServicesList"></div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">您可以自由新增大分類（如霧眉、美睫等），並在各分類下新增服務項目。</div>
+        <div id="adminCategoriesList"></div>
       </div>
     </div>
 
@@ -384,37 +315,42 @@
 
     <div id="adminTabSettings" class="admin-tab-content" style="display: none;">
       <div class="card">
-        <div class="card-title">轉帳銀行資訊設定</div>
-        <div class="form-group">
-          <label>銀行代碼 (如 812)</label>
-          <input type="text" id="settingBankCode" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>銀行名稱 (如 台新銀行)</label>
-          <input type="text" id="settingBankName" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>轉帳帳號</label>
-          <input type="text" id="settingBankAcc" class="form-input">
-        </div>
-        <div class="form-group">
-          <label>戶名</label>
-          <input type="text" id="settingBankHolder" class="form-input">
-        </div>
-
-        <button type="button" class="btn-submit" style="width: 100%; margin-top: 10px;" onclick="saveSettings()">儲存銀行設定</button>
+        <div class="card-title">💳 轉帳銀行資訊設定</div>
+        <div class="form-group"><label>銀行代碼 (如 812)</label><input type="text" id="settingBankCode" class="form-input"></div>
+        <div class="form-group"><label>銀行名稱 (如 台新銀行)</label><input type="text" id="settingBankName" class="form-input"></div>
+        <div class="form-group"><label>轉帳帳號</label><input type="text" id="settingBankAcc" class="form-input"></div>
+        <div class="form-group"><label>戶名</label><input type="text" id="settingBankHolder" class="form-input"></div>
       </div>
+
+      <div class="card">
+        <div class="card-title">💬 轉帳彈窗注意事項設定 (可後台修改)</div>
+        <div class="form-group">
+          <label>注意事項說明文字 (支援 HTML 或換行)</label>
+          <textarea id="settingPayNotice" class="form-input" rows="6" style="resize:vertical;"></textarea>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 第一頁預約須知設定 (可後台新增/修改)</div>
+        <div style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">您可以自由編輯第一頁的各個須知區塊標題與內容。</div>
+        <div id="adminNoticesEditorList"></div>
+        <button type="button" class="btn-secondary" style="width:100%; margin-top:8px;" onclick="addNoticeSection()">+ 新增一個須知區塊</button>
+      </div>
+
+      <button type="button" class="btn-submit" style="width: 100%; margin-top: 10px; margin-bottom: 30px;" onclick="saveAllSettings()">儲存所有後台設定</button>
     </div>
   </div>
 </div>
 
+<!-- 轉帳付款彈窗 -->
 <div class="modal-overlay" id="payModal" onclick="checkModalClose(event, 'payModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 style="color: var(--primary-color); margin-bottom: 12px;">轉帳支付定金</h3>
     <div style="color: #D9534F; font-weight: bold; font-size: 13px; margin-bottom: 8px;">為保障雙方權益，請確認以下內容再進行匯款</div>
-    <div style="font-size: 12px; line-height: 1.6; color: var(--text-main); margin-bottom: 12px; background: var(--input-bg); padding: 10px; border-radius: 8px;">
-      已支付的定金會在項目費用扣除<br><strong>- 更改預約時間說明 -</strong><br>• 須至少三天前告知，僅可修改日期一次。<br>• 須至少三天前告知，可退定金及取消預約。<br><strong style="color: #D9534F;">- 以下情況不退定金 -</strong><br>• 距離預約日三天內臨時取消或當天沒來。
-    </div>
+    
+    <!-- 後台可自訂的注意事項內容區 -->
+    <div id="payModalNoticeDisplay" style="font-size: 12px; line-height: 1.6; color: var(--text-main); margin-bottom: 12px; background: var(--input-bg); padding: 10px; border-radius: 8px;"></div>
+
     <div style="background: var(--input-bg); padding: 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.6; margin-bottom: 14px;">
       <div><strong>銀行代碼：</strong><span id="payBankCode"></span> (<span id="payBankName"></span>)</div>
       <div><strong>帳號：</strong><span id="payBankAcc" style="font-weight: bold; font-size: 15px; color: var(--primary-color);"></span></div>
@@ -432,9 +368,22 @@
   </div>
 </div>
 
+<!-- 分類新增/編輯彈窗 -->
+<div class="modal-overlay" id="categoryModal" onclick="checkModalClose(event, 'categoryModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 id="categoryModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增服務分類</h3>
+    <div class="form-group"><label>分類名稱 (例如：霧眉服務、美睫項目) *</label><input type="text" id="editCatName" class="form-input" autocomplete="off"></div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeCategoryModal()">取消</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveCategoryItem()">儲存分類</button>
+    </div>
+  </div>
+</div>
+
+<!-- 服務項目新增/編輯彈窗 -->
 <div class="modal-overlay" id="serviceModal" onclick="checkModalClose(event, 'serviceModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 id="serviceModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">編輯項目</h3>
+    <h3 id="serviceModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">編輯服務項目</h3>
     <div class="form-group"><label>項目名稱 *</label><input type="text" id="editItemName" class="form-input" autocomplete="off"></div>
     <div class="form-group"><label>預估時間 (分鐘)</label><input type="number" id="editItemTime" class="form-input" value="30"></div>
     <div class="form-group"><label>項目備註說明 (顯示在項目下方)</label><input type="text" id="editItemDesc" class="form-input" autocomplete="off"></div>
@@ -444,17 +393,18 @@
       <label>預覽介面是否必須選擇「卸睫」？</label>
       <select id="editRequireRemoval" class="form-input"><option value="yes">是</option><option value="no">否</option></select>
     </div>
-    <div class="form-group" id="editIsSoloRemovalGroup" style="display:none;">
-      <label>是否為「單純卸睫」？</label>
-      <select id="editIsSoloRemoval" class="form-input"><option value="no">否</option><option value="yes">是</option></select>
+    <div class="form-group" id="editIsSoloGroup" style="display:none;">
+      <label>是否為「單純卸睫/獨立項目」？</label>
+      <select id="editIsSolo" class="form-input"><option value="no">否</option><option value="yes">是</option></select>
     </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
       <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeServiceModal()">取消</button>
-      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveServiceItem()">儲存</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveServiceItem()">儲存項目</button>
     </div>
   </div>
 </div>
 
+<!-- 記帳彈窗 -->
 <div class="modal-overlay" id="expenseModal" onclick="checkModalClose(event, 'expenseModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="expenseModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增記帳紀錄</h3>
@@ -469,33 +419,57 @@
 </div>
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
-  const LOCAL_DB_KEY = "anneho_db";
+  const LOCAL_DB_KEY = "anneho_db_v3";
 
-  // 您專屬設定好的預設項目（包含霧眉與美睫款式）
+  // 預設完整資料結構（支援自訂分類與自訂第一頁須知、付款須知）
   let defaultDb = {
-    settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "28881024671561", bankHolder: "徐若嫣" },
-    mainServices: [
-      { id: "m1", name: "微針霧眉", desc: "含三個月內補色一次。眉毛無底色建議選此，顏色更飽和和漂亮✨", time: 150, price: 6000, deposit: 1000, requireRemoval: "no", isSolo: "no" },
-      { id: "m2", name: "單次霧眉", desc: "不含補色。補色選我，眉毛底色為橘/紅/藍，建議先除色", time: 150, price: 3500, deposit: 1000, requireRemoval: "no", isSolo: "no" },
-      { id: "m3", name: "美睫-小漫畫款", desc: "小紅書熱門爆款🔥", time: 120, price: 1200, deposit: 0, requireRemoval: "yes", isSolo: "no" },
-      { id: "m4", name: "美睫-仿真毛絨款", desc: "自然又單調，搭配嬰兒直更好看🤍", time: 120, price: 1200, deposit: 0, requireRemoval: "yes", isSolo: "no" },
-      { id: "m5", name: "美睫-自然穿插款", desc: "喜歡簡單不浮誇選我，可梳好整理", time: 100, price: 1000, deposit: 0, requireRemoval: "yes", isSolo: "no" },
-      { id: "m6", name: "眉毛無創除色", desc: "原相機拍眉毛部位，請主動傳至官方LINE", time: 60, price: 1500, deposit: 500, requireRemoval: "no", isSolo: "no" }
+    settings: {
+      bankCode: "812",
+      bankName: "台新銀行",
+      bankAcc: "28881024671561",
+      bankHolder: "徐若嫣",
+      payNotice: "已支付的定金會在項目費用扣除<br><strong>- 更改預約時間說明 -</strong><br>• 須至少三天前告知，僅可修改日期一次。<br>• 須至少三天前告知，可退定金及取消預約。<br><strong style='color: #D9534F;'>- 以下情況不退定金 -</strong><br>• 距離預約日三天內臨時取消或當天沒來。"
+    },
+    notices: [
+      { id: "n1", title: "✨ 預約霧眉須知", content: "請避開生理期❗️<br>前一天勿熬夜、飲酒❗️<br>做好保濕，皮膚狀態好留色更好<br>當天素眉來即可<br>眉毛處有傷口、痘痘建議修復後再霧眉<br>保留原有眉毛，不修眉<br><br>兩邊眉毛生長位置不同<br>兩邊眉骨高低不同<br>兩邊表情肌肌肉位置不同<br>兩邊太陽穴凹陷位置不同<br>設計眉型講求相對協調<br>沒有100%對稱的臉型，所以沒有100%對稱的眉型" },
+      { id: "n2", title: "✨ 預約美睫須知", content: "預約當天請勿化任何眼妝/睫毛膏/隔離/防曬❗️<br>三個月內做過角蛋白不可做美睫❌<br>近三個月有做「眼周醫美」請主動告知<br>本身有在使用睫毛生長液，嫁接的睫毛會因為生長週期而掉落更快" },
+      { id: "n3", title: "✨ 預約淡色須知", content: "<strong>- 關於無創除色 -</strong><br>利用光點與熱能，將卡在皮層裡的大分子色素分解成小分子，讓皮膚得以開始自行代謝<br><br><strong>- 無創除色優點 -</strong><br>非藥水侵入式洗眉、非傳統雷射洗眉。安全無創、無傷口、不流血，不結痂不用剃毛，效果明顯，隔天可以正常畫眉毛<br><br><strong>- 除色需要幾次 -</strong><br><span style='color: #D9534F; font-weight: bold;'>沒有一定</span>，要看當初霧眉時紋繡師使用的色乳、深度及自身代謝速度而定<br><br><strong>- 除色間隔時間 -</strong><br>眉毛顏色較淺 - 最快兩星期做一次<br>眉毛顏色較飽和 - 最快一個月做一次" }
     ],
-    addonServices: [
-      { id: "a1", name: "下睫毛嫁接", desc: "讓眼神更深邃", time: 30, price: 500, deposit: 0 }
-    ],
-    removalServices: [
-      { id: "r1", name: "本店卸睫", desc: "卸除原本嫁接睫毛", time: 20, price: 0, deposit: 0, isSolo: "no" },
-      { id: "r2", name: "他店卸睫", desc: "卸除他店嫁接睫毛", time: 30, price: 200, deposit: 0, isSolo: "no" },
-      { id: "r3", name: "單純卸睫(不需選主服務)", desc: "純卸睫專用", time: 30, price: 300, deposit: 0, isSolo: "yes" }
+    categories: [
+      {
+        id: "cat_main",
+        name: "選擇服務項目 *",
+        items: [
+          { id: "m1", name: "微針霧眉", desc: "含三個月內補色一次。眉毛無底色建議選此，顏色更飽和和漂亮✨", time: 150, price: 6000, deposit: 1000, requireRemoval: "no", isSolo: "no" },
+          { id: "m2", name: "單次霧眉", desc: "不含補色。補色選我，眉毛底色為橘/紅/藍，建議先除色", time: 150, price: 3500, deposit: 1000, requireRemoval: "no", isSolo: "no" },
+          { id: "m3", name: "美睫-小漫畫款", desc: "小紅書熱門爆款🔥", time: 120, price: 1200, deposit: 0, requireRemoval: "yes", isSolo: "no" },
+          { id: "m4", name: "美睫-仿真毛絨款", desc: "自然又單調，搭配嬰兒直更好看🤍", time: 120, price: 1200, deposit: 0, requireRemoval: "yes", isSolo: "no" },
+          { id: "m5", name: "美睫-自然穿插款", desc: "喜歡簡單不浮誇選我，可梳好整理", time: 100, price: 1000, deposit: 0, requireRemoval: "yes", isSolo: "no" },
+          { id: "m6", name: "眉毛無創除色", desc: "原相機拍眉毛部位，請主動傳至官方LINE", time: 60, price: 1500, deposit: 500, requireRemoval: "no", isSolo: "no" }
+        ]
+      },
+      {
+        id: "cat_addon",
+        name: "加購項目",
+        items: [
+          { id: "a1", name: "下睫毛嫁接", desc: "讓眼神更深邃", time: 30, price: 500, deposit: 0, requireRemoval: "no", isSolo: "no" }
+        ]
+      },
+      {
+        id: "cat_removal",
+        name: "是否需要卸睫 *",
+        items: [
+          { id: "r1", name: "本店卸睫", desc: "卸除原本嫁接睫毛", time: 20, price: 0, deposit: 0, requireRemoval: "no", isSolo: "no" },
+          { id: "r2", name: "他店卸睫", desc: "卸除他店嫁接睫毛", time: 30, price: 200, deposit: 0, requireRemoval: "no", isSolo: "no" },
+          { id: "r3", name: "單純卸睫(不需選主服務)", desc: "純卸睫專用", time: 30, price: 300, deposit: 0, requireRemoval: "no", isSolo: "yes" }
+        ]
+      }
     ],
     schedule: {}, orders: [], expenses: [], manualIncomes: []
   };
 
   let db = JSON.parse(JSON.stringify(defaultDb));
 
-  // 1. 強制每次開頁面先向雲端 A1 抓資料
   function initDataSync() {
     fetchCloudData();
   }
@@ -504,7 +478,7 @@
     fetch(GOOGLE_SCRIPT_URL)
       .then(res => res.json())
       .then(cloudData => {
-        if(cloudData && cloudData.mainServices && cloudData.mainServices.length > 0) {
+        if(cloudData && cloudData.categories && cloudData.categories.length > 0) {
           db = { ...db, ...cloudData };
           localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
         }
@@ -522,7 +496,6 @@
       });
   }
 
-  // 2. 寫入雲端 A1 (確保後台修改完點擊儲存，雲端同步更新)
   function syncDataToCloud() {
     localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
     fetch(GOOGLE_SCRIPT_URL, {
@@ -540,7 +513,7 @@
   let currentView = 'client', clickHeaderCount = 0, clickHeaderTimer = null;
   let currentYear = new Date().getFullYear(), currentMonth = new Date().getMonth();
   let adminYear = currentYear, adminMonth = currentMonth;
-  let selectedDateStr = "", selectedTime = "", selectedMainId = "", selectedAddonIds = [], selectedRemovalId = "", selectedTransportMode = "";
+  let selectedDateStr = "", selectedTime = "", selectedServiceIds = [], selectedTransportMode = "";
   let selectedEyebrowBaseMode = ""; 
   let currentAccTab = 'income', currentExpModalType = 'expense', expandedCustomerName = null;
   let expandedAdminTimeSlot = null;
@@ -550,25 +523,44 @@
     initScheduleDefault();
     renderClient();
     initAccountingSelectors();
-    requestNotificationPermission();
+    requestPushPermission();
     document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
 
+    // 每 15 秒自動背景更新，若有新預約會自動發出手機通知與震動
     setInterval(() => {
+      let oldOrdersCount = (db.orders || []).length;
       fetchCloudData(() => {
+        let newOrdersCount = (db.orders || []).length;
+        if(newOrdersCount > oldOrdersCount) {
+          triggerNativeAlert("🔔 安你好預約系統：有新的顧客預約成功！");
+        }
         if(currentView === 'admin') { renderAdminOrders(); updateUnreadBadge(); }
       });
     }, 15000);
   };
 
-  function requestNotificationPermission() {
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
+  function requestPushPermission() {
+    if ("Notification" in window) {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          alert("推播通知已成功開啟！當有新預約時您的手機將收到震動與提醒。");
+        } else {
+          alert("您已關閉瀏覽器推播權限，請至手機/瀏覽器設定中開啟。");
+        }
+      });
+    } else {
+      alert("此瀏覽器不支援推播通知");
     }
   }
 
-  function sendDeviceNotification(title, body) {
+  function triggerNativeAlert(msg) {
+    // 支援手機震動 API (支援大部分 Android 及部分 iOS)
+    if ("vibrate" in navigator) {
+      navigator.vibrate([300, 100, 300, 100, 500]);
+    }
+    // 發送瀏覽器推播
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(title, { body: body, icon: "https://fav.farm/✨" });
+      new Notification("安,你好預約通知", { body: msg, icon: "https://fav.farm/✨", vibrate: [300, 100, 300] });
     }
   }
 
@@ -631,41 +623,70 @@
     if(event.target.id === modalId) document.getElementById(modalId).classList.remove('active');
   }
 
+  // 渲染顧客端第一頁須知
+  function renderClientNotices() {
+    let notices = db.notices || [];
+    let html = "";
+    notices.forEach((n, idx) => {
+      let bodyId = "accNotice_" + idx;
+      html += `<div class="notice-accordion">
+        <div class="notice-header" onclick="toggleAccordion('${bodyId}')">
+          <span>${escapeHtml(n.title)}</span><span id="icon_${bodyId}">▼</span>
+        </div>
+        <div class="notice-body" id="${bodyId}">${n.content}</div>
+      </div>`;
+    });
+    document.getElementById('clientNoticesContainer').innerHTML = html;
+  }
+
   function renderClient() {
-    let mainHtml = "";
-    (db.mainServices || []).forEach(item => {
-      let isSel = selectedMainId === item.id ? "selected" : "";
-      mainHtml += `<div class="item-option ${isSel}" onclick="selectMainService('${item.id}')">
-        <div class="item-info"><div class="title">${escapeHtml(item.name)}</div>${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}<div class="subtitle">施作時間約 ${item.time||60} 分鐘</div></div>
-        <div class="item-price">NT$ ${item.price}</div></div>`;
+    renderClientNotices();
+    let categories = db.categories || [];
+    let containerHtml = "";
+
+    categories.forEach(cat => {
+      let itemsHtml = "";
+      (cat.items || []).forEach(item => {
+        let isSel = selectedServiceIds.includes(item.id);
+        let priceText = item.price > 0 ? `NT$ ${item.price}` : "免費";
+        itemsHtml += `<div class="item-option ${isSel?'selected':''}" onclick="toggleServiceItem('${item.id}')">
+          <div class="item-info">
+            <div class="title">${escapeHtml(item.name)}</div>
+            ${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}
+            <div class="subtitle">時間約 ${item.time||30} 分鐘</div>
+          </div>
+          <div class="item-price">${priceText}</div>
+        </div>`;
+      });
+
+      containerHtml += `<div class="card">
+        <div class="card-title">${escapeHtml(cat.name)}</div>
+        ${itemsHtml || "<div style='color:var(--text-sub); font-size:13px;'>此分類尚無項目</div>"}
+      </div>`;
     });
-    document.getElementById('clientServicesList').innerHTML = mainHtml || "<div style='color:var(--text-sub); font-size:13px;'>尚無服務項目</div>";
 
-    let addonHtml = "";
-    (db.addonServices || []).forEach(item => {
-      let isSel = selectedAddonIds.includes(item.id) ? "selected" : "";
-      addonHtml += `<div class="item-option ${isSel}" onclick="toggleAddonService('${item.id}')">
-        <div class="item-info"><div class="title">${escapeHtml(item.name)}</div>${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}<div class="subtitle">+${item.time||0} 分鐘</div></div>
-        <div class="item-price">+NT$ ${item.price}</div></div>`;
+    document.getElementById('clientDynamicCategoriesContainer').innerHTML = containerHtml;
+
+    // 檢查霧眉與除色附加欄位顯示
+    let hasEyebrow = false, hasRemoval = false;
+    categories.forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if(selectedServiceIds.includes(item.id)) {
+          if(item.name.includes("霧眉")) hasEyebrow = true;
+          if(item.name.includes("除色")) hasRemoval = true;
+        }
+      });
     });
-    document.getElementById('clientAddonsList').innerHTML = addonHtml || "<div style='color:var(--text-sub); font-size:13px;'>無加購項目</div>";
 
-    let removalHtml = "";
-    (db.removalServices || []).forEach(item => {
-      let isSel = selectedRemovalId === item.id ? "selected" : "";
-      let priceText = item.price > 0 ? `+NT$ ${item.price}` : "免費";
-      removalHtml += `<div class="item-option ${isSel}" onclick="selectRemovalService('${item.id}')">
-        <div class="item-info"><div class="title">${escapeHtml(item.name)}</div>${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}<div class="subtitle">+${item.time||0} 分鐘</div></div>
-        <div class="item-price">${priceText}</div></div>`;
-    });
-    document.getElementById('clientRemovalList').innerHTML = removalHtml || "<div style='color:var(--text-sub); font-size:13px;'>尚無卸睫項目</div>";
+    document.getElementById('eyebrowBaseColorCard').style.display = hasEyebrow ? 'block' : 'none';
+    if(!hasEyebrow) { selectedEyebrowBaseMode = ""; document.getElementById('eyebrowColorText').value = ""; }
 
-    let removalItem = (db.removalServices || []).find(x => x.id === selectedRemovalId);
-    let isSoloRemoval = removalItem && removalItem.isSolo === 'yes';
-
-    let mainItem = (db.mainServices || []).find(x => x.id === selectedMainId);
-    let needRemoval = mainItem && mainItem.requireRemoval === 'yes';
-    document.getElementById('clientRemovalTitle').innerText = (needRemoval && !isSoloRemoval) ? "是否需要卸睫 *" : "是否需要卸睫";
+    document.getElementById('eyebrowRemovalCard').style.display = hasRemoval ? 'block' : 'none';
+    if(!hasRemoval) {
+      document.getElementById('remLastTime').value = "";
+      document.getElementById('remCurrentColor').value = "";
+      document.getElementById('remHistory').value = "";
+    }
 
     renderCalendar(currentYear, currentMonth, 'client');
     updateSummary();
@@ -692,11 +713,9 @@
         html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:6px; font-size:12px; line-height:1.5; border:1px solid var(--border-color);">
           <div style="font-weight:bold; color:var(--primary-color);">📅 ${v.date} ${v.time}</div>
           <div><strong>姓名：</strong>${escapeHtml(v.name)}</div>
-          <div><strong>預約項目：</strong>${escapeHtml(v.mainName)}</div>
+          <div><strong>預約項目：</strong>${escapeHtml(v.servicesSummary)}</div>
           ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
           ${v.removalDetails ? `<div><strong>無創除色評估：</strong>${escapeHtml(v.removalDetails)}</div>` : ''}
-          <div><strong>加購項目：</strong>${escapeHtml(v.addons.join(',')) || '無'}</div>
-          <div><strong>卸睫部分：</strong>${escapeHtml(v.removal) || '無'}</div>
           <div><strong>時間預估：</strong>約 ${v.totalTime || 60} 分鐘</div>
           <div><strong>交通工具：</strong>${escapeHtml(v.transport) || '無'}</div>
           <div style="color:#D9534F; font-weight:bold; margin-top:2px;">已付定金：NT$ ${v.deposit} (總計 NT$ ${v.totalPrice})</div></div>`;
@@ -705,20 +724,31 @@
     });
   }
 
-  function selectMainService(id) {
-    selectedMainId = id;
-    let mainItem = (db.mainServices || []).find(x => x.id === id);
-    let isEyebrow = mainItem && (mainItem.name.includes("微針霧眉") || mainItem.name.includes("單次霧眉"));
-    let isEyebrowRemoval = mainItem && mainItem.name.includes("眉毛無創除色");
+  function toggleServiceItem(id) {
+    let targetItem = null;
+    (db.categories || []).forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if(item.id === id) targetItem = item;
+      });
+    });
 
-    document.getElementById('eyebrowBaseColorCard').style.display = isEyebrow ? 'block' : 'none';
-    if(!isEyebrow) { selectedEyebrowBaseMode = ""; document.getElementById('eyebrowColorText').value = ""; }
-
-    document.getElementById('eyebrowRemovalCard').style.display = isEyebrowRemoval ? 'block' : 'none';
-    if(!isEyebrowRemoval) {
-      document.getElementById('remLastTime').value = "";
-      document.getElementById('remCurrentColor').value = "";
-      document.getElementById('remHistory').value = "";
+    if(targetItem && targetItem.isSolo === 'yes') {
+      // 若點擊獨立項目（如單純卸睫），清空同分類或其他衝突項目並單選
+      selectedServiceIds = [id];
+    } else {
+      if(selectedServiceIds.includes(id)) {
+        selectedServiceIds = selectedServiceIds.filter(x => x !== id);
+      } else {
+        // 檢查是否點了 isSolo 的項目，若有先清除
+        let isConflict = false;
+        (db.categories || []).forEach(cat => {
+          (cat.items || []).forEach(item => {
+            if(selectedServiceIds.includes(item.id) && item.isSolo === 'yes') isConflict = true;
+          });
+        });
+        if(isConflict) selectedServiceIds = [];
+        selectedServiceIds.push(id);
+      }
     }
     renderClient();
   }
@@ -737,23 +767,6 @@
     inputWrap.style.display = mode === '有' ? 'block' : 'none';
     if(mode === '無') document.getElementById('eyebrowColorText').value = "";
     updateSummary();
-  }
-
-  function toggleAddonService(id) {
-    if(selectedAddonIds.includes(id)) selectedAddonIds = selectedAddonIds.filter(x => x !== id);
-    else selectedAddonIds.push(id);
-    renderClient();
-  }
-
-  function selectRemovalService(id) {
-    selectedRemovalId = id;
-    let removalItem = (db.removalServices || []).find(x => x.id === id);
-    if(removalItem && removalItem.isSolo === 'yes') {
-      selectedMainId = "";
-      document.getElementById('eyebrowBaseColorCard').style.display = 'none';
-      document.getElementById('eyebrowRemovalCard').style.display = 'none';
-    }
-    renderClient();
   }
 
   function selectTransport(mode) {
@@ -815,60 +828,57 @@
 
   function updateSummary() {
     let total = 0, totalDeposit = 0, totalTime = 0;
-    let mainItem = (db.mainServices || []).find(x => x.id === selectedMainId);
-    if(mainItem) { total += mainItem.price; totalDeposit += Number(mainItem.deposit || 0); totalTime += Number(mainItem.time || 60); }
-    selectedAddonIds.forEach(id => {
-      let add = (db.addonServices || []).find(x => x.id === id);
-      if(add) { total += add.price; totalDeposit += Number(add.deposit || 0); totalTime += Number(add.time || 0); }
+    let selectedItemsList = [];
+    
+    (db.categories || []).forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if(selectedServiceIds.includes(item.id)) {
+          total += Number(item.price || 0);
+          totalDeposit += Number(item.deposit || 0);
+          totalTime += Number(item.time || 30);
+          selectedItemsList.push(item);
+        }
+      });
     });
-    let removalItem = (db.removalServices || []).find(x => x.id === selectedRemovalId);
-    if(removalItem) { total += removalItem.price; totalDeposit += Number(removalItem.deposit || 0); totalTime += Number(removalItem.time || 0); }
 
     document.getElementById('displayDeposit').innerText = `NT$ ${totalDeposit}`;
     document.getElementById('displayTotal').innerText = `總計金額：NT$ ${total}`;
     document.getElementById('displayTime').innerText = `施作總時間約 ${totalTime} 分鐘`;
 
-    let isEyebrow = mainItem && (mainItem.name.includes("微針霧眉") || mainItem.name.includes("單次霧眉"));
+    let hasEyebrow = selectedItemsList.some(x => x.name.includes("霧眉"));
     let eyebrowValid = true;
-    if(isEyebrow) {
+    if(hasEyebrow) {
       if(!selectedEyebrowBaseMode) eyebrowValid = false;
       if(selectedEyebrowBaseMode === '有' && !document.getElementById('eyebrowColorText').value.trim()) eyebrowValid = false;
     }
 
-    let isEyebrowRemoval = mainItem && mainItem.name.includes("眉毛無創除色");
+    let hasRemoval = selectedItemsList.some(x => x.name.includes("除色"));
     let removalValid = true;
-    if(isEyebrowRemoval) {
+    if(hasRemoval) {
       if(!document.getElementById('remLastTime').value.trim() || !document.getElementById('remCurrentColor').value.trim() || !document.getElementById('remHistory').value.trim()) removalValid = false;
     }
 
-    let isSoloRemoval = removalItem && removalItem.isSolo === 'yes';
-    let needRemoval = mainItem && mainItem.requireRemoval === 'yes';
-    let removalSelectValid = (needRemoval && !isSoloRemoval) ? Boolean(selectedRemovalId) : true;
-    let serviceSelectedValid = Boolean(selectedMainId) || isSoloRemoval;
-
-    document.getElementById('btnGoPay').disabled = !(serviceSelectedValid && removalSelectValid && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid && removalValid);
+    let serviceSelectedValid = selectedServiceIds.length > 0;
+    document.getElementById('btnGoPay').disabled = !(serviceSelectedValid && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid && removalValid);
   }
 
   function openPayModal() {
     if(!document.getElementById('custName').value.trim() || !document.getElementById('custPhone').value.trim()) { alert("請填寫您的姓名與聯絡電話！"); return; }
-    let mainItem = (db.mainServices || []).find(x => x.id === selectedMainId);
-    let removalItem = (db.removalServices || []).find(x => x.id === selectedRemovalId);
-    let isSoloRemoval = removalItem && removalItem.isSolo === 'yes';
-    let needRemoval = mainItem && mainItem.requireRemoval === 'yes';
-
-    if(!selectedMainId && !isSoloRemoval) { alert("請選擇服務項目！"); return; }
-    if(needRemoval && !isSoloRemoval && !selectedRemovalId) { alert("此項目必須選擇卸睫方式！"); return; }
+    if(selectedServiceIds.length === 0) { alert("請至少選擇一個服務項目！"); return; }
     if(!selectedTransportMode) { alert("請選擇交通方式！"); return; }
 
     let totalDeposit = 0;
-    if(mainItem) totalDeposit += Number(mainItem.deposit || 0);
-    selectedAddonIds.forEach(id => { let add = (db.addonServices || []).find(x => x.id === id); if(add) totalDeposit += Number(add.deposit || 0); });
-    if(removalItem) totalDeposit += Number(removalItem.deposit || 0);
+    (db.categories || []).forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if(selectedServiceIds.includes(item.id)) totalDeposit += Number(item.deposit || 0);
+      });
+    });
 
     document.getElementById('payBankCode').innerText = db.settings.bankCode || "812";
     document.getElementById('payBankName').innerText = db.settings.bankName || "台新銀行";
     document.getElementById('payBankAcc').innerText = db.settings.bankAcc || "28881024671561";
     document.getElementById('payBankHolder').innerText = db.settings.bankHolder || "徐若嫣";
+    document.getElementById('payModalNoticeDisplay').innerHTML = db.settings.payNotice || "請依指定金額匯款";
     document.getElementById('payDepositAmount').innerText = totalDeposit;
     document.getElementById('payModal').classList.add('active');
   }
@@ -881,41 +891,33 @@
     let name = document.getElementById('custName').value.trim();
     let phone = document.getElementById('custPhone').value.trim();
     let note = document.getElementById('custNote').value.trim();
-    let mainItem = (db.mainServices || []).find(x => x.id === selectedMainId);
-    let addonNames = selectedAddonIds.map(id => (db.addonServices || []).find(x => x.id === id)?.name).filter(Boolean);
-    let removalItem = (db.removalServices || []).find(x => x.id === selectedRemovalId);
 
-    let isSoloRemoval = removalItem && removalItem.isSolo === 'yes';
-    let mainNameStr = mainItem ? mainItem.name : (isSoloRemoval ? "單純卸睫" : "未指定項目");
+    let totalDeposit = 0, totalPrice = 0, totalTime = 0;
+    let serviceNames = [];
 
-    let totalDeposit = 0, totalTime = mainItem ? Number(mainItem.time || 60) : 30, totalPrice = mainItem ? Number(mainItem.price || 0) : 0;
-    if(mainItem) totalDeposit += Number(mainItem.deposit || 0);
-    selectedAddonIds.forEach(id => {
-      let add = (db.addonServices || []).find(x => x.id === id);
-      if(add) { totalDeposit += Number(add.deposit || 0); totalPrice += Number(add.price || 0); totalTime += Number(add.time || 0); }
+    (db.categories || []).forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if(selectedServiceIds.includes(item.id)) {
+          totalDeposit += Number(item.deposit || 0);
+          totalPrice += Number(item.price || 0);
+          totalTime += Number(item.time || 30);
+          serviceNames.push(item.name);
+        }
+      });
     });
-    if(removalItem && !isSoloRemoval) { 
-      totalDeposit += Number(removalItem.deposit || 0); 
-      totalPrice += Number(removalItem.price || 0); 
-      totalTime += Number(removalItem.time || 0); 
-    } else if(isSoloRemoval && removalItem) {
-      totalDeposit = Number(removalItem.deposit || 0);
-      totalPrice = Number(removalItem.price || 0);
-      totalTime = Number(removalItem.time || 30);
-    }
 
     let eyebrowBaseText = "";
     if(selectedEyebrowBaseMode === '無') eyebrowBaseText = "無底色";
     else if(selectedEyebrowBaseMode === '有') eyebrowBaseText = `有底色 (${document.getElementById('eyebrowColorText').value.trim()})`;
 
     let removalDetailsText = "";
-    if(mainItem && mainItem.name.includes("眉毛無創除色")) {
+    if(serviceNames.some(n => n.includes("除色"))) {
       removalDetailsText = `最後一次霧眉：${document.getElementById('remLastTime').value.trim()} | 底色：${document.getElementById('remCurrentColor').value.trim()} | 紀錄：${document.getElementById('remHistory').value.trim()}`;
     }
 
     let order = {
       id: Date.now(), name, phone, note, date: selectedDateStr, time: selectedTime,
-      mainName: mainNameStr, addons: addonNames, removal: removalItem ? removalItem.name : '無',
+      servicesSummary: serviceNames.join(', '),
       eyebrowBase: eyebrowBaseText, removalDetails: removalDetailsText,
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
       createdAt: new Date().toLocaleString(), isRead: false
@@ -927,18 +929,25 @@
     
     saveData(); 
     closePayModal();
-    sendDeviceNotification(`🔔 收到新的預約通知！`, `顧客：${name} (${phone})\n預約時間：${selectedDateStr} ${selectedTime}\n項目：${mainNameStr}`);
-    alert("🎉 預約完成！系統已即時連線傳送預約至店家雲端後台，感謝您的預約✨🤍");
+    triggerNativeAlert(`🔔 收到新的預約！顧客：${name} (${phone}) 於 ${selectedDateStr} ${selectedTime} 預約成功！`);
+    alert("🎉 預約完成！系統已即時傳送至雲端後台，感謝您的預約✨🤍");
     location.reload();
   }
 
   function renderAdmin() {
-    renderAdminList('main'); renderAdminList('addon'); renderAdminList('removal');
-    renderCalendar(adminYear, adminMonth, 'admin'); renderAdminOrders(); renderAdminCustomers(); renderAdminAccounting();
+    renderAdminCategories();
+    renderCalendar(adminYear, adminMonth, 'admin'); 
+    renderAdminOrders(); 
+    renderAdminCustomers(); 
+    renderAdminAccounting();
+    
     document.getElementById('settingBankCode').value = db.settings.bankCode || "812";
     document.getElementById('settingBankName').value = db.settings.bankName || "台新銀行";
     document.getElementById('settingBankAcc').value = db.settings.bankAcc || "28881024671561";
     document.getElementById('settingBankHolder').value = db.settings.bankHolder || "徐若嫣";
+    document.getElementById('settingPayNotice').value = db.settings.payNotice || "";
+
+    renderAdminNoticesEditor();
     updateUnreadBadge();
   }
 
@@ -952,74 +961,101 @@
   function switchAdminTab(tabName, evt) {
     document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
-    let tabMap = { services: 'adminTabServices', addons: 'adminTabAddons', removal: 'adminTabRemoval', schedule: 'adminTabSchedule', orders: 'adminTabOrders', customers: 'adminTabCustomers', accounting: 'adminTabAccounting', settings: 'adminTabSettings' };
+    let tabMap = { services: 'adminTabServices', schedule: 'adminTabSchedule', orders: 'adminTabOrders', customers: 'adminTabCustomers', accounting: 'adminTabAccounting', settings: 'adminTabSettings' };
     if(tabMap[tabName]) document.getElementById(tabMap[tabName]).style.display = 'block';
     if(evt && evt.target) evt.target.classList.add('active');
   }
 
-  function renderAdminList(type) {
-    let list = type === 'main' ? db.mainServices : (type === 'addon' ? db.addonServices : db.removalServices);
-    if(!list) list = [];
-    let containerId = type === 'main' ? 'adminMainServicesList' : (type === 'addon' ? 'adminAddonServicesList' : 'adminRemovalServicesList');
+  // 渲染後台分類與項目管理
+  function renderAdminCategories() {
+    let categories = db.categories || [];
     let html = "";
-    list.forEach((item, idx) => {
-      let extraInfo = "";
-      if(type === 'main') {
-        let reqRemText = item.requireRemoval === 'yes' ? "需選卸睫" : "免選卸睫";
-        extraInfo = ` | 卸睫: ${reqRemText}`;
-      } else if(type === 'removal') {
-        let isSoloText = item.isSolo === 'yes' ? " (單純卸睫)" : "";
-        extraInfo = isSoloText;
-      }
-      html += `<div class="item-option" style="background:#fff;">
-        <div class="item-info"><div class="title">${escapeHtml(item.name)}${extraInfo}</div><div class="desc">${escapeHtml(item.desc || '')}</div><div class="subtitle">${item.time||0}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div></div>
-        <div style="display:flex; gap:4px; align-items:center;">
-          ${idx > 0 ? `<button type="button" class="btn-secondary" onclick="moveItem('${type}', ${idx}, -1)">▲</button>` : ''}
-          ${idx < list.length - 1 ? `<button type="button" class="btn-secondary" onclick="moveItem('${type}', ${idx}, 1)">▼</button>` : ''}
-          <button type="button" class="btn-secondary" onclick="openServiceModal('${type}', 'edit', ${idx})">編輯</button>
-          <button type="button" class="btn-danger" onclick="deleteServiceItem('${type}', ${idx})">刪除</button>
-        </div></div>`;
+    categories.forEach((cat, catIdx) => {
+      let itemsHtml = "";
+      (cat.items || []).forEach((item, itemIdx) => {
+        itemsHtml += `<div class="item-option" style="background:#fff; margin-bottom:6px;">
+          <div class="item-info">
+            <div class="title">${escapeHtml(item.name)}</div>
+            <div class="desc">${escapeHtml(item.desc || '')}</div>
+            <div class="subtitle">${item.time||30}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div>
+          </div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <button type="button" class="btn-secondary" onclick="openServiceModal('${cat.id}', 'edit', ${itemIdx})">編輯</button>
+            <button type="button" class="btn-danger" onclick="deleteServiceItem('${cat.id}', ${itemIdx})">刪除</button>
+          </div>
+        </div>`;
+      });
+
+      html += `<div style="border:1px solid var(--border-color); background:var(--input-bg); padding:12px; border-radius:12px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <strong style="color:var(--primary-color); font-size:15px;">📁 ${escapeHtml(cat.name)}</strong>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openServiceModal('${cat.id}', 'add')">+ 新增項目</button>
+            <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="openCategoryModal('edit', ${catIdx})">改名</button>
+            <button type="button" class="btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteCategory(${catIdx})">刪除分類</button>
+          </div>
+        </div>
+        ${itemsHtml || "<div style='color:var(--text-sub); font-size:12px;'>此分類尚無項目</div>"}
+      </div>`;
     });
-    document.getElementById(containerId).innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無項目</div>";
+    document.getElementById('adminCategoriesList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無分類</div>";
   }
 
-  function moveItem(type, idx, direction) {
-    let list = type === 'main' ? db.mainServices : (type === 'addon' ? db.addonServices : db.removalServices);
-    let targetIdx = idx + direction;
-    if(targetIdx < 0 || targetIdx >= list.length) return;
-    let temp = list[idx]; list[idx] = list[targetIdx]; list[targetIdx] = temp;
-    saveData(); renderAdminList(type);
+  // 分類管理邏輯
+  let currentCatMode = 'add', currentCatIdx = -1;
+  function openCategoryModal(mode, idx = -1) {
+    currentCatMode = mode; currentCatIdx = idx;
+    document.getElementById('categoryModalTitle').innerText = mode === 'add' ? "新增服務分類" : "修改分類名稱";
+    document.getElementById('editCatName').value = (mode === 'edit' && idx >= 0) ? db.categories[idx].name : "";
+    document.getElementById('categoryModal').classList.add('active');
+  }
+  function closeCategoryModal() { document.getElementById('categoryModal').classList.remove('active'); }
+  function saveCategoryItem() {
+    let name = document.getElementById('editCatName').value.trim();
+    if(!name) { alert("請輸入分類名稱！"); return; }
+    if(!db.categories) db.categories = [];
+    if(currentCatMode === 'add') {
+      db.categories.push({ id: 'cat_' + Date.now(), name, items: [] });
+    } else {
+      db.categories[currentCatIdx].name = name;
+    }
+    saveData(); closeCategoryModal(); renderAdminCategories(); renderClient();
+  }
+  function deleteCategory(idx) {
+    if(confirm("確定要刪除此分類及底下所有項目嗎？")) {
+      db.categories.splice(idx, 1);
+      saveData(); renderAdminCategories(); renderClient();
+    }
   }
 
-  let currentEditingType = 'main', currentEditingMode = 'add', currentEditingIndex = -1;
-
-  function openServiceModal(type, mode, idx = -1) {
-    currentEditingType = type; currentEditingMode = mode; currentEditingIndex = idx;
-    let titleEl = document.getElementById('serviceModalTitle');
-    titleEl.innerText = (mode === 'add' ? "新增" : "編輯") + (type === 'main' ? "主服務" : (type === 'addon' ? "加購項目" : "卸睫項目"));
+  // 項目管理邏輯
+  let currentItemCatId = '', currentItemMode = 'add', currentItemIdx = -1;
+  function openServiceModal(catId, mode, idx = -1) {
+    currentItemCatId = catId; currentItemMode = mode; currentItemIdx = idx;
+    document.getElementById('serviceModalTitle').innerText = (mode === 'add' ? "新增" : "編輯") + "服務項目";
     let reqGroup = document.getElementById('editRequireRemovalGroup');
-    let soloGroup = document.getElementById('editIsSoloRemovalGroup');
-    reqGroup.style.display = (type === 'main') ? 'block' : 'none';
-    soloGroup.style.display = (type === 'removal') ? 'block' : 'none';
+    let soloGroup = document.getElementById('editIsSoloGroup');
+    reqGroup.style.display = 'block';
+    soloGroup.style.display = 'block';
 
     if(mode === 'edit') {
-      let list = type === 'main' ? db.mainServices : (type === 'addon' ? db.addonServices : db.removalServices);
-      let item = list[idx];
+      let cat = db.categories.find(c => c.id === catId);
+      let item = cat.items[idx];
       document.getElementById('editItemName').value = item.name || "";
       document.getElementById('editItemDesc').value = item.desc || "";
       document.getElementById('editItemTime').value = item.time || 30;
       document.getElementById('editItemPrice').value = item.price || 0;
       document.getElementById('editItemDeposit').value = item.deposit || 0;
-      if(type === 'main') document.getElementById('editRequireRemoval').value = item.requireRemoval || 'no';
-      if(type === 'removal') document.getElementById('editIsSoloRemoval').value = item.isSolo || 'no';
+      document.getElementById('editRequireRemoval').value = item.requireRemoval || 'no';
+      document.getElementById('editIsSolo').value = item.isSolo || 'no';
     } else {
       document.getElementById('editItemName').value = "";
       document.getElementById('editItemDesc').value = "";
-      document.getElementById('editItemTime').value = 30;
+      document.getElementById('editItemTime').value = 60;
       document.getElementById('editItemPrice').value = 1000;
       document.getElementById('editItemDeposit').value = 500;
-      if(type === 'main') document.getElementById('editRequireRemoval').value = 'no';
-      if(type === 'removal') document.getElementById('editIsSoloRemoval').value = 'no';
+      document.getElementById('editRequireRemoval').value = 'no';
+      document.getElementById('editIsSolo').value = 'no';
     }
     document.getElementById('serviceModal').classList.add('active');
   }
@@ -1032,31 +1068,88 @@
     let time = Number(document.getElementById('editItemTime').value);
     let price = Number(document.getElementById('editItemPrice').value);
     let deposit = Number(document.getElementById('editItemDeposit').value);
-    let requireRemoval = currentEditingType === 'main' ? document.getElementById('editRequireRemoval').value : 'no';
-    let isSolo = currentEditingType === 'removal' ? document.getElementById('editIsSoloRemoval').value : 'no';
+    let requireRemoval = document.getElementById('editRequireRemoval').value;
+    let isSolo = document.getElementById('editIsSolo').value;
 
     if(!name) { alert("請輸入項目名稱！"); return; }
-    let list = currentEditingType === 'main' ? db.mainServices : (currentEditingType === 'addon' ? db.addonServices : db.removalServices);
-    if(!list) { list = []; if(currentEditingType === 'main') db.mainServices = list; else if(currentEditingType === 'addon') db.addonServices = list; else db.removalServices = list; }
-    
-    let newItem = { 
-      id: currentEditingMode === 'edit' ? list[currentEditingIndex].id : 'item_' + Date.now(), 
+    let cat = db.categories.find(c => c.id === currentItemCatId);
+    if(!cat) return;
+    if(!cat.items) cat.items = [];
+
+    let newItem = {
+      id: currentItemMode === 'edit' ? cat.items[currentItemIdx].id : 'item_' + Date.now(),
       name, desc, time, price, deposit, requireRemoval, isSolo
     };
 
-    if(currentEditingMode === 'edit') list[currentEditingIndex] = newItem; else list.push(newItem);
-    saveData(); 
-    closeServiceModal(); 
-    renderAdminList(currentEditingType);
-    renderClient();
-    alert("已即時同步至雲端，全世界所有顧客裝置皆已更新！");
+    if(currentItemMode === 'edit') cat.items[currentItemIdx] = newItem;
+    else cat.items.push(newItem);
+
+    saveData(); closeServiceModal(); renderAdminCategories(); renderClient();
+    alert("服務項目已即時同步至雲端！");
   }
 
-  function deleteServiceItem(type, idx) {
+  function deleteServiceItem(catId, idx) {
     if(confirm("確定要刪除此項目嗎？")) {
-      let list = type === 'main' ? db.mainServices : (type === 'addon' ? db.addonServices : db.removalServices);
-      list.splice(idx, 1); saveData(); renderAdminList(type); renderClient();
+      let cat = db.categories.find(c => c.id === catId);
+      if(cat && cat.items) {
+        cat.items.splice(idx, 1);
+        saveData(); renderAdminCategories(); renderClient();
+      }
     }
+  }
+
+  // 第一頁預知後台編輯介面渲染
+  function renderAdminNoticesEditor() {
+    let notices = db.notices || [];
+    let html = "";
+    notices.forEach((n, idx) => {
+      html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid var(--border-color);">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <input type="text" class="form-input" style="font-weight:bold; width:80%;" id="noticeTitle_${idx}" value="${escapeHtml(n.title)}" placeholder="區塊標題">
+          <button type="button" class="btn-danger" onclick="deleteNoticeSection(${idx})">刪除</button>
+        </div>
+        <textarea class="form-input" rows="4" style="resize:vertical;" id="noticeContent_${idx}" placeholder="內容說明">${n.content}</textarea>
+      </div>`;
+    });
+    document.getElementById('adminNoticesEditorList').innerHTML = html || "<div style='color:var(--text-sub);'>尚無須知區塊</div>";
+  }
+
+  function addNoticeSection() {
+    if(!db.notices) db.notices = [];
+    db.notices.push({ id: 'n_' + Date.now(), title: "✨ 新須知標題", content: "請填寫詳細說明內容..." });
+    renderAdminNoticesEditor();
+  }
+
+  function deleteNoticeSection(idx) {
+    if(confirm("確定要刪除這個須知區塊嗎？")) {
+      db.notices.splice(idx, 1);
+      renderAdminNoticesEditor();
+    }
+  }
+
+  function saveAllSettings() {
+    if(!db.settings) db.settings = {};
+    db.settings.bankCode = document.getElementById('settingBankCode').value.trim();
+    db.settings.bankName = document.getElementById('settingBankName').value.trim();
+    db.settings.bankAcc = document.getElementById('settingBankAcc').value.trim();
+    db.settings.bankHolder = document.getElementById('settingBankHolder').value.trim();
+    db.settings.payNotice = document.getElementById('settingPayNotice').value.trim();
+
+    // 收集第一頁須知
+    let newNotices = [];
+    let noticeElements = document.querySelectorAll('[id^="noticeTitle_"]');
+    noticeElements.forEach((el, idx) => {
+      let title = el.value.trim();
+      let content = document.getElementById(`noticeContent_${idx}`).value.trim();
+      if(title) {
+        newNotices.push({ id: 'n_' + idx, title, content });
+      }
+    });
+    db.notices = newNotices;
+
+    saveData();
+    alert("所有後台設定與須知已成功儲存至雲端！");
+    renderClientNotices();
   }
 
   let adminSelectedDate = "";
@@ -1090,11 +1183,9 @@
             detailHtml = `
               <div style="background:#fff; padding:10px; border-radius:8px; margin-top:8px; border:1px solid var(--border-color); font-size:12px; line-height:1.6;">
                 <div>顧客姓名：${escapeHtml(bookedOrder.name)} (${bookedOrder.phone})</div>
-                <div>預約主項目：${escapeHtml(bookedOrder.mainName)}</div>
+                <div>預約項目：${escapeHtml(bookedOrder.servicesSummary)}</div>
                 ${bookedOrder.eyebrowBase ? `<div>眉毛底色：${escapeHtml(bookedOrder.eyebrowBase)}</div>` : ''}
                 ${bookedOrder.removalDetails ? `<div>無創除色評估：${escapeHtml(bookedOrder.removalDetails)}</div>` : ''}
-                <div>加購項目：${escapeHtml(bookedOrder.addons.join(', ')) || '無'}</div>
-                <div>卸睫部分：${escapeHtml(bookedOrder.removal) || '無'}</div>
                 <div>支付定金：NT$ ${bookedOrder.deposit} (末五碼: ${bookedOrder.last5})</div>
                 <div style="color:#D9534F; font-weight:bold;">預估總時間：約 ${bookedOrder.totalTime || 60} 分鐘</div>
                 <div>交通工具：${escapeHtml(bookedOrder.transport) || '無'}</div>
@@ -1175,11 +1266,9 @@
             </label>
           </div>
           <div><strong>姓名：</strong>${escapeHtml(o.name)} (${o.phone})</div>
-          <div><strong>主項目：</strong>${escapeHtml(o.mainName)}</div>
+          <div><strong>預約項目：</strong>${escapeHtml(o.servicesSummary)}</div>
           ${o.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(o.eyebrowBase)}</div>` : ''}
           ${o.removalDetails ? `<div style="color:#666;"><strong>除色評估：</strong>${escapeHtml(o.removalDetails)}</div>` : ''}
-          <div><strong>加購：</strong>${escapeHtml(o.addons.join(', ')) || '無'}</div>
-          <div><strong>卸睫：</strong>${escapeHtml(o.removal) || '無'}</div>
           <div><strong>預估時間：</strong>約 ${o.totalTime || 60} 分鐘</div>
           <div><strong>交通：</strong>${escapeHtml(o.transport) || '無'}</div>
           <div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
@@ -1218,11 +1307,9 @@
           cust.visits.forEach(v => {
             visitsHtml += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:8px; font-size:12px; line-height:1.5;">
               <div style="font-weight:bold; color:var(--primary-color);">${v.date} ${v.time}</div>
-              <div><strong>主項目：</strong>${escapeHtml(v.mainName)}</div>
+              <div><strong>預約項目：</strong>${escapeHtml(v.servicesSummary)}</div>
               ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
               ${v.removalDetails ? `<div><strong>除色評估：</strong>${escapeHtml(v.removalDetails)}</div>` : ''}
-              <div><strong>加購：</strong>${escapeHtml(v.addons.join(',')) || '無'}</div>
-              <div><strong>卸睫：</strong>${escapeHtml(v.removal) || '無'}</div><div><strong>預估時間：</strong>約 ${v.totalTime || 60} 分鐘</div>
               <div><strong>交通：</strong>${escapeHtml(v.transport) || '無'}</div>
               <div style="color:#D9534F; font-weight:bold; margin-top:2px;">該次消費總金額：NT$ ${v.totalPrice || 0} (定金 $${v.deposit})</div></div>`;
           });
@@ -1281,7 +1368,7 @@
           hasInc = true;
           html += `<div style="background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
             <div style="display:flex; justify-content:space-between;"><span style="font-weight:bold;">${o.date} ${o.time} - ${escapeHtml(o.name)} (預約定金)</span><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.deposit || 0}</span></div>
-            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${escapeHtml(o.mainName)} (總價 NT$ ${o.totalPrice})</div></div>`;
+            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${escapeHtml(o.servicesSummary)} (總價 NT$ ${o.totalPrice})</div></div>`;
         }
       });
       (db.manualIncomes || []).forEach((i, idx) => {
@@ -1329,16 +1416,6 @@
 
   function deleteExpense(idx) { if(confirm("確定要刪除這筆支出紀錄嗎？")) { db.expenses.splice(idx, 1); saveData(); renderAdminAccounting(); } }
   function deleteManualIncome(idx) { if(confirm("確定要刪除這筆手動收入紀錄嗎？")) { db.manualIncomes.splice(idx, 1); saveData(); renderAdminAccounting(); } }
-
-  function saveSettings() {
-    if(!db.settings) db.settings = {};
-    db.settings.bankCode = document.getElementById('settingBankCode').value.trim();
-    db.settings.bankName = document.getElementById('settingBankName').value.trim();
-    db.settings.bankAcc = document.getElementById('settingBankAcc').value.trim();
-    db.settings.bankHolder = document.getElementById('settingBankHolder').value.trim();
-    saveData(); 
-    alert("銀行設定已成功儲存至雲端！");
-  }
 </script>
 </body>
 </html>
