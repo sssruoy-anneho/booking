@@ -4,7 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>安,你好ANNEHO - 線上預約系統</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'jf-openhuninn';
+      src: url('https://cdn.jsdelivr.net/gh/justfont/open-huninn-font@1.1/font/jf-openhuninn-1.1.ttf') format('truetype');
+    }
     :root {
       --bg-main: #FBF8F3;
       --card-bg: #FFFFFF;
@@ -22,7 +29,7 @@
       box-sizing: border-box; 
       margin: 0; 
       padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "Hiragino Maru Gothic ProN", "Quicksand", "Microsoft JhengHei", sans-serif; 
+      font-family: 'jf-openhuninn', 'M PLUS Rounded 1c', -apple-system, BlinkMacSystemFont, sans-serif; 
       -webkit-tap-highlight-color: transparent; 
       touch-action: manipulation;
     }
@@ -471,7 +478,6 @@
       .then(cloudData => {
         if(cloudData && cloudData.categories && cloudData.categories.length > 0) {
           db = { ...db, ...cloudData };
-          // 確保每個分類都有 allowMultiple 屬性（預設為 false）
           db.categories.forEach(c => { if(c.allowMultiple === undefined) c.allowMultiple = false; });
           localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
         } else {
@@ -716,7 +722,6 @@
     });
   }
 
-  // 根據分類的 allowMultiple 決定是單選還是複選
   function toggleServiceItem(catId, itemId) {
     let cat = (db.categories || []).find(c => c.id === catId);
     let targetItem = null;
@@ -727,11 +732,9 @@
     if(targetItem && targetItem.isSolo === 'yes') {
       selectedServiceIds = [itemId];
     } else if(cat && cat.allowMultiple) {
-      // 該分類允許複選
       if(selectedServiceIds.includes(itemId)) {
         selectedServiceIds = selectedServiceIds.filter(x => x !== itemId);
       } else {
-        // 檢查是否有衝突的單純卸睫/獨立項目
         let isConflict = false;
         (db.categories || []).forEach(c => {
           (c.items || []).forEach(item => {
@@ -742,7 +745,6 @@
         selectedServiceIds.push(itemId);
       }
     } else {
-      // 該分類為單選：先移除該分類底下的其他項目，再切換點選項目
       let catItemIds = (cat.items || []).map(i => i.id);
       let otherSelected = selectedServiceIds.filter(id => !catItemIds.includes(id));
       
@@ -782,7 +784,6 @@
     });
     updateSummary();
   }
-
   function renderCalendar(y, m, type) {
     let monthTitle = `${y} 年 ${m + 1} 月`, firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
     let todayStr = formatDateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
@@ -969,7 +970,6 @@
     if(evt && evt.target) evt.target.classList.add('active');
   }
 
-  // 渲染後台分類與項目（支援分類上下移動、項目上下移動、設定是否複選）
   function renderAdminCategories() {
     let categories = db.categories || [];
     let html = "";
@@ -1015,7 +1015,6 @@
     document.getElementById('adminCategoriesList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無分類</div>";
   }
 
-  // 分類上下移動順序
   function moveCategoryOrder(catIdx, direction) {
     let targetIdx = catIdx + direction;
     if(targetIdx < 0 || targetIdx >= db.categories.length) return;
@@ -1025,7 +1024,6 @@
     saveData(); renderAdminCategories(); renderClient();
   }
 
-  // 項目上下移動順序
   function moveItemOrder(catId, itemIdx, direction) {
     let cat = db.categories.find(c => c.id === catId);
     if(!cat || !cat.items) return;
