@@ -1381,3 +1381,115 @@
     alert("銀行設定已成功儲存！");
   }
 </script>
+<!-- 新增/編輯服務 Modal -->
+<div class="modal-overlay" id="serviceModal" onclick="checkModalClose(event, 'serviceModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 id="serviceModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">編輯項目</h3>
+    <div class="form-group">
+      <label>項目名稱 *</label>
+      <input type="text" id="editItemName" class="form-input" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>預估時間 (分鐘)</label>
+      <input type="number" id="editItemTime" class="form-input" value="30">
+    </div>
+    <div class="form-group">
+      <label>項目備註說明 (顯示在項目下方)</label>
+      <input type="text" id="editItemDesc" class="form-input" placeholder="例如：喜歡妝感一點可以選我" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>價格 (NT$) *</label>
+      <input type="number" id="editItemPrice" class="form-input" value="1000">
+    </div>
+    <div class="form-group">
+      <label>定金金額 (NT$) *</label>
+      <input type="number" id="editItemDeposit" class="form-input" value="500">
+    </div>
+    <div class="form-group" id="editRequireRemovalGroup" style="display:none;">
+      <label>預覽介面是否必須選擇「卸睫」？</label>
+      <select id="editRequireRemoval" class="form-input">
+        <option value="yes">是 (必須選擇卸睫才能下一步)</option>
+        <option value="no">否 (無需選擇卸睫也能下一步)</option>
+      </select>
+    </div>
+    <div class="form-group" id="editIsSoloRemovalGroup" style="display:none;">
+      <label>是否為「單純卸睫（不需選主服務）」？</label>
+      <select id="editIsSoloRemoval" class="form-input">
+        <option value="no">否 (一般卸睫項目，須搭配主服務)</option>
+        <option value="yes">是 (客人可單獨預約此項，無需選主服務)</option>
+      </select>
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeServiceModal()">取消</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveServiceItem()">儲存</button>
+    </div>
+  </div>
+</div>
+<script>
+  // 開啟服務編輯 Modal 時，自動帶入該卸睫項目原本的「是否單獨預約」設定
+  function openServiceModal(type, mode, idx = -1) {
+    currentEditingType = type; currentEditingMode = mode; currentEditingIndex = idx;
+    let titleEl = document.getElementById('serviceModalTitle');
+    titleEl.innerText = (mode === 'add' ? "新增" : "編輯") + (type === 'main' ? "主服務" : (type === 'addon' ? "加購項目" : "卸睫項目"));
+
+    let reqGroup = document.getElementById('editRequireRemovalGroup');
+    let soloGroup = document.getElementById('editIsSoloRemovalGroup');
+
+    reqGroup.style.display = (type === 'main') ? 'block' : 'none';
+    soloGroup.style.display = (type === 'removal') ? 'block' : 'none';
+
+    if(mode === 'edit') {
+      let list = type === 'main' ? db.mainServices : (type === 'addon' ? db.addonServices : db.removalServices);
+      let item = list[idx];
+      document.getElementById('editItemName').value = item.name || "";
+      document.getElementById('editItemDesc').value = item.desc || "";
+      document.getElementById('editItemTime').value = item.time || 30;
+      document.getElementById('editItemPrice').value = item.price || 0;
+      document.getElementById('editItemDeposit').value = item.deposit || 0;
+      if(type === 'main') {
+        document.getElementById('editRequireRemoval').value = item.requireRemoval || 'no';
+      }
+      if(type === 'removal') {
+        document.getElementById('editIsSoloRemoval').value = item.isSolo || 'no';
+      }
+    } else {
+      document.getElementById('editItemName').value = "";
+      document.getElementById('editItemDesc').value = "";
+      document.getElementById('editItemTime').value = 30;
+      document.getElementById('editItemPrice').value = 1000;
+      document.getElementById('editItemDeposit').value = 500;
+      if(type === 'main') document.getElementById('editRequireRemoval').value = 'no';
+      if(type === 'removal') document.getElementById('editIsSoloRemoval').value = 'no';
+    }
+    document.getElementById('serviceModal').classList.add('active');
+  }
+
+  // 儲存服務項目時，完美保留您原本的資料結構
+  function saveServiceItem() {
+    let name = document.getElementById('editItemName').value.trim();
+    let desc = document.getElementById('editItemDesc').value.trim();
+    let time = Number(document.getElementById('editItemTime').value);
+    let price = Number(document.getElementById('editItemPrice').value);
+    let deposit = Number(document.getElementById('editItemDeposit').value);
+    
+    let requireRemoval = currentEditingType === 'main' ? document.getElementById('editRequireRemoval').value : 'no';
+    let isSolo = currentEditingType === 'removal' ? document.getElementById('editIsSoloRemoval').value : 'no';
+
+    if(!name) { alert("請輸入項目名稱！"); return; }
+    let list = currentEditingType === 'main' ? db.mainServices : (currentEditingType === 'addon' ? db.addonServices : db.removalServices);
+    
+    let newItem = { 
+      id: currentEditingMode === 'edit' ? list[currentEditingIndex].id : 'item_' + Date.now(), 
+      name, desc, time, price, deposit, requireRemoval, isSolo
+    };
+
+    if(currentEditingMode === 'edit') list[currentEditingIndex] = newItem; else list.push(newItem);
+    
+    // 嚴格寫入本機暫存，絕對不覆蓋其他不相關的資料
+    saveData(); 
+    closeServiceModal(); 
+    renderAdminList(currentEditingType);
+    renderClient();
+    alert("已成功更新項目設定！");
+  }
+</script>
