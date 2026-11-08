@@ -280,6 +280,7 @@
       </div>
     </div>
   </div>
+
   <div id="adminView" style="display: none;">
     <div id="adminTabServices" class="admin-tab-content">
       <div class="card">
@@ -494,18 +495,8 @@
 
   let db = JSON.parse(JSON.stringify(defaultDb));
 
+  // 1. 強制每次開頁面先向雲端 A1 抓資料
   function initDataSync() {
-    let localSaved = localStorage.getItem(LOCAL_DB_KEY);
-    if(localSaved) {
-      try {
-        let parsed = JSON.parse(localSaved);
-        if(parsed.mainServices && parsed.mainServices.length > 0) {
-          db = { ...db, ...parsed };
-          syncDataToCloud();
-          return;
-        }
-      } catch(e){}
-    }
     fetchCloudData();
   }
 
@@ -516,18 +507,22 @@
         if(cloudData && cloudData.mainServices && cloudData.mainServices.length > 0) {
           db = { ...db, ...cloudData };
           localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
-        } else {
-          syncDataToCloud();
         }
         if(callback) callback();
         else { if(currentView === 'admin') renderAdmin(); else renderClient(); }
       })
       .catch(err => {
-        console.log("雲端同步載入中...", err);
+        console.log("雲端讀取中，讀取本機備份...", err);
+        let localSaved = localStorage.getItem(LOCAL_DB_KEY);
+        if(localSaved) {
+          try { db = { ...db, ...JSON.parse(localSaved) }; } catch(e){}
+        }
         if(callback) callback();
+        else { if(currentView === 'admin') renderAdmin(); else renderClient(); }
       });
   }
 
+  // 2. 寫入雲端 A1 (確保後台修改完點擊儲存，雲端同步更新)
   function syncDataToCloud() {
     localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
     fetch(GOOGLE_SCRIPT_URL, {
@@ -535,7 +530,9 @@
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(db)
-    }).catch(e => console.log("雲端同步儲存", e));
+    }).then(() => {
+      console.log("已發送雲端同步更新請求");
+    }).catch(e => console.log("雲端同步儲存失敗", e));
   }
 
   function saveData() { syncDataToCloud(); }
@@ -934,6 +931,7 @@
     alert("🎉 預約完成！系統已即時連線傳送預約至店家雲端後台，感謝您的預約✨🤍");
     location.reload();
   }
+
   function renderAdmin() {
     renderAdminList('main'); renderAdminList('addon'); renderAdminList('removal');
     renderCalendar(adminYear, adminMonth, 'admin'); renderAdminOrders(); renderAdminCustomers(); renderAdminAccounting();
