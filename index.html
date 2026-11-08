@@ -318,7 +318,6 @@
       </div>
     </div>
   </div>
-
   <div id="adminView" style="display: none;">
     <div id="adminTabServices" class="admin-tab-content">
       <div class="card">
@@ -445,6 +444,7 @@
     </div>
   </div>
 </div>
+
 <!-- 轉帳付款 Modal -->
 <div class="modal-overlay" id="payModal" onclick="checkModalClose(event, 'payModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
@@ -560,13 +560,27 @@
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
   const LOCAL_DB_KEY = "anneho_db";
 
-  // 保護防呆設計：預設為空陣列，絕對不覆蓋您親自辛苦設定的主服務項目！
-  let db = {
+  // 內建預設服務底版，確保電腦或手機第一次打開絕不會變「尚無服務項目」
+  let defaultDb = {
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "28881024671561", bankHolder: "徐若嫣" },
-    mainServices: [], addonServices: [], removalServices: [], schedule: {}, orders: [], expenses: [], manualIncomes: []
+    mainServices: [
+      { id: "m1", name: "微針霧眉", desc: "精緻自然霧眉", time: 120, price: 6000, deposit: 1000, requireRemoval: "no", isSolo: "no" },
+      { id: "m2", name: "單次霧眉", desc: "補色或輕盈霧眉", time: 90, price: 4000, deposit: 1000, requireRemoval: "no", isSolo: "no" },
+      { id: "m3", name: "眉毛無創除色", desc: "安全無創清除舊色", time: 60, price: 2000, deposit: 500, requireRemoval: "no", isSolo: "no" }
+    ],
+    addonServices: [
+      { id: "a1", name: "下睫毛嫁接", desc: "讓眼神更深邃", time: 30, price: 500, deposit: 0 }
+    ],
+    removalServices: [
+      { id: "r1", name: "本店卸睫", desc: "卸除原本嫁接睫毛", time: 20, price: 0, deposit: 0, isSolo: "no" },
+      { id: "r2", name: "他店卸睫", desc: "卸除他店嫁接睫毛", time: 30, price: 200, deposit: 0, isSolo: "no" },
+      { id: "r3", name: "單純卸睫(不需選主服務)", desc: "純卸睫專用", time: 30, price: 300, deposit: 0, isSolo: "yes" }
+    ],
+    schedule: {}, orders: [], expenses: [], manualIncomes: []
   };
 
-  // 1. 初始化讀取：優先完整保留您本機辛苦設定的項目與心血資料，並自動上傳至雲端同步
+  let db = JSON.parse(JSON.stringify(defaultDb));
+
   function initDataSync() {
     let localSaved = localStorage.getItem(LOCAL_DB_KEY);
     if(localSaved) {
@@ -582,7 +596,6 @@
     fetchCloudData();
   }
 
-  // 從 Google 雲端抓取最新的全域資料（若雲端有資料才更新，否則保留本機）
   function fetchCloudData(callback) {
     fetch(GOOGLE_SCRIPT_URL)
       .then(res => res.json())
@@ -590,6 +603,8 @@
         if(cloudData && cloudData.mainServices && cloudData.mainServices.length > 0) {
           db = { ...db, ...cloudData };
           localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
+        } else {
+          syncDataToCloud();
         }
         if(callback) callback();
         else { if(currentView === 'admin') renderAdmin(); else renderClient(); }
@@ -600,7 +615,6 @@
       });
   }
 
-  // 寫入雲端資料庫
   function syncDataToCloud() {
     localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
     fetch(GOOGLE_SCRIPT_URL, {
@@ -629,7 +643,6 @@
     requestNotificationPermission();
     document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
 
-    // 每 15 秒自動跟雲端同步一次，確保新預約即時跳出
     setInterval(() => {
       fetchCloudData(() => {
         if(currentView === 'admin') { renderAdminOrders(); updateUnreadBadge(); }
