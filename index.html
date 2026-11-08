@@ -1419,3 +1419,29 @@
 </script>
 </body>
 </html>
+<script>
+  // 自動將後台輸入的純文字換行轉換為網頁顯示格式，讓您完全不用寫任何程式碼
+  function cleanText(str) {
+    if(!str) return '';
+    // 如果裡面原本有舊的 <br> 先保留，如果是普通換行也完美支援
+    return str.replace(/\n/g, '<br>');
+  }
+
+  // 覆蓋原本的渲染邏輯，支援純文字直接換行
+  function renderClientNotices() {
+    let notices = db.notices || [];
+    let html = "";
+    notices.forEach((n, idx) => {
+      let bodyId = "accNotice_" + idx;
+      // 自動將內容中的換行轉成網頁排版，使用者只需打純文字
+      let formattedContent = n.content.includes('<br>') ? n.content : n.content.replace(/\n/g, '<br>');
+      html += `<div class="notice-accordion">
+        <div class="notice-header" onclick="toggleAccordion('${bodyId}')">
+          <span>${escapeHtml(n.title)}</span><span id="icon_${bodyId}">▼</span>
+        </div>
+        <div class="notice-body" id="${bodyId}">${formattedContent}</div>
+      </div>`;
+    });
+    document.getElementById('clientNoticesContainer').innerHTML = html;
+  }
+</script>
