@@ -152,7 +152,6 @@
         <div id="clientSearchResult" style="margin-top: 12px;"></div>
       </div>
 
-      <!-- 動態載入所有分類與項目 -->
       <div id="clientDynamicCategoriesContainer"></div>
 
       <div class="card" id="eyebrowBaseColorCard" style="display: none;">
@@ -238,7 +237,7 @@
           <span>服務分類與項目管理</span>
           <button type="button" class="btn-submit" style="padding:6px 12px; font-size:12px;" onclick="openCategoryModal('add')">+ 新增分類</button>
         </div>
-        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">您可以自由新增大分類（如霧眉、美睫等），並在各分類下新增服務項目。</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">您可以自由新增大分類，並上下移動項目順序或跨分類移動項目。</div>
         <div id="adminCategoriesList"></div>
       </div>
     </div>
@@ -323,16 +322,15 @@
       </div>
 
       <div class="card">
-        <div class="card-title">💬 轉帳彈窗注意事項設定 (可後台修改)</div>
+        <div class="card-title">💬 轉帳彈窗注意事項設定 (直接輸入文字即可換行)</div>
         <div class="form-group">
-          <label>注意事項說明文字 (支援 HTML 或換行)</label>
+          <label>注意事項說明文字</label>
           <textarea id="settingPayNotice" class="form-input" rows="6" style="resize:vertical;"></textarea>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-title">📖 第一頁預約須知設定 (可後台新增/修改)</div>
-        <div style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">您可以自由編輯第一頁的各個須知區塊標題與內容。</div>
+        <div class="card-title">📖 第一頁預約須知設定 (直接輸入純文字即可)</div>
         <div id="adminNoticesEditorList"></div>
         <button type="button" class="btn-secondary" style="width:100%; margin-top:8px;" onclick="addNoticeSection()">+ 新增一個須知區塊</button>
       </div>
@@ -342,13 +340,11 @@
   </div>
 </div>
 
-<!-- 轉帳付款彈窗 -->
 <div class="modal-overlay" id="payModal" onclick="checkModalClose(event, 'payModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 style="color: var(--primary-color); margin-bottom: 12px;">轉帳支付定金</h3>
     <div style="color: #D9534F; font-weight: bold; font-size: 13px; margin-bottom: 8px;">為保障雙方權益，請確認以下內容再進行匯款</div>
     
-    <!-- 後台可自訂的注意事項內容區 -->
     <div id="payModalNoticeDisplay" style="font-size: 12px; line-height: 1.6; color: var(--text-main); margin-bottom: 12px; background: var(--input-bg); padding: 10px; border-radius: 8px;"></div>
 
     <div style="background: var(--input-bg); padding: 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.6; margin-bottom: 14px;">
@@ -368,7 +364,6 @@
   </div>
 </div>
 
-<!-- 分類新增/編輯彈窗 -->
 <div class="modal-overlay" id="categoryModal" onclick="checkModalClose(event, 'categoryModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="categoryModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增服務分類</h3>
@@ -380,7 +375,20 @@
   </div>
 </div>
 
-<!-- 服務項目新增/編輯彈窗 -->
+<div class="modal-overlay" id="moveCategoryModal" onclick="checkModalClose(event, 'moveCategoryModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 style="color: var(--primary-color); margin-bottom: 12px;">跨分類移動項目</h3>
+    <div class="form-group">
+      <label>請選擇要將此項目搬移到哪一個分類：</label>
+      <select id="moveTargetCategorySelect" class="form-input" style="padding:10px;"></select>
+    </div>
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeMoveCategoryModal()">取消</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="confirmMoveCategory()">確認搬移</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="serviceModal" onclick="checkModalClose(event, 'serviceModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="serviceModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">編輯服務項目</h3>
@@ -404,7 +412,6 @@
   </div>
 </div>
 
-<!-- 記帳彈窗 -->
 <div class="modal-overlay" id="expenseModal" onclick="checkModalClose(event, 'expenseModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="expenseModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增記帳紀錄</h3>
@@ -419,21 +426,20 @@
 </div>
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
-  const LOCAL_DB_KEY = "anneho_db_v3";
+  const LOCAL_DB_KEY = "anneho_db_v4";
 
-  // 預設完整資料結構（支援自訂分類與自訂第一頁須知、付款須知）
   let defaultDb = {
     settings: {
       bankCode: "812",
       bankName: "台新銀行",
       bankAcc: "28881024671561",
       bankHolder: "徐若嫣",
-      payNotice: "已支付的定金會在項目費用扣除<br><strong>- 更改預約時間說明 -</strong><br>• 須至少三天前告知，僅可修改日期一次。<br>• 須至少三天前告知，可退定金及取消預約。<br><strong style='color: #D9534F;'>- 以下情況不退定金 -</strong><br>• 距離預約日三天內臨時取消或當天沒來。"
+      payNotice: "已支付的定金會在項目費用扣除\n- 更改預約時間說明 -\n• 須至少三天前告知，僅可修改日期一次。\n• 須至少三天前告知，可退定金及取消預約。\n- 以下情況不退定金 -\n• 距離預約日三天內臨時取消或當天沒來。"
     },
     notices: [
-      { id: "n1", title: "✨ 預約霧眉須知", content: "請避開生理期❗️<br>前一天勿熬夜、飲酒❗️<br>做好保濕，皮膚狀態好留色更好<br>當天素眉來即可<br>眉毛處有傷口、痘痘建議修復後再霧眉<br>保留原有眉毛，不修眉<br><br>兩邊眉毛生長位置不同<br>兩邊眉骨高低不同<br>兩邊表情肌肌肉位置不同<br>兩邊太陽穴凹陷位置不同<br>設計眉型講求相對協調<br>沒有100%對稱的臉型，所以沒有100%對稱的眉型" },
-      { id: "n2", title: "✨ 預約美睫須知", content: "預約當天請勿化任何眼妝/睫毛膏/隔離/防曬❗️<br>三個月內做過角蛋白不可做美睫❌<br>近三個月有做「眼周醫美」請主動告知<br>本身有在使用睫毛生長液，嫁接的睫毛會因為生長週期而掉落更快" },
-      { id: "n3", title: "✨ 預約淡色須知", content: "<strong>- 關於無創除色 -</strong><br>利用光點與熱能，將卡在皮層裡的大分子色素分解成小分子，讓皮膚得以開始自行代謝<br><br><strong>- 無創除色優點 -</strong><br>非藥水侵入式洗眉、非傳統雷射洗眉。安全無創、無傷口、不流血，不結痂不用剃毛，效果明顯，隔天可以正常畫眉毛<br><br><strong>- 除色需要幾次 -</strong><br><span style='color: #D9534F; font-weight: bold;'>沒有一定</span>，要看當初霧眉時紋繡師使用的色乳、深度及自身代謝速度而定<br><br><strong>- 除色間隔時間 -</strong><br>眉毛顏色較淺 - 最快兩星期做一次<br>眉毛顏色較飽和 - 最快一個月做一次" }
+      { id: "n1", title: "✨ 預約霧眉須知", content: "請避開生理期❗️\n前一天勿熬夜、飲酒❗️\n做好保濕，皮膚狀態好留色更好\n當天素眉來即可\n眉毛處有傷口、痘痘建議修復後再霧眉\n保留原有眉毛，不修眉\n\n兩邊眉毛生長位置不同\n兩邊眉骨高低不同\n兩邊表情肌肌肉位置不同\n兩邊太陽穴凹陷位置不同\n設計眉型講求相對協調\n沒有100%對稱的臉型，所以沒有100%對稱的眉型" },
+      { id: "n2", title: "✨ 預約美睫須知", content: "預約當天請勿化任何眼妝/睫毛膏/隔離/防曬❗️\n三個月內做過角蛋白不可做美睫❌\n近三個月有做「眼周醫美」請主動告知\n本身有在使用睫毛生長液，嫁接的睫毛會因為生長週期而掉落更快" },
+      { id: "n3", title: "✨ 預約淡色須知", content: "- 關於無創除色 -\n利用光點與熱能，將卡在皮層裡的大分子色素分解成小分子，讓皮膚得以開始自行代謝\n\n- 無創除色優點 -\n非藥水侵入式洗眉、非傳統雷射洗眉。安全無創、無傷口、不流血，不結痂不用剃毛，效果明顯，隔天可以正常畫眉毛\n\n- 除色需要幾次 -\n沒有一定，要看當初霧眉時紋繡師使用的色乳、深度及自身代謝速度而定\n\n- 除色間隔時間 -\n眉毛顏色較淺 - 最快兩星期做一次\n眉毛顏色較飽和 - 最快一個月做一次" }
     ],
     categories: [
       {
@@ -486,7 +492,7 @@
         else { if(currentView === 'admin') renderAdmin(); else renderClient(); }
       })
       .catch(err => {
-        console.log("雲端讀取中，讀取本機備份...", err);
+        console.log("雲端讀取中...", err);
         let localSaved = localStorage.getItem(LOCAL_DB_KEY);
         if(localSaved) {
           try { db = { ...db, ...JSON.parse(localSaved) }; } catch(e){}
@@ -503,9 +509,7 @@
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(db)
-    }).then(() => {
-      console.log("已發送雲端同步更新請求");
-    }).catch(e => console.log("雲端同步儲存失敗", e));
+    }).catch(e => console.log("雲端儲存失敗", e));
   }
 
   function saveData() { syncDataToCloud(); }
@@ -523,10 +527,8 @@
     initScheduleDefault();
     renderClient();
     initAccountingSelectors();
-    requestPushPermission();
     document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
 
-    // 每 15 秒自動背景更新，若有新預約會自動發出手機通知與震動
     setInterval(() => {
       let oldOrdersCount = (db.orders || []).length;
       fetchCloudData(() => {
@@ -545,22 +547,18 @@
         if (permission === "granted") {
           alert("推播通知已成功開啟！當有新預約時您的手機將收到震動與提醒。");
         } else {
-          alert("您已關閉瀏覽器推播權限，請至手機/瀏覽器設定中開啟。");
+          alert("請將此網頁『加入主畫面』並在手機設定中允許通知。");
         }
       });
     } else {
-      alert("此瀏覽器不支援推播通知");
+      alert("請至 iPhone 點選 Safari 分享按鈕 > 『加入主畫面』開啟桌面捷徑以支援推播功能！");
     }
   }
 
   function triggerNativeAlert(msg) {
-    // 支援手機震動 API (支援大部分 Android 及部分 iOS)
-    if ("vibrate" in navigator) {
-      navigator.vibrate([300, 100, 300, 100, 500]);
-    }
-    // 發送瀏覽器推播
+    if ("vibrate" in navigator) navigator.vibrate([300, 100, 300, 100, 500]);
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("安,你好預約通知", { body: msg, icon: "https://fav.farm/✨", vibrate: [300, 100, 300] });
+      new Notification("安,你好預約通知", { body: msg, icon: "https://fav.farm/✨" });
     }
   }
 
@@ -623,7 +621,11 @@
     if(event.target.id === modalId) document.getElementById(modalId).classList.remove('active');
   }
 
-  // 渲染顧客端第一頁須知
+  function formatTextWithBr(str) {
+    if(!str) return '';
+    return str.replace(/<br\s*\/?>/gi, '\n').replace(/\n/g, '<br>');
+  }
+
   function renderClientNotices() {
     let notices = db.notices || [];
     let html = "";
@@ -633,7 +635,7 @@
         <div class="notice-header" onclick="toggleAccordion('${bodyId}')">
           <span>${escapeHtml(n.title)}</span><span id="icon_${bodyId}">▼</span>
         </div>
-        <div class="notice-body" id="${bodyId}">${n.content}</div>
+        <div class="notice-body" id="${bodyId}">${formatTextWithBr(n.content)}</div>
       </div>`;
     });
     document.getElementById('clientNoticesContainer').innerHTML = html;
@@ -667,7 +669,6 @@
 
     document.getElementById('clientDynamicCategoriesContainer').innerHTML = containerHtml;
 
-    // 檢查霧眉與除色附加欄位顯示
     let hasEyebrow = false, hasRemoval = false;
     categories.forEach(cat => {
       (cat.items || []).forEach(item => {
@@ -733,13 +734,11 @@
     });
 
     if(targetItem && targetItem.isSolo === 'yes') {
-      // 若點擊獨立項目（如單純卸睫），清空同分類或其他衝突項目並單選
       selectedServiceIds = [id];
     } else {
       if(selectedServiceIds.includes(id)) {
         selectedServiceIds = selectedServiceIds.filter(x => x !== id);
       } else {
-        // 檢查是否點了 isSolo 的項目，若有先清除
         let isConflict = false;
         (db.categories || []).forEach(cat => {
           (cat.items || []).forEach(item => {
@@ -878,7 +877,7 @@
     document.getElementById('payBankName').innerText = db.settings.bankName || "台新銀行";
     document.getElementById('payBankAcc').innerText = db.settings.bankAcc || "28881024671561";
     document.getElementById('payBankHolder').innerText = db.settings.bankHolder || "徐若嫣";
-    document.getElementById('payModalNoticeDisplay').innerHTML = db.settings.payNotice || "請依指定金額匯款";
+    document.getElementById('payModalNoticeDisplay').innerHTML = formatTextWithBr(db.settings.payNotice || "請依指定金額匯款");
     document.getElementById('payDepositAmount').innerText = totalDeposit;
     document.getElementById('payModal').classList.add('active');
   }
@@ -930,7 +929,7 @@
     saveData(); 
     closePayModal();
     triggerNativeAlert(`🔔 收到新的預約！顧客：${name} (${phone}) 於 ${selectedDateStr} ${selectedTime} 預約成功！`);
-    alert("🎉 預約完成！系統已即時傳送至雲端後台，感謝您的預約✨🤍");
+    alert("感謝您的預約，期待為您服務✨🤍");
     location.reload();
   }
 
@@ -945,7 +944,7 @@
     document.getElementById('settingBankName').value = db.settings.bankName || "台新銀行";
     document.getElementById('settingBankAcc').value = db.settings.bankAcc || "28881024671561";
     document.getElementById('settingBankHolder').value = db.settings.bankHolder || "徐若嫣";
-    document.getElementById('settingPayNotice').value = db.settings.payNotice || "";
+    document.getElementById('settingPayNotice').value = (db.settings.payNotice || "").replace(/<br\s*\/?>/gi, '\n');
 
     renderAdminNoticesEditor();
     updateUnreadBadge();
@@ -966,22 +965,26 @@
     if(evt && evt.target) evt.target.classList.add('active');
   }
 
-  // 渲染後台分類與項目管理
+  // 渲染後台分類與項目管理（含上下移動與跨分類移動）
   function renderAdminCategories() {
     let categories = db.categories || [];
     let html = "";
     categories.forEach((cat, catIdx) => {
       let itemsHtml = "";
-      (cat.items || []).forEach((item, itemIdx) => {
+      let itemsList = cat.items || [];
+      itemsList.forEach((item, itemIdx) => {
         itemsHtml += `<div class="item-option" style="background:#fff; margin-bottom:6px;">
           <div class="item-info">
             <div class="title">${escapeHtml(item.name)}</div>
             <div class="desc">${escapeHtml(item.desc || '')}</div>
             <div class="subtitle">${item.time||30}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div>
           </div>
-          <div style="display:flex; gap:4px; align-items:center;">
-            <button type="button" class="btn-secondary" onclick="openServiceModal('${cat.id}', 'edit', ${itemIdx})">編輯</button>
-            <button type="button" class="btn-danger" onclick="deleteServiceItem('${cat.id}', ${itemIdx})">刪除</button>
+          <div style="display:flex; gap:4px; align-items:center; flex-wrap:wrap;">
+            ${itemIdx > 0 ? `<button type="button" class="btn-secondary" style="padding:3px 6px;" onclick="moveItemOrder('${cat.id}', ${itemIdx}, -1)">🔼</button>` : ''}
+            ${itemIdx < itemsList.length - 1 ? `<button type="button" class="btn-secondary" style="padding:3px 6px;" onclick="moveItemOrder('${cat.id}', ${itemIdx}, 1)">🔽</button>` : ''}
+            <button type="button" class="btn-secondary" style="padding:3px 6px;" onclick="openMoveCategoryModal('${cat.id}', ${itemIdx})">📁換分類</button>
+            <button type="button" class="btn-secondary" style="padding:3px 6px;" onclick="openServiceModal('${cat.id}', 'edit', ${itemIdx})">編輯</button>
+            <button type="button" class="btn-danger" style="padding:3px 6px;" onclick="deleteServiceItem('${cat.id}', ${itemIdx})">刪除</button>
           </div>
         </div>`;
       });
@@ -1001,7 +1004,47 @@
     document.getElementById('adminCategoriesList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無分類</div>";
   }
 
-  // 分類管理邏輯
+  // 上下移動順序
+  function moveItemOrder(catId, itemIdx, direction) {
+    let cat = db.categories.find(c => c.id === catId);
+    if(!cat || !cat.items) return;
+    let targetIdx = itemIdx + direction;
+    if(targetIdx < 0 || targetIdx >= cat.items.length) return;
+    let temp = cat.items[itemIdx];
+    cat.items[itemIdx] = cat.items[targetIdx];
+    cat.items[targetIdx] = temp;
+    saveData(); renderAdminCategories(); renderClient();
+  }
+
+  // 跨分類搬移項目
+  let movingItemCatId = '', movingItemIdx = -1;
+  function openMoveCategoryModal(catId, itemIdx) {
+    movingItemCatId = catId; movingItemIdx = itemIdx;
+    let selectEl = document.getElementById('moveTargetCategorySelect');
+    let html = "";
+    (db.categories || []).forEach(c => {
+      if(c.id !== catId) {
+        html += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
+      }
+    });
+    if(!html) { alert("目前只有一個分類，無法進行跨分類搬移！請先新增其他分類。"); return; }
+    selectEl.innerHTML = html;
+    document.getElementById('moveCategoryModal').classList.add('active');
+  }
+  function closeMoveCategoryModal() { document.getElementById('moveCategoryModal').classList.remove('active'); }
+  function confirmMoveCategory() {
+    let targetCatId = document.getElementById('moveTargetCategorySelect').value;
+    let sourceCat = db.categories.find(c => c.id === movingItemCatId);
+    let targetCat = db.categories.find(c => c.id === targetCatId);
+    if(sourceCat && targetCat && movingItemIdx >= 0) {
+      let item = sourceCat.items.splice(movingItemIdx, 1)[0];
+      if(item) {
+        targetCat.items.push(item);
+        saveData(); closeMoveCategoryModal(); renderAdminCategories(); renderClient();
+      }
+    }
+  }
+
   let currentCatMode = 'add', currentCatIdx = -1;
   function openCategoryModal(mode, idx = -1) {
     currentCatMode = mode; currentCatIdx = idx;
@@ -1028,7 +1071,6 @@
     }
   }
 
-  // 項目管理邏輯
   let currentItemCatId = '', currentItemMode = 'add', currentItemIdx = -1;
   function openServiceModal(catId, mode, idx = -1) {
     currentItemCatId = catId; currentItemMode = mode; currentItemIdx = idx;
@@ -1098,17 +1140,17 @@
     }
   }
 
-  // 第一頁預知後台編輯介面渲染
   function renderAdminNoticesEditor() {
     let notices = db.notices || [];
     let html = "";
     notices.forEach((n, idx) => {
+      let cleanContent = (n.content || "").replace(/<br\s*\/?>/gi, '\n');
       html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid var(--border-color);">
         <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
           <input type="text" class="form-input" style="font-weight:bold; width:80%;" id="noticeTitle_${idx}" value="${escapeHtml(n.title)}" placeholder="區塊標題">
           <button type="button" class="btn-danger" onclick="deleteNoticeSection(${idx})">刪除</button>
         </div>
-        <textarea class="form-input" rows="4" style="resize:vertical;" id="noticeContent_${idx}" placeholder="內容說明">${n.content}</textarea>
+        <textarea class="form-input" rows="4" style="resize:vertical;" id="noticeContent_${idx}" placeholder="內容說明">${cleanContent}</textarea>
       </div>`;
     });
     document.getElementById('adminNoticesEditorList').innerHTML = html || "<div style='color:var(--text-sub);'>尚無須知區塊</div>";
@@ -1135,7 +1177,6 @@
     db.settings.bankHolder = document.getElementById('settingBankHolder').value.trim();
     db.settings.payNotice = document.getElementById('settingPayNotice').value.trim();
 
-    // 收集第一頁須知
     let newNotices = [];
     let noticeElements = document.querySelectorAll('[id^="noticeTitle_"]');
     noticeElements.forEach((el, idx) => {
@@ -1148,7 +1189,7 @@
     db.notices = newNotices;
 
     saveData();
-    alert("所有後台設定與須知已成功儲存至雲端！");
+    alert("所有後台設定已成功儲存至雲端！");
     renderClientNotices();
   }
 
@@ -1419,29 +1460,3 @@
 </script>
 </body>
 </html>
-<script>
-  // 自動將後台輸入的純文字換行轉換為網頁顯示格式，讓您完全不用寫任何程式碼
-  function cleanText(str) {
-    if(!str) return '';
-    // 如果裡面原本有舊的 <br> 先保留，如果是普通換行也完美支援
-    return str.replace(/\n/g, '<br>');
-  }
-
-  // 覆蓋原本的渲染邏輯，支援純文字直接換行
-  function renderClientNotices() {
-    let notices = db.notices || [];
-    let html = "";
-    notices.forEach((n, idx) => {
-      let bodyId = "accNotice_" + idx;
-      // 自動將內容中的換行轉成網頁排版，使用者只需打純文字
-      let formattedContent = n.content.includes('<br>') ? n.content : n.content.replace(/\n/g, '<br>');
-      html += `<div class="notice-accordion">
-        <div class="notice-header" onclick="toggleAccordion('${bodyId}')">
-          <span>${escapeHtml(n.title)}</span><span id="icon_${bodyId}">▼</span>
-        </div>
-        <div class="notice-body" id="${bodyId}">${formattedContent}</div>
-      </div>`;
-    });
-    document.getElementById('clientNoticesContainer').innerHTML = html;
-  }
-</script>
