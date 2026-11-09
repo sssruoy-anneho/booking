@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>安,你好ANNEHO - 線上預約系統</title>
+  <!-- 引入 Google Fonts 圓體 (M PLUS Rounded 1c) -->
+  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-main: #FBF8F3;
@@ -22,33 +24,33 @@
       box-sizing: border-box; 
       margin: 0; 
       padding: 0; 
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      font-family: "M PLUS Rounded 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
       -webkit-tap-highlight-color: transparent; 
       touch-action: manipulation;
     }
     body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 12px; }
     .app-container { width: 100%; max-width: 480px; background: var(--bg-main); min-height: 100vh; position: relative; padding-bottom: 90px; }
     .header { text-align: center; padding: 20px 0 10px; cursor: pointer; user-select: none; }
-    .header h1 { font-size: 22px; color: var(--primary-color); letter-spacing: 2px; }
+    .header h1 { font-size: 22px; color: var(--primary-color); letter-spacing: 2px; font-weight: 700; }
     .header p { font-size: 12px; color: var(--text-sub); margin-top: 4px; }
     .card { background: var(--card-bg); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; box-shadow: var(--shadow); border: 1px solid var(--border-color); }
-    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
+    .card-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; }
     
     .item-option { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 8px; cursor: pointer; background-color: #fff; }
     .item-option.selected { border-color: var(--primary-color); background-color: #F4EBE1; }
     .item-info { flex: 1; padding-right: 12px; min-width: 0; }
-    .item-info .title { font-size: 14px; font-weight: 600; word-break: break-all; }
+    .item-info .title { font-size: 14px; font-weight: 700; word-break: break-all; }
     .item-info .desc { font-size: 12px; color: var(--text-sub); margin-top: 2px; word-break: break-all; }
     .item-info .subtitle { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-    .item-price { font-weight: 600; color: var(--primary-color); font-size: 14px; white-space: nowrap; text-align: right; }
+    .item-price { font-weight: 700; color: var(--primary-color); font-size: 14px; white-space: nowrap; text-align: right; }
     
     .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .cal-btn { background: none; border: none; font-size: 16px; color: var(--primary-color); cursor: pointer; padding: 4px 8px; font-weight: bold; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 13px; }
-    .cal-day-label { font-weight: 600; color: var(--text-sub); padding-bottom: 6px; }
+    .cal-day-label { font-weight: 700; color: var(--text-sub); padding-bottom: 6px; }
     .cal-day { padding: 10px 0; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; background: var(--input-bg); }
     .cal-day.empty { background: transparent; cursor: default; }
-    .cal-day.selected { background: var(--primary-color); color: #fff; font-weight: bold; }
+    .cal-day.selected { background: var(--primary-color); color: #fff; font-weight: 700; }
     .cal-day.disabled { opacity: 0.3; cursor: not-allowed; }
     
     .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
@@ -57,20 +59,20 @@
     .time-btn.booked { background: #f2ede4; color: #8c7c73; border-color: #dcd6ce; cursor: pointer; font-size: 12px; font-weight: 500; }
 
     .form-group { margin-bottom: 12px; }
-    .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; font-weight: 500; }
     .form-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--input-bg); font-size: 14px; outline: none; }
     .form-input:focus { border-color: var(--primary-color); background: var(--input-bg); }
 
     .bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--card-bg); border-top: 1px solid var(--border-color); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; z-index: 100; box-shadow: 0 -4px 15px rgba(0,0,0,0.05); }
     .price-summary { font-size: 12px; color: var(--text-sub); }
-    .price-summary .total { font-size: 16px; font-weight: bold; color: var(--primary-color); }
-    .btn-submit { background: var(--primary-color); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .price-summary .total { font-size: 16px; font-weight: 700; color: var(--primary-color); }
+    .btn-submit { background: var(--primary-color); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 700; cursor: pointer; }
     .btn-submit:active { opacity: 0.8; }
     .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .admin-bar { background: var(--primary-color); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .admin-tab-group { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-    .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; position: relative; }
+    .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; position: relative; font-weight: 500; }
     .admin-tab.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
     .badge-unread { position: absolute; top: -4px; right: -4px; background: #D9534F; color: #fff; font-size: 10px; font-weight: bold; border-radius: 10px; padding: 2px 5px; min-width: 16px; text-align: center; }
 
@@ -78,7 +80,7 @@
     .btn-secondary { background: #EFE8DF; color: var(--primary-color); border: none; padding: 6px 10px; border-radius: var(--radius-md); font-size: 11px; cursor: pointer; }
 
     .notice-accordion { border: 1.5px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden; background: #fff; }
-    .notice-header { padding: 14px; font-size: 14px; font-weight: bold; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #FAF6F0; }
+    .notice-header { padding: 14px; font-size: 14px; font-weight: 700; color: var(--primary-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #FAF6F0; }
     .notice-body { padding: 14px; font-size: 13px; line-height: 1.6; display: none; border-top: 1px solid var(--border-color); }
 
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 9999; padding: 16px; }
@@ -186,12 +188,12 @@
         <div class="card-title">選擇日期與時段</div>
         <div class="cal-header">
           <button type="button" class="cal-btn" onclick="changeMonth(-1)">‹</button>
-          <span id="calMonthTitle" style="font-weight: bold; font-size: 14px;"></span>
+          <span id="calMonthTitle" style="font-weight: 700; font-size: 14px;"></span>
           <button type="button" class="cal-btn" onclick="changeMonth(1)">›</button>
         </div>
         <div class="cal-grid" id="calGrid"></div>
         
-        <div style="margin-top: 16px; font-size: 13px; font-weight: 600;" id="selectedDateText">請選擇日期</div>
+        <div style="margin-top: 16px; font-size: 13px; font-weight: 700;" id="selectedDateText">請選擇日期</div>
         <div class="time-grid" id="timeGrid"></div>
       </div>
 
@@ -223,7 +225,7 @@
         <div class="price-summary">
           <div>定金合計：<span class="total" id="displayDeposit">NT$ 0</span></div>
           <div style="font-size: 11px; margin-top: 2px;" id="displayTotal">總計：NT$ 0</div>
-          <div style="font-size: 11px; margin-top: 1px; color: var(--primary-color); font-weight: 600;" id="displayTime">施作總時間約 0 分鐘</div>
+          <div style="font-size: 11px; margin-top: 1px; color: var(--primary-color); font-weight: 700;" id="displayTime">施作總時間約 0 分鐘</div>
         </div>
         <button type="button" class="btn-submit" id="btnGoPay" onclick="openPayModal()" disabled>下一步：付款與確認</button>
       </div>
@@ -247,14 +249,14 @@
         <div class="card-title">設定日期與開放時段</div>
         <div class="cal-header">
           <button type="button" class="cal-btn" onclick="changeAdminMonth(-1)">‹</button>
-          <span id="adminCalMonthTitle" style="font-weight: bold;"></span>
+          <span id="adminCalMonthTitle" style="font-weight: 700;"></span>
           <button type="button" class="cal-btn" onclick="changeAdminMonth(1)">›</button>
         </div>
         <div class="cal-grid" id="adminCalGrid"></div>
         
         <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
         <div id="adminDateScheduleArea" style="display: none;">
-          <div style="font-weight: bold; margin-bottom: 8px;" id="adminSelectedDateTitle"></div>
+          <div style="font-weight: 700; margin-bottom: 8px;" id="adminSelectedDateTitle"></div>
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
             <input type="time" id="newTimeInput" class="form-input" style="width: 60%;" value="10:00">
             <button type="button" class="btn-submit" style="border-radius: var(--radius-md); padding: 0 16px;" onclick="addCustomTime()">新增時段</button>
@@ -330,7 +332,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">📖 第一頁預約須知設定</div>
+        <div class="card-title">📖 第一頁預預須知設定</div>
         <div id="adminNoticesEditorList"></div>
         <button type="button" class="btn-secondary" style="width:100%; margin-top:8px;" onclick="addNoticeSection()">+ 新增一個須知區塊</button>
       </div>
@@ -349,7 +351,7 @@
 
     <div style="background: var(--input-bg); padding: 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.6; margin-bottom: 14px;">
       <div><strong>銀行代碼：</strong><span id="payBankCode"></span> (<span id="payBankName"></span>)</div>
-      <div><strong>帳號：</strong><span id="payBankAcc" style="font-weight: bold; font-size: 15px; color: var(--primary-color);"></span></div>
+      <div><strong>帳號：</strong><span id="payBankAcc" style="font-weight: 700; font-size: 15px; color: var(--primary-color);"></span></div>
       <div><strong>戶名：</strong><span id="payBankHolder"></span></div>
       <div style="color: #D9534F; font-weight: bold; margin-top: 4px;">應付定金金額：NT$ <span id="payDepositAmount"></span></div>
     </div>
@@ -436,59 +438,17 @@
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
   const LOCAL_DB_KEY = "anneho_db_v5";
 
+  // 空白預設結構：預設資料清空，全面優先讀取雲端/後台資料
   let defaultDb = {
     settings: {
       bankCode: "812",
       bankName: "台新銀行",
-      bankAcc: "28881024671561",
-      bankHolder: "徐若嫣",
-      payNotice: "已支付的定金會在項目費用扣除\n- 更改預約時間說明 -\n• 須至少三天前告知，僅可修改日期一次。\n• 須至少三天前告知，可退定金及取消預約。\n- 以下情況不退定金 -\n• 距離預約日三天內臨時取消或當天沒來。"
+      bankAcc: "",
+      bankHolder: "",
+      payNotice: ""
     },
-    notices: [
-      { id: "n1", title: "✨ 預約霧眉須知", content: "請避開生理期❗️\n前一天勿熬夜、飲酒❗️\n做好保濕，皮膚狀態好留色更好\n當天素眉來即可\n眉毛處有傷口、痘痘建議修復後再霧眉\n保留原有眉毛，不修眉\n\n兩邊眉毛生長位置不同\n兩邊眉骨高低不同\n兩邊表情肌肌肉位置不同\n兩邊太陽穴凹陷位置不同\n設計眉型講求相對協調\n沒有100%對稱的臉型，所以沒有100%對稱的眉型" },
-      { id: "n2", title: "✨ 預約美睫須知", content: "預約當天請勿化任何眼妝/睫毛膏/隔離/防曬❗️\n三個月內做過角蛋白不可做美睫❌\n近三個月有做「眼周醫美」請主動告知\n本身有在使用睫毛生長液，嫁接的睫毛會因為生長週期而掉落更快" },
-      { id: "n3", title: "✨ 預約淡色須知", content: "- 關於無創除色 -\n利用光點與熱能，將卡在皮層裡的大分子色素分解成小分子，讓皮膚得以開始自行代謝\n\n- 無創除色優點 -\n非藥水侵入式洗眉、非傳統雷射洗眉。安全無創、無傷口、不流血，不結痂不用剃毛，效果明顯，隔天可以正常畫眉毛\n\n- 除色需要幾次 -\n沒有一定，要看當初霧眉時紋繡師使用的色乳,深度及自身代謝速度而定\n\n- 除色間隔時間 -\n眉毛顏色較淺 - 最快兩星期做一次\n眉毛顏色較飽和 - 最快一個月做一次" }
-    ],
-    categories: [
-      {
-        id: "cat_eyebrow",
-        name: "霧眉與除色項目 *",
-        allowMultiple: false,
-        items: [
-          { id: "m1", name: "微針霧眉", desc: "含三個月內補色一次。眉毛無底色建議選此，顏色更飽和和漂亮✨", time: 150, price: 6000, deposit: 1000, requireRemoval: "no", isSolo: "no" },
-          { id: "m2", name: "單次霧眉", desc: "不含補色。補色選我，眉毛底色為橘/紅/藍，建議先除色", time: 150, price: 3500, deposit: 1000, requireRemoval: "no", isSolo: "no" },
-          { id: "m6", name: "眉毛無創除色", desc: "原相機拍眉毛部位，請主動傳至官方LINE", time: 60, price: 1500, deposit: 500, requireRemoval: "no", isSolo: "no" }
-        ]
-      },
-      {
-        id: "cat_lash",
-        name: "美睫款式項目 (可複選)",
-        allowMultiple: true,
-        items: [
-          { id: "m3", name: "美睫-小漫畫款", desc: "小紅書熱門爆款🔥", time: 120, price: 1200, deposit: 0, requireRemoval: "yes", isSolo: "no" },
-          { id: "m4", name: "美睫-仿真毛絨款", desc: "自然又單調，搭配嬰兒直更好看🤍", time: 120, price: 1200, deposit: 0, requireRemoval: "yes", isSolo: "no" },
-          { id: "m5", name: "美睫-自然穿插款", desc: "喜歡簡單不浮誇選我，可梳好整理", time: 100, price: 1000, deposit: 0, requireRemoval: "yes", isSolo: "no" }
-        ]
-      },
-      {
-        id: "cat_addon",
-        name: "加購項目 (可複選)",
-        allowMultiple: true,
-        items: [
-          { id: "a1", name: "下睫毛嫁接", desc: "讓眼神更深邃", time: 30, price: 500, deposit: 0, requireRemoval: "no", isSolo: "no" }
-        ]
-      },
-      {
-        id: "cat_removal",
-        name: "卸睫選項",
-        allowMultiple: false,
-        items: [
-          { id: "r1", name: "本店卸睫", desc: "卸除原本嫁接睫毛", time: 20, price: 0, deposit: 0, requireRemoval: "no", isSolo: "no" },
-          { id: "r2", name: "他店卸睫", desc: "卸除他店嫁接睫毛", time: 30, price: 200, deposit: 0, requireRemoval: "no", isSolo: "no" },
-          { id: "r3", name: "單純卸睫(不需選主服務)", desc: "純卸睫專用", time: 30, price: 300, deposit: 0, requireRemoval: "no", isSolo: "yes" }
-        ]
-      }
-    ],
+    notices: [],
+    categories: [],
     schedule: {}, orders: [], expenses: [], manualIncomes: []
   };
 
@@ -661,7 +621,7 @@
         <div class="notice-body" id="${bodyId}">${formatTextWithBr(n.content)}</div>
       </div>`;
     });
-    document.getElementById('clientNoticesContainer').innerHTML = html;
+    document.getElementById('clientNoticesContainer').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px; text-align:center;'>尚無預約須知</div>";
   }
 
   function renderClient() {
@@ -690,7 +650,7 @@
       </div>`;
     });
 
-    document.getElementById('clientDynamicCategoriesContainer').innerHTML = containerHtml;
+    document.getElementById('clientDynamicCategoriesContainer').innerHTML = containerHtml || "<div class='card' style='color:var(--text-sub); font-size:13px; text-align:center;'>尚無服務分類</div>";
 
     let hasEyebrow = false, hasRemoval = false;
     categories.forEach(cat => {
@@ -905,10 +865,10 @@
       });
     });
 
-    document.getElementById('payBankCode').innerText = db.settings.bankCode || "812";
-    document.getElementById('payBankName').innerText = db.settings.bankName || "台新銀行";
-    document.getElementById('payBankAcc').innerText = db.settings.bankAcc || "28881024671561";
-    document.getElementById('payBankHolder').innerText = db.settings.bankHolder || "徐若嫣";
+    document.getElementById('payBankCode').innerText = db.settings.bankCode || "";
+    document.getElementById('payBankName').innerText = db.settings.bankName || "";
+    document.getElementById('payBankAcc').innerText = db.settings.bankAcc || "";
+    document.getElementById('payBankHolder').innerText = db.settings.bankHolder || "";
     document.getElementById('payModalNoticeDisplay').innerHTML = formatTextWithBr(db.settings.payNotice || "請依指定金額匯款");
     document.getElementById('payDepositAmount').innerText = totalDeposit;
     document.getElementById('payModal').classList.add('active');
@@ -972,10 +932,10 @@
     renderAdminCustomers(); 
     renderAdminAccounting();
     
-    document.getElementById('settingBankCode').value = db.settings.bankCode || "812";
-    document.getElementById('settingBankName').value = db.settings.bankName || "台新銀行";
-    document.getElementById('settingBankAcc').value = db.settings.bankAcc || "28881024671561";
-    document.getElementById('settingBankHolder').value = db.settings.bankHolder || "徐若嫣";
+    document.getElementById('settingBankCode').value = db.settings.bankCode || "";
+    document.getElementById('settingBankName').value = db.settings.bankName || "";
+    document.getElementById('settingBankAcc').value = db.settings.bankAcc || "";
+    document.getElementById('settingBankHolder').value = db.settings.bankHolder || "";
     document.getElementById('settingPayNotice').value = (db.settings.payNotice || "").replace(/<br\s*\/?>/gi, '\n');
 
     renderAdminNoticesEditor();
