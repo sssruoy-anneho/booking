@@ -645,10 +645,6 @@
         let isSel = selectedServiceIds.includes(item.id);
         let priceText = item.price > 0 ? `NT$ ${item.price}` : "免費";
         let displayName = escapeHtml(item.name);
-        
-        if(item.requireRemoval === 'yes') {
-          displayName += ` <span style="color:#D9534F; font-size:12px; font-weight:normal;">( 美睫必填 )</span>`;
-        }
 
         itemsHtml += `<div class="item-option ${isSel?'selected':''}" onclick="toggleServiceItem('${cat.id}', '${item.id}')">
           <div class="item-info">
