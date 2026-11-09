@@ -76,7 +76,6 @@
     .price-summary .total { font-size: 16px; font-weight: 700; color: var(--primary-color); }
     .btn-submit { background: var(--primary-color); color: #fff; border: none; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 700; cursor: pointer; }
     .btn-submit:active { opacity: 0.8; }
-    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .admin-bar { background: var(--primary-color); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .admin-tab-group { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
@@ -154,7 +153,7 @@
       </div>
       
       <div style="padding: 0 4px; margin-top: 16px;">
-        <button type="button" class="btn-submit" id="btnStepNoticeNext" style="width: 100%; padding: 14px; font-size: 15px; border-radius: var(--radius-md);" onclick="goToStepService()" disabled>下一步：選擇服務項目</button>
+        <button type="button" class="btn-submit" id="btnStepNoticeNext" style="width: 100%; padding: 14px; font-size: 15px; border-radius: var(--radius-md); opacity: 0.5; cursor: not-allowed;" onclick="goToStepService()">下一步：選擇服務項目</button>
       </div>
     </div>
 
@@ -166,7 +165,7 @@
       <div id="clientDynamicCategoriesContainer"></div>
 
       <div class="card" id="eyebrowBaseColorCard" style="display: none;">
-        <div class="card-title">眉毛有無底色 *</div>
+        <div class="card-title">眉毛有無底色 <span style="color:#D9534F;">( 必填 )</span></div>
         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
           <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowNone" onclick="selectEyebrowBase('無')">無底色</button>
           <button type="button" class="btn-secondary" style="flex:1; padding:10px;" id="btnEyebrowHas" onclick="selectEyebrowBase('有')">有底色</button>
@@ -177,7 +176,8 @@
       </div>
 
       <div class="card" id="eyebrowRemovalCard" style="display: none;">
-        <div class="card-title">無創除色評估資料 *</div>
+        <div class="card-title">除色評估資料 <span style="color:#D9534F;">( 必填 )</span></div>
+        <div style="color: #D9534F; font-weight: bold; font-size: 13px; margin-bottom: 12px; line-height: 1.4;">早期繡眉，底色為：青綠/藍/紫，恐無效。</div>
         <div class="form-group">
           <label>最後一次霧眉時間：</label>
           <input type="text" id="remLastTime" class="form-input" placeholder="例如：半年前、1年前" oninput="updateSummary()">
@@ -190,7 +190,6 @@
           <label>有無做過眉毛除色/多久之前/次數：</label>
           <input type="text" id="remHistory" class="form-input" placeholder="例如：做過1次，大約3個月前" oninput="updateSummary()">
         </div>
-        <div style="color: #D9534F; font-weight: bold; font-size: 12px; margin-top: 4px;">早期繡眉，底色為：青綠/藍/紫，恐無效。</div>
       </div>
 
       <div class="card">
@@ -236,7 +235,7 @@
           <div style="font-size: 11px; margin-top: 2px;" id="displayTotal">總計：NT$ 0</div>
           <div style="font-size: 11px; margin-top: 1px; color: var(--primary-color); font-weight: 700;" id="displayTime">施作總時間約 0 分鐘</div>
         </div>
-        <button type="button" class="btn-submit" id="btnGoPay" onclick="openPayModal()" disabled>下一步：付款與確認</button>
+        <button type="button" class="btn-submit" id="btnGoPay" onclick="tryOpenPayModal()">下一步：付款與確認</button>
       </div>
     </div>
   </div>
@@ -593,7 +592,10 @@
 
   function checkNoticeValid() {
     let chk = document.getElementById('chkNoticeAgree').checked;
-    document.getElementById('btnStepNoticeNext').disabled = !chk;
+    let btnNext = document.getElementById('btnStepNoticeNext');
+    btnNext.disabled = !chk;
+    btnNext.style.opacity = chk ? '1' : '0.5';
+    btnNext.style.cursor = chk ? 'pointer' : 'not-allowed';
   }
 
   function goToStepService() {
@@ -642,9 +644,15 @@
       (cat.items || []).forEach(item => {
         let isSel = selectedServiceIds.includes(item.id);
         let priceText = item.price > 0 ? `NT$ ${item.price}` : "免費";
+        let displayName = escapeHtml(item.name);
+        
+        if(item.requireRemoval === 'yes') {
+          displayName += ` <span style="color:#D9534F; font-size:12px; font-weight:normal;">( 美睫必填 )</span>`;
+        }
+
         itemsHtml += `<div class="item-option ${isSel?'selected':''}" onclick="toggleServiceItem('${cat.id}', '${item.id}')">
           <div class="item-info">
-            <div class="title">${escapeHtml(item.name)}</div>
+            <div class="title">${displayName}</div>
             ${item.desc?`<div class="desc">${escapeHtml(item.desc)}</div>`:''}
             <div class="subtitle">時間約 ${item.time||30} 分鐘</div>
           </div>
@@ -827,15 +835,12 @@
 
   function updateSummary() {
     let total = 0, totalDeposit = 0, totalTime = 0;
-    let selectedItemsList = [];
-    
     (db.categories || []).forEach(cat => {
       (cat.items || []).forEach(item => {
         if(selectedServiceIds.includes(item.id)) {
           total += Number(item.price || 0);
           totalDeposit += Number(item.deposit || 0);
           totalTime += Number(item.time || 30);
-          selectedItemsList.push(item);
         }
       });
     });
@@ -843,40 +848,77 @@
     document.getElementById('displayDeposit').innerText = `NT$ ${totalDeposit}`;
     document.getElementById('displayTotal').innerText = `總計金額：NT$ ${total}`;
     document.getElementById('displayTime').innerText = `施作總時間約 ${totalTime} 分鐘`;
+  }
+
+  function tryOpenPayModal() {
+    if(selectedServiceIds.length === 0) {
+      alert("尚未選擇服務項目！");
+      return;
+    }
+
+    let selectedItemsList = [];
+    (db.categories || []).forEach(cat => {
+      (cat.items || []).forEach(item => {
+        if(selectedServiceIds.includes(item.id)) selectedItemsList.push(item);
+      });
+    });
 
     let hasEyebrow = selectedItemsList.some(x => x.name.includes("霧眉"));
-    let eyebrowValid = true;
-    if(hasEyebrow) {
-      if(!selectedEyebrowBaseMode) eyebrowValid = false;
-      if(selectedEyebrowBaseMode === '有' && !document.getElementById('eyebrowColorText').value.trim()) eyebrowValid = false;
+    if(hasEyebrow && !selectedEyebrowBaseMode) {
+      alert("尚未選擇眉毛底色！");
+      return;
+    }
+    if(hasEyebrow && selectedEyebrowBaseMode === '有' && !document.getElementById('eyebrowColorText').value.trim()) {
+      alert("尚未填寫目前眉毛底色顏色！");
+      return;
     }
 
     let hasRemoval = selectedItemsList.some(x => x.name.includes("除色"));
-    let removalValid = true;
     if(hasRemoval) {
-      if(!document.getElementById('remLastTime').value.trim() || !document.getElementById('remCurrentColor').value.trim() || !document.getElementById('remHistory').value.trim()) removalValid = false;
-    }
-
-    let mustSelectLashRemoval = selectedItemsList.some(x => x.requireRemoval === 'yes');
-    let lashRemovalValid = true;
-    if(mustSelectLashRemoval) {
-      let removalCat = (db.categories || []).find(c => c.id === 'cat_removal' || c.name.includes('卸睫'));
-      if(removalCat && removalCat.items) {
-        let removalItemIds = removalCat.items.map(i => i.id);
-        let hasChosenRemoval = selectedServiceIds.some(id => removalItemIds.includes(id));
-        if(!hasChosenRemoval) lashRemovalValid = false;
+      let remLast = document.getElementById('remLastTime').value.trim();
+      let remCurr = document.getElementById('remCurrentColor').value.trim();
+      let remHist = document.getElementById('remHistory').value.trim();
+      if(!remLast || !remCurr || !remHist) {
+        alert("尚未填寫除色評估資料！");
+        return;
       }
     }
 
-    let serviceSelectedValid = selectedServiceIds.length > 0;
-    document.getElementById('btnGoPay').disabled = !(serviceSelectedValid && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid && removalValid && lashRemovalValid);
+    let mustSelectLashRemoval = selectedItemsList.some(x => x.requireRemoval === 'yes');
+    if(mustSelectLashRemoval) {
+      let removalCat = (db.categories || []).find(c => c.id === 'cat_removal' || c.name.includes('卸睫'));
+      let hasChosenRemoval = false;
+      if(removalCat && removalCat.items) {
+        let removalItemIds = removalCat.items.map(i => i.id);
+        hasChosenRemoval = selectedServiceIds.some(id => removalItemIds.includes(id));
+      }
+      if(!hasChosenRemoval) {
+        alert("尚未點選卸睫選項！");
+        return;
+      }
+    }
+
+    if(!selectedDateStr || !selectedTime) {
+      alert("尚未選擇預約日期與時段！");
+      return;
+    }
+
+    let custName = document.getElementById('custName').value.trim();
+    let custPhone = document.getElementById('custPhone').value.trim();
+    if(!custName || !custPhone) {
+      alert("請填寫您的姓名與聯絡電話！");
+      return;
+    }
+
+    if(!selectedTransportMode) {
+      alert("請選擇交通方式！");
+      return;
+    }
+
+    openPayModal();
   }
 
   function openPayModal() {
-    if(!document.getElementById('custName').value.trim() || !document.getElementById('custPhone').value.trim()) { alert("請填寫您的姓名與聯絡電話！"); return; }
-    if(selectedServiceIds.length === 0) { alert("請至少選擇一個服務項目！"); return; }
-    if(!selectedTransportMode) { alert("請選擇交通方式！"); return; }
-
     let totalDeposit = 0;
     (db.categories || []).forEach(cat => {
       (cat.items || []).forEach(item => {
