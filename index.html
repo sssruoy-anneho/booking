@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>安,你好ANNEHO - 線上預約系統</title>
+  
+  <!-- LINE / 社群分享預覽小字與標題設定 -->
+  <meta name="description" content="微針霧眉 · 新中式美睫 · 無創除色">
+  <meta property="og:title" content="安,你好ANNEHO - 線上預約系統">
+  <meta property="og:description" content="微針霧眉 · 新中式美睫 · 無創除色">
+  <meta property="twitter:title" content="安,你好ANNEHO - 線上預約系統">
+  <meta property="twitter:description" content="微針霧眉 · 新中式美睫 · 無創除色">
+
   <!-- 引入 Google Fonts 圓體 (M PLUS Rounded 1c) -->
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -98,7 +106,7 @@
 
   <div id="adminHeader" style="display: none;">
     <div class="admin-bar">
-      <span>👑 店家管理後台 <button type="button" class="btn-secondary" onclick="requestPushPermission()" style="margin-left:6px; font-size:10px;">🔔 開啟推播</button></span>
+      <span>🤑旺旺發大財 <button type="button" class="btn-secondary" onclick="requestPushPermission()" style="margin-left:6px; font-size:10px;">🔔 開啟推播</button></span>
       <button type="button" class="btn-secondary" onclick="switchView('client')">👁️ 預覽顧客頁面</button>
     </div>
     <div class="admin-tab-group">
@@ -116,6 +124,16 @@
   <div id="clientView">
     <div id="stepNoticeView">
       <div class="card">
+        <div class="card-title">🔍 查詢我的預約</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">輸入預約時的手機號碼即可查詢</div>
+        <div style="display: flex; gap: 8px;">
+          <input type="tel" id="searchPhoneInput" class="form-input" placeholder="請輸入手機號碼" autocomplete="off" style="flex:1;">
+          <button type="button" class="btn-submit" style="padding: 0 16px; border-radius: var(--radius-md); font-size: 13px;" onclick="clientSearchOrder()">查詢</button>
+        </div>
+        <div id="clientSearchResult" style="margin-top: 12px;"></div>
+      </div>
+
+      <div class="card">
         <div class="card-title">⚠️ 重要請詳細閱讀您預約的項目‼️</div>
         <div id="clientNoticesContainer"></div>
 
@@ -123,7 +141,8 @@
         <div style="font-size: 13px; line-height: 1.6; color: var(--text-main); margin-bottom: 14px;">
           🅿️ <strong>汽/機車皆可停放門口</strong><br>
           ❌ <strong>個人工作室 不開放攜伴</strong><br>
-          💰 <strong>支付方式：現金、轉帳</strong>
+          💰 <strong>支付方式：現金、轉帳</strong><br>
+          🏠 <strong>苗栗縣頭份市信義路343號</strong>
         </div>
 
         <div style="margin-top: 16px; background: var(--input-bg); padding: 12px; border-radius: var(--radius-md);">
@@ -142,16 +161,6 @@
     <div id="stepBookingView" style="display: none;">
       <div style="margin-bottom: 12px;">
         <button type="button" class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="backToNotice()">‹ 返回閱讀須知</button>
-      </div>
-
-      <div class="card">
-        <div class="card-title">🔍 查詢我的預約</div>
-        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">輸入預約時的手機號碼即可查詢</div>
-        <div style="display: flex; gap: 8px;">
-          <input type="tel" id="searchPhoneInput" class="form-input" placeholder="請輸入手機號碼" autocomplete="off" style="flex:1;">
-          <button type="button" class="btn-submit" style="padding: 0 16px; border-radius: var(--radius-md); font-size: 13px;" onclick="clientSearchOrder()">查詢</button>
-        </div>
-        <div id="clientSearchResult" style="margin-top: 12px;"></div>
       </div>
 
       <div id="clientDynamicCategoriesContainer"></div>
@@ -332,7 +341,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">📖 第一頁預預須知設定</div>
+        <div class="card-title">📖 第一頁預約須知設定</div>
         <div id="adminNoticesEditorList"></div>
         <button type="button" class="btn-secondary" style="width:100%; margin-top:8px;" onclick="addNoticeSection()">+ 新增一個須知區塊</button>
       </div>
@@ -438,7 +447,6 @@
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
   const LOCAL_DB_KEY = "anneho_db_v5";
 
-  // 空白預設結構：預設資料清空，全面優先讀取雲端/後台資料
   let defaultDb = {
     settings: {
       bankCode: "812",
@@ -849,8 +857,19 @@
       if(!document.getElementById('remLastTime').value.trim() || !document.getElementById('remCurrentColor').value.trim() || !document.getElementById('remHistory').value.trim()) removalValid = false;
     }
 
+    let mustSelectLashRemoval = selectedItemsList.some(x => x.requireRemoval === 'yes');
+    let lashRemovalValid = true;
+    if(mustSelectLashRemoval) {
+      let removalCat = (db.categories || []).find(c => c.id === 'cat_removal' || c.name.includes('卸睫'));
+      if(removalCat && removalCat.items) {
+        let removalItemIds = removalCat.items.map(i => i.id);
+        let hasChosenRemoval = selectedServiceIds.some(id => removalItemIds.includes(id));
+        if(!hasChosenRemoval) lashRemovalValid = false;
+      }
+    }
+
     let serviceSelectedValid = selectedServiceIds.length > 0;
-    document.getElementById('btnGoPay').disabled = !(serviceSelectedValid && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid && removalValid);
+    document.getElementById('btnGoPay').disabled = !(serviceSelectedValid && selectedDateStr && selectedTime && selectedTransportMode && eyebrowValid && removalValid && lashRemovalValid);
   }
 
   function openPayModal() {
