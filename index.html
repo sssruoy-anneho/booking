@@ -776,8 +776,7 @@
       btn.style.borderColor = m === mode ? 'var(--primary-color)' : 'var(--border-color)';
     });
     updateSummary();
-  }
-  function renderCalendar(y, m, type) {
+  }function renderCalendar(y, m, type) {
     let monthTitle = `${y} 年 ${m + 1} 月`, firstDay = new Date(y, m, 1).getDay(), daysInMonth = new Date(y, m + 1, 0).getDate();
     let todayStr = formatDateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
     let gridHtml = `<div class="cal-day-label">日</div><div class="cal-day-label">一</div><div class="cal-day-label">二</div><div class="cal-day-label">三</div><div class="cal-day-label">四</div><div class="cal-day-label">五</div><div class="cal-day-label">六</div>`;
