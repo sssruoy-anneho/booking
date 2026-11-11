@@ -534,7 +534,7 @@
 
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
-  const LOCAL_DB_KEY = "anneho_db_v10";
+  const LOCAL_DB_KEY = "anneho_db_v11";
 
   let defaultDb = {
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "", bankHolder: "", payNotice: "" },
@@ -615,7 +615,6 @@
   let selectedEyebrowBaseMode = ""; 
   let currentAccTab = 'income', currentExpModalType = 'expense', activeCustomerPhoneForHist = null;
 
-  // 記錄展開的會員手機號碼
   let expandedCustomerPhones = {};
 
   function requestPushPermission() {
@@ -979,7 +978,6 @@
     navigator.clipboard.writeText(accText).then(() => {
       alert("✅ 銀行帳號已成功複製！");
     }).catch(err => {
-      // 備用方案
       let textArea = document.createElement("textarea");
       textArea.value = accText;
       document.body.appendChild(textArea);
@@ -1030,7 +1028,7 @@
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
       status: 'pending', 
       rating: 0, ratingText: '', 
-      createdAt: new Date().toISOString(), isRead: false
+      createdAt: new Date().toLocaleString(), isRead: false
     };
 
     if(!db.orders) db.orders = [];
@@ -1039,10 +1037,9 @@
     
     if(!db.customers) db.customers = {};
     if(!db.customers[phone]) {
-      db.customers[phone] = { name, phone, notes: "", noShowDates: [], isBlacklisted: false, history: [], lastInteractTime: Date.now() };
+      db.customers[phone] = { name, phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
     } else {
       db.customers[phone].name = name;
-      db.customers[phone].lastInteractTime = Date.now();
     }
 
     saveData(); 
@@ -1143,10 +1140,9 @@
     let phone = order.phone;
     if(!db.customers) db.customers = {};
     if(!db.customers[phone]) {
-      db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowDates: [], isBlacklisted: false, history: [], lastInteractTime: Date.now() };
+      db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
     }
     if(!db.customers[phone].noShowDates) db.customers[phone].noShowDates = [];
-    db.customers[phone].lastInteractTime = Date.now();
 
     if(newStatus === 'noshow' && oldStatus !== 'noshow') {
       if(!db.customers[phone].noShowDates.includes(order.date)) {
@@ -1186,10 +1182,9 @@
     let phone = order.phone;
     if(!db.customers) db.customers = {};
     if(!db.customers[phone]) {
-      db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowDates: [], isBlacklisted: false, history: [], lastInteractTime: Date.now() };
+      db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
     }
     if(!db.customers[phone].noShowDates) db.customers[phone].noShowDates = [];
-    db.customers[phone].lastInteractTime = Date.now();
 
     if(status === 'noshow' && oldStatus !== 'noshow') {
       if(!db.customers[phone].noShowDates.includes(order.date)) {
@@ -1221,15 +1216,32 @@
     renderAdminCustomers();
   }
 
+  // 取得會員最近一次成功預約（或操作紀錄）的日期字串用於排序
+  function getCustomerLatestDate(phone, custData) {
+    let dates = [];
+    // 收集該手機號碼所有預約的日期
+    (db.orders || []).forEach(o => {
+      if(o.phone === phone && o.date) dates.push(o.date);
+    });
+    // 收集該會員所有手動操作紀錄的日期
+    if(custData.history) {
+      custData.history.forEach(h => {
+        if(h.date) dates.push(h.date);
+      });
+    }
+    if(dates.length === 0) return "";
+    dates.sort();
+    return dates[dates.length - 1]; // 取最晚（最近）的日期
+  }
+
   function renderAdminCustomers() {
     let query = (document.getElementById('customerSearchInput').value || "").trim().toLowerCase();
     let html = "";
     let custMap = db.customers || {};
 
-    // 同步訂單中的會員並更新最後互動時間
     (db.orders || []).forEach(o => {
       if(!custMap[o.phone]) {
-        custMap[o.phone] = { name: o.name, phone: o.phone, notes: "", noShowDates: [], isBlacklisted: false, history: [], lastInteractTime: new Date(o.createdAt || Date.now()).getTime() };
+        custMap[o.phone] = { name: o.name, phone: o.phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
       }
     });
 
@@ -1237,11 +1249,13 @@
     if(keys.length === 0) {
       html = "<div style='color:var(--text-sub); font-size:13px; text-align:center;'>尚無會員資料</div>";
     } else {
-      // 依照時間越新的在越上面排序 (lastInteractTime)
+      // 依照「最近一次預約/操作日期」由近到遠（日期越新越上面）排序
       keys.sort((a, b) => {
-        let timeA = custMap[a].lastInteractTime || 0;
-        let timeB = custMap[b].lastInteractTime || 0;
-        return timeB - timeA;
+        let dateA = getCustomerLatestDate(a, custMap[a]);
+        let dateB = getCustomerLatestDate(b, custMap[b]);
+        if(dateA > dateB) return -1;
+        if(dateA < dateB) return 1;
+        return 0;
       });
 
       keys.forEach(phone => {
@@ -1256,7 +1270,6 @@
         let isExpanded = !!expandedCustomerPhones[phone];
 
         if(!isExpanded) {
-          // 長方形精簡顯示
           html += `<div style="border:1px solid var(--border-color); background:#fff; padding:12px 16px; border-radius:10px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleCustomerExpand('${phone}')">
             <div>
               <strong style="font-size:14px; color:var(--primary-color);">${escapeHtml(c.name)}</strong>
@@ -1269,7 +1282,6 @@
             </div>
           </div>`;
         } else {
-          // 展開後的完整正方形/詳細卡片
           let historyHtml = "";
           let histList = c.history || [];
           histList.forEach((h, hIdx) => {
@@ -1322,7 +1334,6 @@
   function updateCustomerNotes(phone, val) {
     if(db.customers && db.customers[phone]) {
       db.customers[phone].notes = val;
-      db.customers[phone].lastInteractTime = Date.now();
       saveData();
     }
   }
@@ -1370,7 +1381,6 @@
 
     if(!db.customers[activeCustomerPhoneForHist].history) db.customers[activeCustomerPhoneForHist].history = [];
     db.customers[activeCustomerPhoneForHist].history.unshift(record);
-    db.customers[activeCustomerPhoneForHist].lastInteractTime = Date.now();
     saveData();
     closeHistoryModal();
     renderAdminCustomers();
@@ -1381,7 +1391,6 @@
     if(confirm("確定要刪除這筆操作紀錄嗎？")) {
       if(db.customers[phone] && db.customers[phone].history) {
         db.customers[phone].history.splice(hIdx, 1);
-        db.customers[phone].lastInteractTime = Date.now();
         saveData();
         renderAdminCustomers();
       }
@@ -1415,7 +1424,6 @@
       if(db.customers && db.customers[phone]) {
         db.customers[phone].isBlacklisted = false;
         db.customers[phone].noShowDates = [];
-        db.customers[phone].lastInteractTime = Date.now();
       }
       saveData();
       renderAdminBlacklist();
