@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>安,你好ANNEHO - 線上預約系統</title>
+  <title>安,你好ANNEHO</title>
   
-  <!-- LINE / 社群分享預覽小字與標題設定 -->
-  <meta name="description" content="微針霧眉 · 新中式美睫 · 無創除色">
-  <meta property="og:title" content="安,你好ANNEHO - 線上預約系統">
+  <!-- LINE / 社群分享預覽小字與標題設定 (同時支援電腦與手機版 LINE 重新抓取) -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="安,你好ANNEHO">
   <meta property="og:description" content="微針霧眉 · 新中式美睫 · 無創除色">
-  <meta property="twitter:title" content="安,你好ANNEHO - 線上預約系統">
-  <meta property="twitter:description" content="微針霧眉 · 新中式美睫 · 無創除色">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="安,你好ANNEHO">
+  <meta name="twitter:description" content="微針霧眉 · 新中式美睫 · 無創除色">
 
   <!-- 引入 Google Fonts 圓體 (M PLUS Rounded 1c) -->
   <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap" rel="stylesheet">
@@ -486,6 +487,12 @@
         <option value="yes">複選</option>
       </select>
     </div>
+    <div class="form-group">
+      <label>須同時點選其他綁定分類：</label>
+      <select id="editCatRequiredMatchId" class="form-input">
+        <option value="">-- 無需綁定其他分類 --</option>
+      </select>
+    </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
       <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeCategoryModal()">取消</button>
       <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveCategoryItem()">儲存</button>
@@ -523,7 +530,7 @@
 
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
-  const LOCAL_DB_KEY = "anneho_db_v7";
+  const LOCAL_DB_KEY = "anneho_db_v8";
 
   let defaultDb = {
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "", bankHolder: "", payNotice: "" },
@@ -891,6 +898,25 @@
   function tryOpenPayModal() {
     if(selectedServiceIds.length === 0) { alert("尚未選擇服務項目！"); return; }
 
+    // 檢查分類連動綁定規則
+    let categories = db.categories || [];
+    let selectedCategoriesMap = {}; // catId -> has selected item
+    categories.forEach(cat => {
+      let hasItemInCat = (cat.items || []).some(item => selectedServiceIds.includes(item.id));
+      if(hasItemInCat) selectedCategoriesMap[cat.id] = true;
+    });
+
+    for(let cat of categories) {
+      if(selectedCategoriesMap[cat.id] && cat.requiredMatchId) {
+        if(!selectedCategoriesMap[cat.requiredMatchId]) {
+          let requiredCat = categories.find(c => c.id === cat.requiredMatchId);
+          let reqName = requiredCat ? requiredCat.name : "對應分類";
+          alert(`尚未點選「${reqName}」`);
+          return;
+        }
+      }
+    }
+
     let custPhone = document.getElementById('custPhone').value.trim();
     let custName = document.getElementById('custName').value.trim();
     if(!custName || !custPhone) { alert("請填寫您的姓名與聯絡電話！"); return; }
@@ -978,7 +1004,7 @@
       eyebrowBase: eyebrowBaseText, removalDetails: removalDetailsText,
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
       status: 'pending', // pending, success, noshow
-      rating: 0, ratingText: '', // 新增評分欄位
+      rating: 0, ratingText: '', 
       createdAt: new Date().toLocaleString(), isRead: false
     };
 
@@ -1040,7 +1066,6 @@
     if(evt && evt.target) evt.target.classList.add('active');
   }
 
-  // 計算會員平均總評分
   function calculateCustomerAverageRating(phone) {
     let orders = (db.orders || []).filter(o => o.phone === phone && (o.status === 'success' || o.status === 'noshow') && Number(o.rating) > 0);
     if(orders.length === 0) return 0;
@@ -1048,7 +1073,6 @@
     return (sum / orders.length).toFixed(1);
   }
 
-  // 訂單狀態與評分切換邏輯
   function updateOrderStatus(orderId, status) {
     let order = (db.orders || []).find(o => o.id === orderId);
     if(!order) return;
@@ -1085,7 +1109,6 @@
     renderAdminCustomers();
   }
 
-  // --- 客戶資料表與會員管理 ---
   function renderAdminCustomers() {
     let query = (document.getElementById('customerSearchInput').value || "").trim().toLowerCase();
     let html = "";
@@ -1218,7 +1241,6 @@
     }
   }
 
-  // --- 黑名單管理 ---
   function renderAdminBlacklist() {
     let blacklistPhones = db.blacklist || [];
     let html = "";
@@ -1252,7 +1274,6 @@
     }
   }
 
-  // --- 營運報表邏輯 ---
   function initReportSelectors() {
     let now = new Date(), currentY = now.getFullYear(), currentM = now.getMonth() + 1;
     let yHtml = ""; for(let y = currentY; y >= currentY - 2; y--) yHtml += `<option value="${y}">${y} 年</option>`;
@@ -1334,7 +1355,6 @@
           <div><strong>操作項目：</strong>${escapeHtml(o.servicesSummary)}</div>
           <div><strong>定金：</strong>NT$ ${o.deposit} | <strong>總價：</strong>NT$ ${o.totalPrice}</div>
           
-          <!-- 狀態與星級評分區塊 -->
           <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color);">
             <div style="display:flex; gap:6px; margin-bottom:6px;">
               <button type="button" class="${o.status==='success'?'btn-submit':'btn-secondary'}" style="padding:3px 6px; font-size:10px;" onclick="updateOrderStatus(${o.id}, 'success')">✅ 成功服務</button>
@@ -1361,7 +1381,6 @@
     document.getElementById('adminReportsDetails').innerHTML = html;
   }
 
-  // --- 預約管理渲染 ---
   function renderAdminOrders() {
     let html = "";
     let ordersList = db.orders || [];
@@ -1403,11 +1422,16 @@
     renderAdminOrders();
   }
 
-  // --- 其他後台管理模組 (分類、時段、記帳、設定) ---
   function renderAdminCategories() {
     let categories = db.categories || [];
     let html = "";
     categories.forEach((cat, catIdx) => {
+      let requiredName = "無";
+      if(cat.requiredMatchId) {
+        let reqCat = categories.find(c => c.id === cat.requiredMatchId);
+        if(reqCat) requiredName = reqCat.name;
+      }
+
       let itemsHtml = "";
       (cat.items || []).forEach((item, itemIdx) => {
         itemsHtml += `<div class="item-option" style="background:#fff; margin-bottom:6px;">
@@ -1421,11 +1445,16 @@
           </div>
         </div>`;
       });
+
       html += `<div style="border:1px solid var(--border-color); background:var(--input-bg); padding:12px; border-radius:12px; margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <strong style="color:var(--primary-color); font-size:15px;">📁 ${escapeHtml(cat.name)}</strong>
-          <button type="button" class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openServiceModal('${cat.id}', 'add')">+項目</button>
+          <div style="display:flex; gap:6px;">
+            <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="openCategoryModal('edit', ${catIdx})">編輯分類設定</button>
+            <button type="button" class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openServiceModal('${cat.id}', 'add')">+項目</button>
+          </div>
         </div>
+        <div style="font-size:12px; color:var(--text-sub); margin-bottom:10px;">綁定聯動：點選此分類時須同時點選 ➔ <b style="color:var(--primary-color);">${escapeHtml(requiredName)}</b></div>
         ${itemsHtml || "<div style='color:var(--text-sub); font-size:12px;'>此分類尚無項目</div>"}
       </div>`;
     });
@@ -1435,17 +1464,55 @@
   let currentCatMode = 'add', currentCatIdx = -1;
   function openCategoryModal(mode, idx = -1) {
     currentCatMode = mode; currentCatIdx = idx;
-    document.getElementById('editCatName').value = (mode === 'edit' && idx >= 0) ? db.categories[idx].name : "";
+    let catNameInput = document.getElementById('editCatName');
+    let allowMultSel = document.getElementById('editCatAllowMultiple');
+    let reqMatchSelect = document.getElementById('editCatRequiredMatchId');
+
+    // 填充下拉選項
+    let categories = db.categories || [];
+    let optionsHtml = `<option value="">-- 無需綁定其他分類 --</option>`;
+    categories.forEach(c => {
+      if(mode === 'edit' && c.id === categories[idx].id) return; // 避免自己綁自己
+      optionsHtml += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
+    });
+    reqMatchSelect.innerHTML = optionsHtml;
+
+    if(mode === 'edit' && idx >= 0) {
+      let cat = categories[idx];
+      catNameInput.value = cat.name || "";
+      allowMultSel.value = cat.allowMultiple ? "yes" : "no";
+      reqMatchSelect.value = cat.requiredMatchId || "";
+      document.getElementById('categoryModalTitle').innerText = "編輯服務分類";
+    } else {
+      catNameInput.value = "";
+      allowMultSel.value = "no";
+      reqMatchSelect.value = "";
+      document.getElementById('categoryModalTitle').innerText = "新增服務分類";
+    }
     document.getElementById('categoryModal').classList.add('active');
   }
+
   function closeCategoryModal() { document.getElementById('categoryModal').classList.remove('active'); }
+  
   function saveCategoryItem() {
     let name = document.getElementById('editCatName').value.trim();
+    let allowMultiple = document.getElementById('editCatAllowMultiple').value === 'yes';
+    let requiredMatchId = document.getElementById('editCatRequiredMatchId').value;
+
     if(!name) { alert("請輸入分類名稱！"); return; }
     if(!db.categories) db.categories = [];
-    if(currentCatMode === 'add') db.categories.push({ id: 'cat_' + Date.now(), name, allowMultiple: false, items: [] });
-    else db.categories[currentCatIdx].name = name;
-    saveData(); closeCategoryModal(); renderAdminCategories(); renderClient();
+
+    if(currentCatMode === 'add') {
+      db.categories.push({ id: 'cat_' + Date.now(), name, allowMultiple, requiredMatchId, items: [] });
+    } else {
+      db.categories[currentCatIdx].name = name;
+      db.categories[currentCatIdx].allowMultiple = allowMultiple;
+      db.categories[currentCatIdx].requiredMatchId = requiredMatchId;
+    }
+    saveData(); 
+    closeCategoryModal(); 
+    renderAdminCategories(); 
+    renderClient();
   }
 
   let currentItemCatId = '', currentItemMode = 'add', currentItemIdx = -1;
