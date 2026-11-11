@@ -35,6 +35,12 @@
       font-family: "M PLUS Rounded 1c", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
       -webkit-tap-highlight-color: transparent; 
       touch-action: manipulation;
+      /* 禁止客戶端選取與複製文字 */
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
     body { background-color: var(--bg-main); color: var(--text-main); display: flex; justify-content: center; min-height: 100vh; padding: 12px; }
     .app-container { width: 100%; max-width: 480px; background: var(--bg-main); min-height: 100vh; position: relative; padding-bottom: 90px; }
@@ -79,7 +85,7 @@
 
     .admin-bar { background: var(--primary-color); color: #fff; padding: 10px 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .admin-tab-group { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; }
-    .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; position: relative; font-weight: 500; }
+    .admin-tab { padding: 8px 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 20px; font-size: 11px; white-space: nowrap; cursor: pointer; position: relative; font-weight: 500; color: var(--primary-color); }
     .admin-tab.active { background: var(--primary-color); color: #fff; border-color: var(--primary-color); }
     .badge-unread { position: absolute; top: -4px; right: -4px; background: #D9534F; color: #fff; font-size: 10px; font-weight: bold; border-radius: 10px; padding: 2px 5px; min-width: 16px; text-align: center; }
 
@@ -109,12 +115,14 @@
       <button type="button" class="btn-secondary" onclick="switchView('client')">👁️ 預覽顧客頁面</button>
     </div>
     <div class="admin-tab-group">
-      <div class="admin-tab active" onclick="switchAdminTab('services', event)">服務分類與項目</div>
-      <div class="admin-tab" onclick="switchAdminTab('schedule', event)">設定預約時段</div>
+      <div class="admin-tab active" onclick="switchAdminTab('services', event)">服務項目</div>
+      <div class="admin-tab" onclick="switchAdminTab('schedule', event)">時段</div>
       <div class="admin-tab" id="tabOrdersHeader" onclick="switchAdminTab('orders', event)">
-        已接收預約 <span id="adminUnreadBadge" class="badge-unread" style="display:none;">0</span>
+        預約 <span id="adminUnreadBadge" class="badge-unread" style="display:none;">0</span>
       </div>
-      <div class="admin-tab" onclick="switchAdminTab('customers', event)">客歷</div>
+      <div class="admin-tab" onclick="switchAdminTab('customers', event)">客歷/會員</div>
+      <div class="admin-tab" onclick="switchAdminTab('blacklist', event)">黑名單</div>
+      <div class="admin-tab" onclick="switchAdminTab('reports', event)">營運報表</div>
       <div class="admin-tab" onclick="switchAdminTab('accounting', event)">記帳</div>
       <div class="admin-tab" onclick="switchAdminTab('settings', event)">設定</div>
     </div>
@@ -241,17 +249,18 @@
   </div>
 
   <div id="adminView" style="display: none;">
+    <!-- 服務管理 -->
     <div id="adminTabServices" class="admin-tab-content">
       <div class="card">
         <div class="card-title">
           <span>服務分類與項目管理</span>
           <button type="button" class="btn-submit" style="padding:6px 12px; font-size:12px;" onclick="openCategoryModal('add')">+ 新增分類</button>
         </div>
-        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">您可以隨時調整分類順序、設定該分類是否可複選、或搬移項目。</div>
         <div id="adminCategoriesList"></div>
       </div>
     </div>
 
+    <!-- 時段管理 -->
     <div id="adminTabSchedule" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">設定日期與開放時段</div>
@@ -261,7 +270,6 @@
           <button type="button" class="cal-btn" onclick="changeAdminMonth(1)">›</button>
         </div>
         <div class="cal-grid" id="adminCalGrid"></div>
-        
         <hr style="border: none; border-top: 1px solid var(--border-color); margin: 16px 0;">
         <div id="adminDateScheduleArea" style="display: none;">
           <div style="font-weight: 700; margin-bottom: 8px;" id="adminSelectedDateTitle"></div>
@@ -274,6 +282,7 @@
       </div>
     </div>
 
+    <!-- 預約管理 -->
     <div id="adminTabOrders" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">已接收預約總覽</div>
@@ -281,16 +290,69 @@
       </div>
     </div>
 
+    <!-- 客戶與客歷管理 -->
     <div id="adminTabCustomers" class="admin-tab-content" style="display: none;">
       <div class="card">
-        <div class="card-title">顧客消費紀錄與客歷</div>
+        <div class="card-title">客戶資料表與會員管理</div>
         <div class="form-group">
-          <input type="text" id="customerSearchInput" class="form-input" placeholder="輸入顧客姓名搜尋..." autocomplete="off" oninput="renderAdminCustomers()">
+          <input type="text" id="customerSearchInput" class="form-input" placeholder="🔍 輸入姓名或手機號碼搜尋會員..." autocomplete="off" oninput="renderAdminCustomers()">
         </div>
         <div id="adminCustomersList"></div>
       </div>
     </div>
 
+    <!-- 黑名單管理 -->
+    <div id="adminTabBlacklist" class="admin-tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-title">黑名單清單管理</div>
+        <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 12px;">在此可查看及手動解除/新增黑名單貴賓。</div>
+        <div id="adminBlacklistList"></div>
+      </div>
+    </div>
+
+    <!-- 營運報表 -->
+    <div id="adminTabReports" class="admin-tab-content" style="display: none;">
+      <div class="card">
+        <div class="card-title">營運報表（含評分與狀態設定）</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <select id="reportTypeSelect" class="form-input" onchange="toggleReportMode()">
+            <option value="daily">📅 指定單日報表</option>
+            <option value="monthly">🗓️ 指定月份報表</option>
+            <option value="range">📊 自訂日期區間</option>
+          </select>
+        </div>
+        
+        <div id="reportFilterDaily" class="form-group">
+          <label>選擇日期</label>
+          <input type="date" id="repDate" class="form-input" onchange="renderAdminReports()">
+        </div>
+        
+        <div id="reportFilterMonthly" class="form-group" style="display:none;">
+          <div style="display:flex; gap:8px;">
+            <select id="repYear" class="form-input" onchange="renderAdminReports()"></select>
+            <select id="repMonth" class="form-input" onchange="renderAdminReports()"></select>
+          </div>
+        </div>
+
+        <div id="reportFilterRange" class="form-group" style="display:none;">
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="date" id="repStartDate" class="form-input" onchange="renderAdminReports()">
+            <span>至</span>
+            <input type="date" id="repEndDate" class="form-input" onchange="renderAdminReports()">
+          </div>
+        </div>
+
+        <div style="background: var(--input-bg); padding: 12px; border-radius: 12px; margin-bottom: 14px; font-size: 13px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>區間總預約數：</span><strong id="repTotalCount">0 筆</strong></div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>定金總收入：</span><strong style="color:var(--primary-color);" id="repTotalDeposit">NT$ 0</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>總金額合計：</span><strong style="color:#28a745;" id="repTotalAmount">NT$ 0</strong></div>
+        </div>
+
+        <div id="adminReportsDetails"></div>
+      </div>
+    </div>
+
+    <!-- 記帳 -->
     <div id="adminTabAccounting" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">
@@ -300,28 +362,25 @@
             <button type="button" class="btn-secondary" onclick="openExpenseModal('expense')">+ 新增支出</button>
           </div>
         </div>
-
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
           <button type="button" id="accTabIncomeBtn" class="btn-submit" style="flex:1; padding:8px; font-size:12px; border-radius:8px;" onclick="switchAccountingTab('income')">💰 收入紀錄</button>
           <button type="button" id="accTabExpenseBtn" class="btn-secondary" style="flex:1; padding:8px; font-size:12px; border-radius:8px;" onclick="switchAccountingTab('expense')">🧾 支出紀錄</button>
         </div>
-
         <div style="display: flex; gap: 8px; margin-bottom: 12px;">
           <select id="accountingYearSelect" class="form-input" style="width:50%;" onchange="renderAdminAccounting()"></select>
           <select id="accountingMonthSelect" class="form-input" style="width:50%;" onchange="renderAdminAccounting()"></select>
         </div>
-
         <div style="background: var(--input-bg); padding: 12px; border-radius: 12px; margin-bottom: 14px; font-size: 13px;">
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>本月總收入：</span><strong style="color:var(--primary-color);" id="accTotalIncome">NT$ 0</strong></div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>本月總支出：</span><strong style="color:#D9534F;" id="accTotalExpense">NT$ 0</strong></div>
           <hr style="border:none; border-top:1px solid var(--border-color); margin:6px 0;">
           <div style="display:flex; justify-content:space-between;"><span>本月淨利：</span><strong id="accNetProfit">NT$ 0</strong></div>
         </div>
-
         <div id="adminAccountingDetails"></div>
       </div>
     </div>
 
+    <!-- 設定 -->
     <div id="adminTabSettings" class="admin-tab-content" style="display: none;">
       <div class="card">
         <div class="card-title">💳 轉帳銀行資訊設定</div>
@@ -330,33 +389,28 @@
         <div class="form-group"><label>轉帳帳號</label><input type="text" id="settingBankAcc" class="form-input"></div>
         <div class="form-group"><label>戶名</label><input type="text" id="settingBankHolder" class="form-input"></div>
       </div>
-
       <div class="card">
         <div class="card-title">💬 轉帳彈窗注意事項設定</div>
         <div class="form-group">
-          <label>注意事項說明文字 (直接換行即可)</label>
           <textarea id="settingPayNotice" class="form-input" rows="6" style="resize:vertical;"></textarea>
         </div>
       </div>
-
       <div class="card">
         <div class="card-title">📖 第一頁預約須知設定</div>
         <div id="adminNoticesEditorList"></div>
         <button type="button" class="btn-secondary" style="width:100%; margin-top:8px;" onclick="addNoticeSection()">+ 新增一個須知區塊</button>
       </div>
-
       <button type="button" class="btn-submit" style="width: 100%; margin-top: 10px; margin-bottom: 30px;" onclick="saveAllSettings()">儲存所有後台設定</button>
     </div>
   </div>
 </div>
 
+<!-- 付款確認 Modal -->
 <div class="modal-overlay" id="payModal" onclick="checkModalClose(event, 'payModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 style="color: var(--primary-color); margin-bottom: 12px;">轉帳支付定金</h3>
     <div style="color: #D9534F; font-weight: bold; font-size: 13px; margin-bottom: 8px;">為保障雙方權益，請確認以下內容再進行匯款</div>
-    
     <div id="payModalNoticeDisplay" style="font-size: 12px; line-height: 1.6; color: var(--text-main); margin-bottom: 12px; background: var(--input-bg); padding: 10px; border-radius: 8px;"></div>
-
     <div style="background: var(--input-bg); padding: 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.6; margin-bottom: 14px;">
       <div><strong>銀行代碼：</strong><span id="payBankCode"></span> (<span id="payBankName"></span>)</div>
       <div><strong>帳號：</strong><span id="payBankAcc" style="font-weight: 700; font-size: 15px; color: var(--primary-color);"></span></div>
@@ -374,34 +428,67 @@
   </div>
 </div>
 
+<!-- 新增/編輯紀錄 Modal (霧眉/美睫) -->
+<div class="modal-overlay" id="historyModal" onclick="checkModalClose(event, 'historyModal')">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <h3 id="historyModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增操作紀錄</h3>
+    <div class="form-group">
+      <label>操作項目類型 *</label>
+      <select id="histType" class="form-input" onchange="switchHistTypeFields()">
+        <option value="霧眉">微針霧眉</option>
+        <option value="美睫">新中式美睫</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>操作日期 *</label>
+      <input type="date" id="histDate" class="form-input">
+    </div>
+
+    <!-- 霧眉專屬欄位 -->
+    <div id="histFieldsEyebrow">
+      <div class="form-group"><label>使用的色乳</label><input type="text" id="histEyebrowPigment" class="form-input" placeholder="例如：某品牌色乳"></div>
+      <div class="form-group"><label>色乳顏色</label><input type="text" id="histEyebrowColor" class="form-input" placeholder="例如：亞麻棕"></div>
+      <div class="form-group"><label>操作針具</label><input type="text" id="histEyebrowNeedle" class="form-input" placeholder="例如：1R / 圓三針"></div>
+    </div>
+
+    <!-- 美睫專屬欄位 -->
+    <div id="histFieldsLash" style="display:none;">
+      <div class="form-group"><label>款式</label><input type="text" id="histLashStyleName" class="form-input" placeholder="例如：小漫畫款"></div>
+      <div class="form-group"><label>上睫毛翹度</label><input type="text" id="histLashUpperCurl" class="form-input" placeholder="例如：C / B"></div>
+      <div class="form-group"><label>上睫毛長度</label><input type="text" id="histLashUpperLen" class="form-input" placeholder="例如：9-12mm"></div>
+      <div class="form-group"><label>下睫毛翹度</label><input type="text" id="histLashLowerCurl" class="form-input" placeholder="例如：J"></div>
+      <div class="form-group"><label>下睫毛長度</label><input type="text" id="histLashLowerLen" class="form-input" placeholder="例如：6mm"></div>
+      <div class="form-group"><label>睫毛樣式</label><input type="text" id="histLashPattern" class="form-input" placeholder="例如：仙女直睫"></div>
+      <div class="form-group"><label>濃密度</label><input type="text" id="histLashDensity" class="form-input" placeholder="例如：濃密自然"></div>
+    </div>
+
+    <div class="form-group">
+      <label>備註紀錄</label>
+      <textarea id="histNote" class="form-input" rows="3" placeholder="記錄客人特點或施作狀況..."></textarea>
+    </div>
+
+    <div style="display: flex; gap: 8px; margin-top: 16px;">
+      <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeHistoryModal()">取消</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveHistoryRecord()">儲存紀錄</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分類與服務項目 Modals -->
 <div class="modal-overlay" id="categoryModal" onclick="checkModalClose(event, 'categoryModal')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 id="categoryModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">新增服務分類</h3>
     <div class="form-group"><label>分類名稱 *</label><input type="text" id="editCatName" class="form-input" autocomplete="off"></div>
     <div class="form-group">
-      <label>顧客點選此分類時的選擇模式：</label>
+      <label>選擇模式：</label>
       <select id="editCatAllowMultiple" class="form-input">
-        <option value="no">單選 (只能選擇一個項目)</option>
-        <option value="yes">複選 (可勾選多個項目)</option>
+        <option value="no">單選</option>
+        <option value="yes">複選</option>
       </select>
     </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
       <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeCategoryModal()">取消</button>
-      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveCategoryItem()">儲存分類</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="moveCategoryModal" onclick="checkModalClose(event, 'moveCategoryModal')">
-  <div class="modal-content" onclick="event.stopPropagation()">
-    <h3 style="color: var(--primary-color); margin-bottom: 12px;">跨分類移動項目</h3>
-    <div class="form-group">
-      <label>請選擇要將此項目搬移到哪一個分類：</label>
-      <select id="moveTargetCategorySelect" class="form-input" style="padding:10px;"></select>
-    </div>
-    <div style="display: flex; gap: 8px; margin-top: 16px;">
-      <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeMoveCategoryModal()">取消</button>
-      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="confirmMoveCategory()">確認搬移</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveCategoryItem()">儲存</button>
     </div>
   </div>
 </div>
@@ -411,20 +498,12 @@
     <h3 id="serviceModalTitle" style="color: var(--primary-color); margin-bottom: 12px;">編輯服務項目</h3>
     <div class="form-group"><label>項目名稱 *</label><input type="text" id="editItemName" class="form-input" autocomplete="off"></div>
     <div class="form-group"><label>預估時間 (分鐘)</label><input type="number" id="editItemTime" class="form-input" value="30"></div>
-    <div class="form-group"><label>項目備註說明</label><input type="text" id="editItemDesc" class="form-input" autocomplete="off"></div>
+    <div class="form-group"><label>備註說明</label><input type="text" id="editItemDesc" class="form-input" autocomplete="off"></div>
     <div class="form-group"><label>價格 (NT$) *</label><input type="number" id="editItemPrice" class="form-input" value="1000"></div>
     <div class="form-group"><label>定金金額 (NT$) *</label><input type="number" id="editItemDeposit" class="form-input" value="500"></div>
-    <div class="form-group" id="editRequireRemovalGroup" style="display:none;">
-      <label>預覽介面是否必須選擇「卸睫」？</label>
-      <select id="editRequireRemoval" class="form-input"><option value="yes">是</option><option value="no">否</option></select>
-    </div>
-    <div class="form-group" id="editIsSoloGroup" style="display:none;">
-      <label>是否為「單純卸睫/獨立項目」？</label>
-      <select id="editIsSolo" class="form-input"><option value="no">否</option><option value="yes">yes</option></select>
-    </div>
     <div style="display: flex; gap: 8px; margin-top: 16px;">
       <button type="button" class="btn-secondary" style="width: 50%; padding: 12px;" onclick="closeServiceModal()">取消</button>
-      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveServiceItem()">儲存項目</button>
+      <button type="button" class="btn-submit" style="width: 50%; padding: 12px;" onclick="saveServiceItem()">儲存</button>
     </div>
   </div>
 </div>
@@ -444,26 +523,44 @@
 
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
-  const LOCAL_DB_KEY = "anneho_db_v5";
+  const LOCAL_DB_KEY = "anneho_db_v7";
 
   let defaultDb = {
-    settings: {
-      bankCode: "812",
-      bankName: "台新銀行",
-      bankAcc: "",
-      bankHolder: "",
-      payNotice: ""
-    },
+    settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "", bankHolder: "", payNotice: "" },
     notices: [],
     categories: [],
-    schedule: {}, orders: [], expenses: [], manualIncomes: []
+    schedule: {}, orders: [], expenses: [], manualIncomes: [],
+    customers: {}, // phone -> { name, phone, notes, noShowCount, isBlacklisted, history: [] }
+    blacklist: []  // array of phones
   };
 
   let db = JSON.parse(JSON.stringify(defaultDb));
 
-  function initDataSync() {
-    fetchCloudData();
-  }
+  // 鎖定用戶端文字選取與複製
+  document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('copy', e => e.preventDefault());
+    document.addEventListener('selectstart', e => e.preventDefault());
+    initDataSync();
+    initScheduleDefault();
+    renderClient();
+    initAccountingSelectors();
+    initReportSelectors();
+    document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
+
+    setInterval(() => {
+      let oldOrdersCount = (db.orders || []).length;
+      fetchCloudData(() => {
+        let newOrdersCount = (db.orders || []).length;
+        if(newOrdersCount > oldOrdersCount) {
+          triggerNativeAlert("🔔 安你好預約系統：有新的顧客預約成功！");
+        }
+        if(currentView === 'admin') { renderAdminOrders(); updateUnreadBadge(); }
+      });
+    }, 15000);
+  });
+
+  function initDataSync() { fetchCloudData(); }
 
   function fetchCloudData(callback) {
     fetch(GOOGLE_SCRIPT_URL)
@@ -471,22 +568,19 @@
       .then(cloudData => {
         if(cloudData && cloudData.categories && cloudData.categories.length > 0) {
           db = { ...db, ...cloudData };
-          db.categories.forEach(c => { if(c.allowMultiple === undefined) c.allowMultiple = false; });
+          if(!db.customers) db.customers = {};
+          if(!db.blacklist) db.blacklist = [];
           localStorage.setItem(LOCAL_DB_KEY, JSON.stringify(db));
         } else {
           let localSaved = localStorage.getItem(LOCAL_DB_KEY);
-          if(localSaved) {
-            try { db = { ...db, ...JSON.parse(localSaved) }; } catch(e){}
-          }
+          if(localSaved) { try { db = { ...db, ...JSON.parse(localSaved) }; } catch(e){} }
         }
         if(callback) callback();
         else { if(currentView === 'admin') renderAdmin(); else renderClient(); }
       })
       .catch(err => {
         let localSaved = localStorage.getItem(LOCAL_DB_KEY);
-        if(localSaved) {
-          try { db = { ...db, ...JSON.parse(localSaved) }; } catch(e){}
-        }
+        if(localSaved) { try { db = { ...db, ...JSON.parse(localSaved) }; } catch(e){} }
         if(callback) callback();
         else { if(currentView === 'admin') renderAdmin(); else renderClient(); }
       });
@@ -509,36 +603,13 @@
   let adminYear = currentYear, adminMonth = currentMonth;
   let selectedDateStr = "", selectedTime = "", selectedServiceIds = [], selectedTransportMode = "";
   let selectedEyebrowBaseMode = ""; 
-  let currentAccTab = 'income', currentExpModalType = 'expense', expandedCustomerName = null;
-  let expandedAdminTimeSlot = null;
-
-  window.onload = function() {
-    initDataSync();
-    initScheduleDefault();
-    renderClient();
-    initAccountingSelectors();
-    document.getElementById('headerClickArea').addEventListener('click', handleHeaderClick);
-
-    setInterval(() => {
-      let oldOrdersCount = (db.orders || []).length;
-      fetchCloudData(() => {
-        let newOrdersCount = (db.orders || []).length;
-        if(newOrdersCount > oldOrdersCount) {
-          triggerNativeAlert("🔔 安你好預約系統：有新的顧客預約成功！");
-        }
-        if(currentView === 'admin') { renderAdminOrders(); updateUnreadBadge(); }
-      });
-    }, 15000);
-  };
+  let currentAccTab = 'income', currentExpModalType = 'expense', activeCustomerPhoneForHist = null;
 
   function requestPushPermission() {
     if ("Notification" in window) {
       Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-          alert("推播通知已成功開啟！當有新預約時手機將收到震動提醒。");
-        } else {
-          alert("請將此網頁『加入主畫面』並在手機設定中允許通知。");
-        }
+        if (permission === "granted") alert("推播通知已成功開啟！");
+        else alert("請至手機設定中允許通知。");
       });
     } else {
       alert("請至 iPhone 點選 Safari 分享按鈕 > 『加入主畫面』以支援推播功能！");
@@ -578,9 +649,7 @@
     document.getElementById('adminView').style.display = view === 'admin' ? 'block' : 'none';
     document.getElementById('adminHeader').style.display = view === 'admin' ? 'block' : 'none';
     window.scrollTo(0, 0);
-    fetchCloudData(() => {
-      if(view === 'admin') renderAdmin(); else renderClient();
-    });
+    fetchCloudData(() => { if(view === 'admin') renderAdmin(); else renderClient(); });
   }
 
   function toggleAccordion(id) {
@@ -710,10 +779,6 @@
           <div style="font-weight:bold; color:var(--primary-color);">📅 ${v.date} ${v.time}</div>
           <div><strong>姓名：</strong>${escapeHtml(v.name)}</div>
           <div><strong>預約項目：</strong>${escapeHtml(v.servicesSummary)}</div>
-          ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
-          ${v.removalDetails ? `<div><strong>無創除色評估：</strong>${escapeHtml(v.removalDetails)}</div>` : ''}
-          <div><strong>時間預估：</strong>約 ${v.totalTime || 60} 分鐘</div>
-          <div><strong>交通工具：</strong>${escapeHtml(v.transport) || '無'}</div>
           <div style="color:#D9534F; font-weight:bold; margin-top:2px;">已付定金：NT$ ${v.deposit} (總計 NT$ ${v.totalPrice})</div></div>`;
       });
       resDiv.innerHTML = html;
@@ -722,36 +787,14 @@
 
   function toggleServiceItem(catId, itemId) {
     let cat = (db.categories || []).find(c => c.id === catId);
-    let targetItem = null;
-    if(cat && cat.items) {
-      targetItem = cat.items.find(i => i.id === itemId);
-    }
-
-    if(targetItem && targetItem.isSolo === 'yes') {
-      selectedServiceIds = [itemId];
-    } else if(cat && cat.allowMultiple) {
-      if(selectedServiceIds.includes(itemId)) {
-        selectedServiceIds = selectedServiceIds.filter(x => x !== itemId);
-      } else {
-        let isConflict = false;
-        (db.categories || []).forEach(c => {
-          (c.items || []).forEach(item => {
-            if(selectedServiceIds.includes(item.id) && item.isSolo === 'yes') isConflict = true;
-          });
-        });
-        if(isConflict) selectedServiceIds = [];
-        selectedServiceIds.push(itemId);
-      }
+    if(cat && cat.allowMultiple) {
+      if(selectedServiceIds.includes(itemId)) selectedServiceIds = selectedServiceIds.filter(x => x !== itemId);
+      else selectedServiceIds.push(itemId);
     } else {
       let catItemIds = (cat.items || []).map(i => i.id);
       let otherSelected = selectedServiceIds.filter(id => !catItemIds.includes(id));
-      
-      if(selectedServiceIds.includes(itemId)) {
-        selectedServiceIds = otherSelected;
-      } else {
-        otherSelected.push(itemId);
-        selectedServiceIds = otherSelected;
-      }
+      if(selectedServiceIds.includes(itemId)) selectedServiceIds = otherSelected;
+      else { otherSelected.push(itemId); selectedServiceIds = otherSelected; }
     }
     renderClient();
   }
@@ -840,76 +883,45 @@
         }
       });
     });
-
     document.getElementById('displayDeposit').innerText = `NT$ ${totalDeposit}`;
     document.getElementById('displayTotal').innerText = `總計金額：NT$ ${total}`;
     document.getElementById('displayTime').innerText = `施作總時間約 ${totalTime} 分鐘`;
   }
 
   function tryOpenPayModal() {
-    if(selectedServiceIds.length === 0) {
-      alert("尚未選擇服務項目！");
+    if(selectedServiceIds.length === 0) { alert("尚未選擇服務項目！"); return; }
+
+    let custPhone = document.getElementById('custPhone').value.trim();
+    let custName = document.getElementById('custName').value.trim();
+    if(!custName || !custPhone) { alert("請填寫您的姓名與聯絡電話！"); return; }
+
+    // 黑名單阻擋檢查
+    let isBlacklisted = (db.blacklist || []).includes(custPhone) || 
+                        (db.customers && db.customers[custPhone] && db.customers[custPhone].isBlacklisted);
+    if(isBlacklisted) {
+      alert("親愛的顧客您好，系統顯示您過往有 2 次預約未到的紀錄\n為維護其他顧客的預約權益，系統暫時無法為您提供線上預約服務。\n造成不便，敬請見諒。");
       return;
     }
 
     let selectedItemsList = [];
     (db.categories || []).forEach(cat => {
-      (cat.items || []).forEach(item => {
-        if(selectedServiceIds.includes(item.id)) selectedItemsList.push(item);
-      });
+      (cat.items || []).forEach(item => { if(selectedServiceIds.includes(item.id)) selectedItemsList.push(item); });
     });
 
     let hasEyebrow = selectedItemsList.some(x => x.name.includes("霧眉"));
-    if(hasEyebrow && !selectedEyebrowBaseMode) {
-      alert("尚未選擇眉毛底色！");
-      return;
-    }
-    if(hasEyebrow && selectedEyebrowBaseMode === '有' && !document.getElementById('eyebrowColorText').value.trim()) {
-      alert("尚未填寫目前眉毛底色顏色！");
-      return;
-    }
+    if(hasEyebrow && !selectedEyebrowBaseMode) { alert("尚未選擇眉毛底色！"); return; }
+    if(hasEyebrow && selectedEyebrowBaseMode === '有' && !document.getElementById('eyebrowColorText').value.trim()) { alert("尚未填寫目前眉毛底色顏色！"); return; }
 
     let hasRemoval = selectedItemsList.some(x => x.name.includes("除色"));
     if(hasRemoval) {
-      let remLast = document.getElementById('remLastTime').value.trim();
-      let remCurr = document.getElementById('remCurrentColor').value.trim();
-      let remHist = document.getElementById('remHistory').value.trim();
-      if(!remLast || !remCurr || !remHist) {
+      if(!document.getElementById('remLastTime').value.trim() || !document.getElementById('remCurrentColor').value.trim() || !document.getElementById('remHistory').value.trim()) {
         alert("尚未填寫除色評估資料！");
         return;
       }
     }
 
-    let mustSelectLashRemoval = selectedItemsList.some(x => x.requireRemoval === 'yes');
-    if(mustSelectLashRemoval) {
-      let removalCat = (db.categories || []).find(c => c.id === 'cat_removal' || c.name.includes('卸睫'));
-      let hasChosenRemoval = false;
-      if(removalCat && removalCat.items) {
-        let removalItemIds = removalCat.items.map(i => i.id);
-        hasChosenRemoval = selectedServiceIds.some(id => removalItemIds.includes(id));
-      }
-      if(!hasChosenRemoval) {
-        alert("尚未點選卸睫選項！");
-        return;
-      }
-    }
-
-    if(!selectedDateStr || !selectedTime) {
-      alert("尚未選擇預約日期與時段！");
-      return;
-    }
-
-    let custName = document.getElementById('custName').value.trim();
-    let custPhone = document.getElementById('custPhone').value.trim();
-    if(!custName || !custPhone) {
-      alert("請填寫您的姓名與聯絡電話！");
-      return;
-    }
-
-    if(!selectedTransportMode) {
-      alert("請選擇交通方式！");
-      return;
-    }
+    if(!selectedDateStr || !selectedTime) { alert("尚未選擇預約日期與時段！"); return; }
+    if(!selectedTransportMode) { alert("請選擇交通方式！"); return; }
 
     openPayModal();
   }
@@ -917,11 +929,8 @@
   function openPayModal() {
     let totalDeposit = 0;
     (db.categories || []).forEach(cat => {
-      (cat.items || []).forEach(item => {
-        if(selectedServiceIds.includes(item.id)) totalDeposit += Number(item.deposit || 0);
-      });
+      (cat.items || []).forEach(item => { if(selectedServiceIds.includes(item.id)) totalDeposit += Number(item.deposit || 0); });
     });
-
     document.getElementById('payBankCode').innerText = db.settings.bankCode || "";
     document.getElementById('payBankName').innerText = db.settings.bankName || "";
     document.getElementById('payBankAcc').innerText = db.settings.bankAcc || "";
@@ -968,6 +977,8 @@
       servicesSummary: serviceNames.join(', '),
       eyebrowBase: eyebrowBaseText, removalDetails: removalDetailsText,
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
+      status: 'pending', // pending, success, noshow
+      rating: 0, ratingText: '', // 新增評分欄位
       createdAt: new Date().toLocaleString(), isRead: false
     };
 
@@ -975,6 +986,14 @@
     db.orders.unshift(order);
     if(db.schedule[selectedDateStr]) db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
     
+    // 自動建立或更新會員資料
+    if(!db.customers) db.customers = {};
+    if(!db.customers[phone]) {
+      db.customers[phone] = { name, phone, notes: "", noShowCount: 0, isBlacklisted: false, history: [] };
+    } else {
+      db.customers[phone].name = name;
+    }
+
     saveData(); 
     closePayModal();
     triggerNativeAlert(`🔔 收到新的預約！顧客：${name} (${phone}) 於 ${selectedDateStr} ${selectedTime} 預約成功！`);
@@ -982,11 +1001,14 @@
     location.reload();
   }
 
+  // --- 後台管理邏輯 ---
   function renderAdmin() {
     renderAdminCategories();
     renderCalendar(adminYear, adminMonth, 'admin'); 
     renderAdminOrders(); 
-    renderAdminCustomers(); 
+    renderAdminCustomers();
+    renderAdminBlacklist();
+    renderAdminReports();
     renderAdminAccounting();
     
     document.getElementById('settingBankCode').value = db.settings.bankCode || "";
@@ -1009,352 +1031,337 @@
   function switchAdminTab(tabName, evt) {
     document.querySelectorAll('.admin-tab').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.admin-tab-content').forEach(el => el.style.display = 'none');
-    let tabMap = { services: 'adminTabServices', schedule: 'adminTabSchedule', orders: 'adminTabOrders', customers: 'adminTabCustomers', accounting: 'adminTabAccounting', settings: 'adminTabSettings' };
+    let tabMap = { 
+      services: 'adminTabServices', schedule: 'adminTabSchedule', orders: 'adminTabOrders', 
+      customers: 'adminTabCustomers', blacklist: 'adminTabBlacklist', reports: 'adminTabReports',
+      accounting: 'adminTabAccounting', settings: 'adminTabSettings' 
+    };
     if(tabMap[tabName]) document.getElementById(tabMap[tabName]).style.display = 'block';
     if(evt && evt.target) evt.target.classList.add('active');
   }
 
-  function renderAdminCategories() {
-    let categories = db.categories || [];
+  // 計算會員平均總評分
+  function calculateCustomerAverageRating(phone) {
+    let orders = (db.orders || []).filter(o => o.phone === phone && (o.status === 'success' || o.status === 'noshow') && Number(o.rating) > 0);
+    if(orders.length === 0) return 0;
+    let sum = orders.reduce((acc, o) => acc + Number(o.rating), 0);
+    return (sum / orders.length).toFixed(1);
+  }
+
+  // 訂單狀態與評分切換邏輯
+  function updateOrderStatus(orderId, status) {
+    let order = (db.orders || []).find(o => o.id === orderId);
+    if(!order) return;
+    order.status = status;
+
+    if(status === 'noshow') {
+      let phone = order.phone;
+      if(!db.customers) db.customers = {};
+      if(!db.customers[phone]) {
+        db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowCount: 0, isBlacklisted: false, history: [] };
+      }
+      db.customers[phone].noShowCount = (db.customers[phone].noShowCount || 0) + 1;
+
+      if(db.customers[phone].noShowCount >= 2 && !db.customers[phone].isBlacklisted) {
+        db.customers[phone].isBlacklisted = true;
+        if(!db.blacklist) db.blacklist = [];
+        if(!db.blacklist.includes(phone)) db.blacklist.push(phone);
+        alert(`⚠️ 系統提示：${order.name} (${phone}) 已累積 2 次「如期未到」，系統已自動將其加入黑名單！`);
+      }
+    }
+    saveData();
+    renderAdminOrders();
+    renderAdminCustomers();
+    renderAdminBlacklist();
+    renderAdminReports();
+  }
+
+  function updateOrderRating(orderId, ratingVal, textVal) {
+    let order = (db.orders || []).find(o => o.id === orderId);
+    if(!order) return;
+    order.rating = Number(ratingVal);
+    if(textVal !== undefined) order.ratingText = textVal;
+    saveData();
+    renderAdminCustomers();
+  }
+
+  // --- 客戶資料表與會員管理 ---
+  function renderAdminCustomers() {
+    let query = (document.getElementById('customerSearchInput').value || "").trim().toLowerCase();
     let html = "";
-    categories.forEach((cat, catIdx) => {
-      let itemsHtml = "";
-      let itemsList = cat.items || [];
-      itemsList.forEach((item, itemIdx) => {
-        itemsHtml += `<div class="item-option" style="background:#fff; margin-bottom:6px;">
-          <div class="item-info">
-            <div class="title">${escapeHtml(item.name)}</div>
-            <div class="desc">${escapeHtml(item.desc || '')}</div>
-            <div class="subtitle">${item.time||30}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div>
+    let custMap = db.customers || {};
+
+    (db.orders || []).forEach(o => {
+      if(!custMap[o.phone]) {
+        custMap[o.phone] = { name: o.name, phone: o.phone, notes: "", noShowCount: 0, isBlacklisted: false, history: [] };
+      }
+    });
+
+    let keys = Object.keys(custMap);
+    if(keys.length === 0) {
+      html = "<div style='color:var(--text-sub); font-size:13px; text-align:center;'>尚無會員資料</div>";
+    } else {
+      keys.forEach(phone => {
+        let c = custMap[phone];
+        if(query && !c.name.toLowerCase().includes(query) && !c.phone.includes(query)) return;
+
+        let avgRating = calculateCustomerAverageRating(phone);
+        let starDisplay = avgRating > 0 ? `⭐ ${avgRating} 顆星` : '⭐ 尚無評分';
+
+        let historyHtml = "";
+        let histList = c.history || [];
+        histList.forEach((h, hIdx) => {
+          let detail = "";
+          if(h.type === '霧眉') {
+            detail = `色乳: ${h.pigment||'-'} | 顏色: ${h.color||'-'} | 針具: ${h.needle||'-'}`;
+          } else {
+            detail = `款式: ${h.style||'-'} | 上翹度: ${h.upperCurl||'-'} | 上長度: ${h.upperLen||'-'} | 下翹度: ${h.lowerCurl||'-'} | 下長度: ${h.lowerLen||'-'} | 樣式: ${h.lashStyle||'-'} | 濃密度: ${h.density||'-'}`;
+          }
+          historyHtml += `<div style="background:var(--input-bg); padding:8px; border-radius:6px; margin-top:6px; font-size:12px; position:relative;">
+            <div style="font-weight:bold; color:var(--primary-color);">📅 ${h.date} 【${h.type}】</div>
+            <div>${detail}</div>
+            ${h.note ? `<div>備註: ${escapeHtml(h.note)}</div>` : ''}
+            <button type="button" class="btn-danger" style="position:absolute; top:8px; right:8px; padding:2px 6px; font-size:10px;" onclick="deleteCustomerHistory('${phone}', ${hIdx})">刪除</button>
+          </div>`;
+        });
+
+        html += `<div style="border:1px solid var(--border-color); background:#fff; padding:12px; border-radius:12px; margin-bottom:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <div>
+              <strong style="font-size:15px; color:var(--primary-color);">${escapeHtml(c.name)}</strong> 
+              <span style="font-size:12px; color:var(--text-sub);">(${c.phone})</span>
+              ${c.isBlacklisted ? '<span style="color:#D9534F; font-size:11px; font-weight:bold; margin-left:6px;">[黑名單]</span>' : ''}
+            </div>
+            <span style="font-size:13px; font-weight:bold; color:#e09f3e; background:#fef9e7; padding:2px 8px; border-radius:6px;">${starDisplay}</span>
           </div>
-          <div style="display:flex; gap:3px; align-items:center; flex-wrap:wrap;">
-            ${itemIdx > 0 ? `<button type="button" class="btn-secondary" style="padding:3px 5px;" onclick="moveItemOrder('${cat.id}', ${itemIdx}, -1)">🔼</button>` : ''}
-            ${itemIdx < itemsList.length - 1 ? `<button type="button" class="btn-secondary" style="padding:3px 5px;" onclick="moveItemOrder('${cat.id}', ${itemIdx}, 1)">🔽</button>` : ''}
-            <button type="button" class="btn-secondary" style="padding:3px 5px;" onclick="openMoveCategoryModal('${cat.id}', ${itemIdx})">📁搬移</button>
-            <button type="button" class="btn-secondary" style="padding:3px 5px;" onclick="openServiceModal('${cat.id}', 'edit', ${itemIdx})">編輯</button>
-            <button type="button" class="btn-danger" style="padding:3px 5px;" onclick="deleteServiceItem('${cat.id}', ${itemIdx})">刪除</button>
+
+          <div style="margin-bottom:8px;">
+            <button type="button" class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openHistoryModal('${phone}')">+ 新增操作紀錄</button>
+          </div>
+          
+          <div class="form-group" style="margin-top:8px; margin-bottom:8px;">
+            <label style="font-size:11px; font-weight:bold; color:var(--primary-color);">會員備註 (記錄客人特點與喜好)：</label>
+            <textarea class="form-input" rows="2" style="font-size:12px; resize:vertical;" onchange="updateCustomerNotes('${phone}', this.value)" placeholder="例如：喜歡自然款、眼皮較敏感...">${escapeHtml(c.notes || '')}</textarea>
+          </div>
+
+          <div style="font-size:12px; font-weight:bold; color:var(--text-sub); margin-top:8px;">📜 操作紀錄 (${histList.length} 筆)：</div>
+          ${historyHtml || "<div style='color:var(--text-sub); font-size:11px; margin-top:4px;'>尚無操作紀錄</div>"}
+        </div>`;
+      });
+    }
+    document.getElementById('adminCustomersList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px; text-align:center;'>找不到符合的會員</div>";
+  }
+
+  function updateCustomerNotes(phone, val) {
+    if(db.customers && db.customers[phone]) {
+      db.customers[phone].notes = val;
+      saveData();
+    }
+  }
+
+  function openHistoryModal(phone) {
+    activeCustomerPhoneForHist = phone;
+    document.getElementById('histDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('histType').value = '霧眉';
+    switchHistTypeFields();
+    document.getElementById('histNote').value = '';
+    document.getElementById('historyModal').classList.add('active');
+  }
+
+  function closeHistoryModal() { document.getElementById('historyModal').classList.remove('active'); }
+
+  function switchHistTypeFields() {
+    let t = document.getElementById('histType').value;
+    document.getElementById('histFieldsEyebrow').style.display = t === '霧眉' ? 'block' : 'none';
+    document.getElementById('histFieldsLash').style.display = t === '美睫' ? 'block' : 'none';
+  }
+
+  function saveHistoryRecord() {
+    if(!activeCustomerPhoneForHist || !db.customers[activeCustomerPhoneForHist]) return;
+    let type = document.getElementById('histType').value;
+    let date = document.getElementById('histDate').value;
+    let note = document.getElementById('histNote').value.trim();
+
+    if(!date) { alert("請選擇操作日期！"); return; }
+
+    let record = { id: 'hist_' + Date.now(), type, date, note };
+
+    if(type === '霧眉') {
+      record.pigment = document.getElementById('histEyebrowPigment').value.trim();
+      record.color = document.getElementById('histEyebrowColor').value.trim();
+      record.needle = document.getElementById('histEyebrowNeedle').value.trim();
+    } else {
+      record.style = document.getElementById('histLashStyleName').value.trim();
+      record.upperCurl = document.getElementById('histLashUpperCurl').value.trim();
+      record.upperLen = document.getElementById('histLashUpperLen').value.trim();
+      record.lowerCurl = document.getElementById('histLashLowerCurl').value.trim();
+      record.lowerLen = document.getElementById('histLashLowerLen').value.trim();
+      record.lashStyle = document.getElementById('histLashPattern').value.trim();
+      record.density = document.getElementById('histLashDensity').value.trim();
+    }
+
+    if(!db.customers[activeCustomerPhoneForHist].history) db.customers[activeCustomerPhoneForHist].history = [];
+    db.customers[activeCustomerPhoneForHist].history.unshift(record);
+    saveData();
+    closeHistoryModal();
+    renderAdminCustomers();
+    alert("操作紀錄已成功新增！");
+  }
+
+  function deleteCustomerHistory(phone, hIdx) {
+    if(confirm("確定要刪除這筆操作紀錄嗎？")) {
+      if(db.customers[phone] && db.customers[phone].history) {
+        db.customers[phone].history.splice(hIdx, 1);
+        saveData();
+        renderAdminCustomers();
+      }
+    }
+  }
+
+  // --- 黑名單管理 ---
+  function renderAdminBlacklist() {
+    let blacklistPhones = db.blacklist || [];
+    let html = "";
+    if(blacklistPhones.length === 0) {
+      html = "<div style='color:var(--text-sub); font-size:13px; text-align:center;'>目前無黑名單紀錄</div>";
+    } else {
+      blacklistPhones.forEach(phone => {
+        let cust = (db.customers && db.customers[phone]) ? db.customers[phone] : { name: '未知貴賓', phone, notes: '無' };
+        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:10px 12px; border-radius:8px; margin-bottom:8px; border:1px solid var(--border-color);">
+          <div>
+            <strong style="color:#D9534F; font-size:14px;">🚫 ${escapeHtml(cust.name)} (${phone})</strong>
+            <div style="font-size:12px; color:var(--text-sub);">未到次數：${cust.noShowCount || 2} 次</div>
+          </div>
+          <button type="button" class="btn-secondary" onclick="removeFromBlacklist('${phone}')">解除黑名單</button>
+        </div>`;
+      });
+    }
+    document.getElementById('adminBlacklistList').innerHTML = html;
+  }
+
+  function removeFromBlacklist(phone) {
+    if(confirm(`確定要將電話 ${phone} 從黑名單中移除嗎？`)) {
+      db.blacklist = (db.blacklist || []).filter(p => p !== phone);
+      if(db.customers && db.customers[phone]) {
+        db.customers[phone].isBlacklisted = false;
+        db.customers[phone].noShowCount = 0;
+      }
+      saveData();
+      renderAdminBlacklist();
+      renderAdminCustomers();
+    }
+  }
+
+  // --- 營運報表邏輯 ---
+  function initReportSelectors() {
+    let now = new Date(), currentY = now.getFullYear(), currentM = now.getMonth() + 1;
+    let yHtml = ""; for(let y = currentY; y >= currentY - 2; y--) yHtml += `<option value="${y}">${y} 年</option>`;
+    let repYearEl = document.getElementById('repYear');
+    if(repYearEl) { repYearEl.innerHTML = yHtml; repYearEl.value = currentY; }
+
+    let mHtml = ""; for(let m = 1; m <= 12; m++) mHtml += `<option value="${String(m).padStart(2,'0')}">${m} 月</option>`;
+    let repMonthEl = document.getElementById('repMonth');
+    if(repMonthEl) { repMonthEl.innerHTML = mHtml; repMonthEl.value = String(currentM).padStart(2,'0'); }
+
+    let todayStr = now.toISOString().split('T')[0];
+    let repDateEl = document.getElementById('repDate');
+    if(repDateEl) repDateEl.value = todayStr;
+
+    let repStartDateEl = document.getElementById('repStartDate');
+    let repEndDateEl = document.getElementById('repEndDate');
+    if(repStartDateEl && repEndDateEl) {
+      repStartDateEl.value = todayStr;
+      repEndDateEl.value = todayStr;
+    }
+  }
+
+  function toggleReportMode() {
+    let type = document.getElementById('reportTypeSelect').value;
+    document.getElementById('reportFilterDaily').style.display = type === 'daily' ? 'block' : 'none';
+    document.getElementById('reportFilterMonthly').style.display = type === 'monthly' ? 'block' : 'none';
+    document.getElementById('reportFilterRange').style.display = type === 'range' ? 'block' : 'none';
+    renderAdminReports();
+  }
+
+  function renderAdminReports() {
+    let type = document.getElementById('reportTypeSelect').value;
+    let orders = db.orders || [];
+    let filtered = [];
+
+    if(type === 'daily') {
+      let targetDate = document.getElementById('repDate').value;
+      if(!targetDate) return;
+      filtered = orders.filter(o => o.date === targetDate);
+    } else if(type === 'monthly') {
+      let y = document.getElementById('repYear').value;
+      let m = document.getElementById('repMonth').value;
+      let ym = `${y}-${m}`;
+      filtered = orders.filter(o => o.date && o.date.startsWith(ym));
+    } else if(type === 'range') {
+      let start = document.getElementById('repStartDate').value;
+      let end = document.getElementById('repEndDate').value;
+      if(!start || !end) return;
+      filtered = orders.filter(o => o.date >= start && o.date <= end);
+    }
+
+    let totalCount = filtered.length;
+    let totalDeposit = filtered.reduce((sum, o) => sum + Number(o.deposit || 0), 0);
+    let totalAmount = filtered.reduce((sum, o) => sum + Number(o.totalPrice || 0), 0);
+
+    document.getElementById('repTotalCount').innerText = `${totalCount} 筆`;
+    document.getElementById('repTotalDeposit').innerText = `NT$ ${totalDeposit}`;
+    document.getElementById('repTotalAmount').innerText = `NT$ ${totalAmount}`;
+
+    let html = "";
+    if(filtered.length === 0) {
+      html = "<div style='color:var(--text-sub); font-size:12px; text-align:center;'>此區間尚無預約營運紀錄</div>";
+    } else {
+      filtered.forEach(o => {
+        let statusBadge = '';
+        if(o.status === 'success') statusBadge = '<span style="color:#28a745; font-weight:bold;">[成功服務]</span>';
+        else if(o.status === 'noshow') statusBadge = '<span style="color:#D9534F; font-weight:bold;">[如期未到]</span>';
+        else statusBadge = '<span style="color:#8C7C73;">[待處理]</span>';
+
+        let currentRating = o.rating || 0;
+        let ratingTextVal = o.ratingText || '';
+
+        html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-bottom:8px; font-size:12px; line-height:1.5; border:1px solid var(--border-color);">
+          <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary-color); margin-bottom:4px;">
+            <span>📅 ${o.date} ${o.time}</span>
+            <span>${statusBadge}</span>
+          </div>
+          <div><strong>會員姓名：</strong>${escapeHtml(o.name)} (${o.phone})</div>
+          <div><strong>操作項目：</strong>${escapeHtml(o.servicesSummary)}</div>
+          <div><strong>定金：</strong>NT$ ${o.deposit} | <strong>總價：</strong>NT$ ${o.totalPrice}</div>
+          
+          <!-- 狀態與星級評分區塊 -->
+          <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color);">
+            <div style="display:flex; gap:6px; margin-bottom:6px;">
+              <button type="button" class="${o.status==='success'?'btn-submit':'btn-secondary'}" style="padding:3px 6px; font-size:10px;" onclick="updateOrderStatus(${o.id}, 'success')">✅ 成功服務</button>
+              <button type="button" class="${o.status==='noshow'?'btn-danger':'btn-secondary'}" style="padding:3px 6px; font-size:10px;" onclick="updateOrderStatus(${o.id}, 'noshow')">❌ 如期未到</button>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+              <span>客戶評分：</span>
+              <select class="form-input" style="width:110px; padding:4px; font-size:11px;" onchange="updateOrderRating(${o.id}, this.value)">
+                <option value="0" ${currentRating==0?'selected':''}>⭐ 選擇星級</option>
+                <option value="5" ${currentRating==5?'selected':''}>⭐⭐⭐⭐⭐ (5星)</option>
+                <option value="4" ${currentRating==4?'selected':''}>⭐⭐⭐⭐ (4星)</option>
+                <option value="3" ${currentRating==3?'selected':''}>⭐⭐⭐ (3星)</option>
+                <option value="2" ${currentRating==2?'selected':''}>⭐⭐ (2星)</option>
+                <option value="1" ${currentRating==1?'selected':''}>⭐ (1星)</option>
+              </select>
+            </div>
+            <div>
+              <input type="text" class="form-input" style="padding:6px; font-size:11px;" placeholder="文字評分（可打可不打）..." value="${escapeHtml(ratingTextVal)}" onchange="updateOrderRating(${o.id}, ${currentRating}, this.value)">
+            </div>
           </div>
         </div>`;
       });
-
-      let allowMultipleBadge = cat.allowMultiple ? '<span style="color:#28a745; font-size:11px; margin-left:6px;">[複選]</span>' : '<span style="color:#6c757d; font-size:11px; margin-left:6px;">[單選]</span>';
-
-      html += `<div style="border:1px solid var(--border-color); background:var(--input-bg); padding:12px; border-radius:12px; margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-          <div>
-            <strong style="color:var(--primary-color); font-size:15px;">📁 ${escapeHtml(cat.name)}</strong>
-            ${allowMultipleBadge}
-          </div>
-          <div style="display:flex; gap:4px; align-items:center;">
-            ${catIdx > 0 ? `<button type="button" class="btn-secondary" style="padding:4px 8px; font-weight:bold;" onclick="moveCategoryOrder(${catIdx}, -1)">▲ 往上</button>` : ''}
-            ${catIdx < categories.length - 1 ? `<button type="button" class="btn-secondary" style="padding:4px 8px; font-weight:bold;" onclick="moveCategoryOrder(${catIdx}, 1)">▼ 往下</button>` : ''}
-            <button type="button" class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openServiceModal('${cat.id}', 'add')">+項目</button>
-            <button type="button" class="btn-secondary" style="padding:4px 8px; font-size:11px;" onclick="openCategoryModal('edit', ${catIdx})">編輯分類</button>
-            <button type="button" class="btn-danger" style="padding:4px 8px; font-size:11px;" onclick="deleteCategory(${catIdx})">刪除</button>
-          </div>
-        </div>
-        ${itemsHtml || "<div style='color:var(--text-sub); font-size:12px;'>此分類尚無項目</div>"}
-      </div>`;
-    });
-    document.getElementById('adminCategoriesList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無分類</div>";
-  }
-
-  function moveCategoryOrder(catIdx, direction) {
-    let targetIdx = catIdx + direction;
-    if(targetIdx < 0 || targetIdx >= db.categories.length) return;
-    let temp = db.categories[catIdx];
-    db.categories[catIdx] = db.categories[targetIdx];
-    db.categories[targetIdx] = temp;
-    saveData(); renderAdminCategories(); renderClient();
-  }
-
-  function moveItemOrder(catId, itemIdx, direction) {
-    let cat = db.categories.find(c => c.id === catId);
-    if(!cat || !cat.items) return;
-    let targetIdx = itemIdx + direction;
-    if(targetIdx < 0 || targetIdx >= cat.items.length) return;
-    let temp = cat.items[itemIdx];
-    cat.items[itemIdx] = cat.items[targetIdx];
-    cat.items[targetIdx] = temp;
-    saveData(); renderAdminCategories(); renderClient();
-  }
-
-  let movingItemCatId = '', movingItemIdx = -1;
-  function openMoveCategoryModal(catId, itemIdx) {
-    movingItemCatId = catId; movingItemIdx = itemIdx;
-    let selectEl = document.getElementById('moveTargetCategorySelect');
-    let html = "";
-    (db.categories || []).forEach(c => {
-      if(c.id !== catId) {
-        html += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
-      }
-    });
-    if(!html) { alert("目前只有一個分類，無法跨分類搬移！請先新增其他分類。"); return; }
-    selectEl.innerHTML = html;
-    document.getElementById('moveCategoryModal').classList.add('active');
-  }
-  function closeMoveCategoryModal() { document.getElementById('moveCategoryModal').classList.remove('active'); }
-  function confirmMoveCategory() {
-    let targetCatId = document.getElementById('moveTargetCategorySelect').value;
-    let sourceCat = db.categories.find(c => c.id === movingItemCatId);
-    let targetCat = db.categories.find(c => c.id === targetCatId);
-    if(sourceCat && targetCat && movingItemIdx >= 0) {
-      let item = sourceCat.items.splice(movingItemIdx, 1)[0];
-      if(item) {
-        targetCat.items.push(item);
-        saveData(); closeMoveCategoryModal(); renderAdminCategories(); renderClient();
-      }
     }
+    document.getElementById('adminReportsDetails').innerHTML = html;
   }
 
-  let currentCatMode = 'add', currentCatIdx = -1;
-  function openCategoryModal(mode, idx = -1) {
-    currentCatMode = mode; currentCatIdx = idx;
-    document.getElementById('categoryModalTitle').innerText = mode === 'add' ? "新增服務分類" : "修改分類設定";
-    document.getElementById('editCatName').value = (mode === 'edit' && idx >= 0) ? db.categories[idx].name : "";
-    document.getElementById('editCatAllowMultiple').value = (mode === 'edit' && idx >= 0 && db.categories[idx].allowMultiple) ? "yes" : "no";
-    document.getElementById('categoryModal').classList.add('active');
-  }
-  function closeCategoryModal() { document.getElementById('categoryModal').classList.remove('active'); }
-  function saveCategoryItem() {
-    let name = document.getElementById('editCatName').value.trim();
-    let allowMultiple = document.getElementById('editCatAllowMultiple').value === 'yes';
-    if(!name) { alert("請輸入分類名稱！"); return; }
-    if(!db.categories) db.categories = [];
-    if(currentCatMode === 'add') {
-      db.categories.push({ id: 'cat_' + Date.now(), name, allowMultiple, items: [] });
-    } else {
-      db.categories[currentCatIdx].name = name;
-      db.categories[currentCatIdx].allowMultiple = allowMultiple;
-    }
-    saveData(); closeCategoryModal(); renderAdminCategories(); renderClient();
-  }
-  function deleteCategory(idx) {
-    if(confirm("確定要刪除此分類及底下所有項目嗎？")) {
-      db.categories.splice(idx, 1);
-      saveData(); renderAdminCategories(); renderClient();
-    }
-  }
-
-  let currentItemCatId = '', currentItemMode = 'add', currentItemIdx = -1;
-  function openServiceModal(catId, mode, idx = -1) {
-    currentItemCatId = catId; currentItemMode = mode; currentItemIdx = idx;
-    document.getElementById('serviceModalTitle').innerText = (mode === 'add' ? "新增" : "編輯") + "服務項目";
-    let reqGroup = document.getElementById('editRequireRemovalGroup');
-    let soloGroup = document.getElementById('editIsSoloGroup');
-    reqGroup.style.display = 'block';
-    soloGroup.style.display = 'block';
-
-    if(mode === 'edit') {
-      let cat = db.categories.find(c => c.id === catId);
-      let item = cat.items[idx];
-      document.getElementById('editItemName').value = item.name || "";
-      document.getElementById('editItemDesc').value = item.desc || "";
-      document.getElementById('editItemTime').value = item.time || 30;
-      document.getElementById('editItemPrice').value = item.price || 0;
-      document.getElementById('editItemDeposit').value = item.deposit || 0;
-      document.getElementById('editRequireRemoval').value = item.requireRemoval || 'no';
-      document.getElementById('editIsSolo').value = item.isSolo || 'no';
-    } else {
-      document.getElementById('editItemName').value = "";
-      document.getElementById('editItemDesc').value = "";
-      document.getElementById('editItemTime').value = 60;
-      document.getElementById('editItemPrice').value = 1000;
-      document.getElementById('editItemDeposit').value = 500;
-      document.getElementById('editRequireRemoval').value = 'no';
-      document.getElementById('editIsSolo').value = 'no';
-    }
-    document.getElementById('serviceModal').classList.add('active');
-  }
-
-  function closeServiceModal() { document.getElementById('serviceModal').classList.remove('active'); }
-
-  function saveServiceItem() {
-    let name = document.getElementById('editItemName').value.trim();
-    let desc = document.getElementById('editItemDesc').value.trim();
-    let time = Number(document.getElementById('editItemTime').value);
-    let price = Number(document.getElementById('editItemPrice').value);
-    let deposit = Number(document.getElementById('editItemDeposit').value);
-    let requireRemoval = document.getElementById('editRequireRemoval').value;
-    let isSolo = document.getElementById('editIsSolo').value;
-
-    if(!name) { alert("請輸入項目名稱！"); return; }
-    let cat = db.categories.find(c => c.id === currentItemCatId);
-    if(!cat) return;
-    if(!cat.items) cat.items = [];
-
-    let newItem = {
-      id: currentItemMode === 'edit' ? cat.items[currentItemIdx].id : 'item_' + Date.now(),
-      name, desc, time, price, deposit, requireRemoval, isSolo
-    };
-
-    if(currentItemMode === 'edit') cat.items[currentItemIdx] = newItem;
-    else cat.items.push(newItem);
-
-    saveData(); closeServiceModal(); renderAdminCategories(); renderClient();
-    alert("服務項目已即時同步至雲端！");
-  }
-
-  function deleteServiceItem(catId, idx) {
-    if(confirm("確定要刪除此項目嗎？")) {
-      let cat = db.categories.find(c => c.id === catId);
-      if(cat && cat.items) {
-        cat.items.splice(idx, 1);
-        saveData(); renderAdminCategories(); renderClient();
-      }
-    }
-  }
-
-  function renderAdminNoticesEditor() {
-    let notices = db.notices || [];
-    let html = "";
-    notices.forEach((n, idx) => {
-      let cleanContent = (n.content || "").replace(/<br\s*\/?>/gi, '\n');
-      html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid var(--border-color);">
-        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-          <input type="text" class="form-input" style="font-weight:bold; width:80%;" id="noticeTitle_${idx}" value="${escapeHtml(n.title)}" placeholder="區塊標題">
-          <button type="button" class="btn-danger" onclick="deleteNoticeSection(${idx})">刪除</button>
-        </div>
-        <textarea class="form-input" rows="4" style="resize:vertical;" id="noticeContent_${idx}" placeholder="內容說明">${cleanContent}</textarea>
-      </div>`;
-    });
-    document.getElementById('adminNoticesEditorList').innerHTML = html || "<div style='color:var(--text-sub);'>尚無須知區塊</div>";
-  }
-
-  function addNoticeSection() {
-    if(!db.notices) db.notices = [];
-    db.notices.push({ id: 'n_' + Date.now(), title: "✨ 新須知標題", content: "請填寫詳細說明內容..." });
-    renderAdminNoticesEditor();
-  }
-
-  function deleteNoticeSection(idx) {
-    if(confirm("確定要刪除這個須知區塊嗎？")) {
-      db.notices.splice(idx, 1);
-      renderAdminNoticesEditor();
-    }
-  }
-
-  function saveAllSettings() {
-    if(!db.settings) db.settings = {};
-    db.settings.bankCode = document.getElementById('settingBankCode').value.trim();
-    db.settings.bankName = document.getElementById('settingBankName').value.trim();
-    db.settings.bankAcc = document.getElementById('settingBankAcc').value.trim();
-    db.settings.bankHolder = document.getElementById('settingBankHolder').value.trim();
-    db.settings.payNotice = document.getElementById('settingPayNotice').value.trim();
-
-    let newNotices = [];
-    let noticeElements = document.querySelectorAll('[id^="noticeTitle_"]');
-    noticeElements.forEach((el, idx) => {
-      let title = el.value.trim();
-      let content = document.getElementById(`noticeContent_${idx}`).value.trim();
-      if(title) {
-        newNotices.push({ id: 'n_' + idx, title, content });
-      }
-    });
-    db.notices = newNotices;
-
-    saveData();
-    alert("所有後台設定已成功儲存至雲端！");
-    renderClientNotices();
-  }
-
-  let adminSelectedDate = "";
-  function changeAdminMonth(dir) {
-    adminMonth += dir;
-    if(adminMonth > 11) { adminMonth = 0; adminYear++; }
-    if(adminMonth < 0) { adminMonth = 11; adminYear--; }
-    renderCalendar(adminYear, adminMonth, 'admin');
-  }
-
-  function selectAdminDate(dateKey) {
-    adminSelectedDate = dateKey; expandedAdminTimeSlot = null;
-    renderCalendar(adminYear, adminMonth, 'admin');
-    document.getElementById('adminDateScheduleArea').style.display = 'block';
-    document.getElementById('adminSelectedDateTitle').innerText = `修改 ${dateKey} 開放時段：`;
-    renderAdminTimeSlots();
-  }
-
-  function renderAdminTimeSlots() {
-    let slots = db.schedule[adminSelectedDate] || [], html = "";
-    if(slots.length === 0) {
-      html = "<div style='color:var(--text-sub); font-size:13px;'>當日無開放時段</div>";
-    } else {
-      slots.forEach((t, idx) => {
-        let bookedOrder = (db.orders || []).find(o => o.date === adminSelectedDate && o.time === t);
-        let isExpanded = (expandedAdminTimeSlot === t);
-
-        if(bookedOrder) {
-          let detailHtml = "";
-          if(isExpanded) {
-            detailHtml = `
-              <div style="background:#fff; padding:10px; border-radius:8px; margin-top:8px; border:1px solid var(--border-color); font-size:12px; line-height:1.6;">
-                <div>顧客姓名：${escapeHtml(bookedOrder.name)} (${bookedOrder.phone})</div>
-                <div>預約項目：${escapeHtml(bookedOrder.servicesSummary)}</div>
-                ${bookedOrder.eyebrowBase ? `<div>眉毛底色：${escapeHtml(bookedOrder.eyebrowBase)}</div>` : ''}
-                ${bookedOrder.removalDetails ? `<div>無創除色評估：${escapeHtml(bookedOrder.removalDetails)}</div>` : ''}
-                <div>支付定金：NT$ ${bookedOrder.deposit} (末五碼: ${bookedOrder.last5})</div>
-                <div style="color:#D9534F; font-weight:bold;">預估總時間：約 ${bookedOrder.totalTime || 60} 分鐘</div>
-                <div>交通工具：${escapeHtml(bookedOrder.transport) || '無'}</div>
-              </div>`;
-          }
-          html += `
-            <div style="background:var(--input-bg); padding:10px 12px; border-radius:8px; margin-bottom:6px; border: 1.5px solid #dcd3c7;">
-              <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleAdminTimeExpand('${t}')">
-                <span style="font-size:13px; color:#D9534F; font-weight:bold;">${t} (已預約：${escapeHtml(bookedOrder.name)}) ${isExpanded ? '▲' : '▼'}</span>
-                <div style="display:flex; gap:4px;">
-                  <button type="button" class="btn-secondary" onclick="event.stopPropagation(); editAdminTime(${idx})">編輯</button>
-                  <button type="button" class="btn-danger" onclick="event.stopPropagation(); deleteAdminTime(${idx})">刪除</button>
-                </div>
-              </div>
-              ${detailHtml}
-            </div>`;
-        } else {
-          html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 12px; border-radius:8px; margin-bottom:6px;">
-              <span style="font-size:13px;"><b>${t}</b> (可預約)</span>
-              <div style="display:flex; gap:4px;">
-                <button type="button" class="btn-secondary" onclick="editAdminTime(${idx})">編輯</button>
-                <button type="button" class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button>
-              </div>
-            </div>`;
-        }
-      });
-    }
-    document.getElementById('adminTimeSlotsList').innerHTML = html;
-  }
-
-  function toggleAdminTimeExpand(timeStr) {
-    expandedAdminTimeSlot = (expandedAdminTimeSlot === timeStr ? null : timeStr);
-    renderAdminTimeSlots();
-  }
-
-  function addCustomTime() {
-    let val = document.getElementById('newTimeInput').value;
-    if(!val) return;
-    if(!db.schedule[adminSelectedDate]) db.schedule[adminSelectedDate] = [];
-    if(!db.schedule[adminSelectedDate].includes(val)) { db.schedule[adminSelectedDate].push(val); db.schedule[adminSelectedDate].sort(); saveData(); renderAdminTimeSlots(); }
-  }
-
-  function editAdminTime(idx) {
-    let oldTime = db.schedule[adminSelectedDate][idx];
-    let newTime = prompt("請修改時段時間 (格式如 10:30)：", oldTime);
-    if(newTime && newTime !== oldTime) {
-      db.schedule[adminSelectedDate][idx] = newTime;
-      db.schedule[adminSelectedDate].sort();
-      (db.orders || []).forEach(o => { if(o.date === adminSelectedDate && o.time === oldTime) o.time = newTime; });
-      saveData(); renderAdminTimeSlots(); renderAdminOrders();
-    }
-  }
-
-  function deleteAdminTime(idx) {
-    let targetTime = db.schedule[adminSelectedDate][idx];
-    if(confirm("確定要刪除這個時段嗎？")) {
-      db.schedule[adminSelectedDate].splice(idx, 1);
-      db.orders = (db.orders || []).filter(o => !(o.date === adminSelectedDate && o.time === targetTime));
-      saveData(); renderAdminTimeSlots(); renderAdminOrders(); updateUnreadBadge();
-    }
-  }
-
+  // --- 預約管理渲染 ---
   function renderAdminOrders() {
     let html = "";
     let ordersList = db.orders || [];
@@ -1364,7 +1371,11 @@
         let isUnread = !o.isRead;
         let cardBg = isUnread ? "#FFF8F2" : "#FFFFFF";
         let cardBorder = isUnread ? "2px solid #E28670" : "1px solid var(--border-color)";
-        html += `<div style="border:${cardBorder}; padding:12px; border-radius:12px; margin-bottom:10px; font-size:13px; line-height:1.5; background:${cardBg}; position:relative;">
+
+        let isBl = (db.blacklist || []).includes(o.phone);
+        let blWarning = isBl ? `<div style="color:#D9534F; font-weight:bold; background:#FDECEA; padding:4px; border-radius:4px; margin-top:4px;">⚠️ 警告：${escapeHtml(o.name)} 為黑名單，系統已阻擋預約功能</div>` : '';
+
+        html += `<div style="border:${cardBorder}; padding:12px; border-radius:12px; margin-bottom:10px; font-size:13px; line-height:1.5; background:${cardBg};">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
             <span style="font-weight:bold; font-size:14px; color:var(--primary-color);">${o.date} ${o.time} ${isUnread?'<span style="color:#D9534F; font-size:11px;">[新預約!]</span>':''}</span>
             <label style="font-size:12px; cursor:pointer; color:var(--primary-color); font-weight:bold; display:flex; align-items:center; gap:4px; background:#EFE8DF; padding:3px 8px; border-radius:6px;">
@@ -1373,12 +1384,12 @@
           </div>
           <div><strong>姓名：</strong>${escapeHtml(o.name)} (${o.phone})</div>
           <div><strong>預約項目：</strong>${escapeHtml(o.servicesSummary)}</div>
-          ${o.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(o.eyebrowBase)}</div>` : ''}
-          ${o.removalDetails ? `<div style="color:#666;"><strong>除色評估：</strong>${escapeHtml(o.removalDetails)}</div>` : ''}
-          <div><strong>預估時間：</strong>約 ${o.totalTime || 60} 分鐘</div>
-          <div><strong>交通：</strong>${escapeHtml(o.transport) || '無'}</div>
           <div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
-          <div style="font-size:11px; color:var(--text-sub); margin-top:4px;">預約建立時間：${o.createdAt}</div>
+          ${blWarning}
+          <div style="display:flex; gap:6px; margin-top:8px;">
+            <button type="button" class="${o.status==='success'?'btn-submit':'btn-secondary'}" style="padding:4px 8px; font-size:11px;" onclick="updateOrderStatus(${o.id}, 'success')">✅ 成功服務</button>
+            <button type="button" class="${o.status==='noshow'?'btn-danger':'btn-secondary'}" style="padding:4px 8px; font-size:11px;" onclick="updateOrderStatus(${o.id}, 'noshow')">❌ 如期未到</button>
+          </div>
         </div>`;
       });
     }
@@ -1392,54 +1403,143 @@
     renderAdminOrders();
   }
 
-  function renderAdminCustomers() {
-    let query = document.getElementById('customerSearchInput').value.trim().toLowerCase();
-    let customerMap = {};
-    (db.orders || []).forEach(o => {
-      let key = o.name.trim();
-      if(!customerMap[key]) customerMap[key] = { name: key, phone: o.phone, visits: [] };
-      customerMap[key].visits.push(o);
-    });
-    let html = "", keys = Object.keys(customerMap);
-    if(keys.length === 0) html = "<div style='color:var(--text-sub); font-size:13px;'>尚無顧客預約紀錄</div>";
-    else {
-      keys.forEach(name => {
-        let cust = customerMap[name];
-        if(query && !name.toLowerCase().includes(query) && !cust.phone.includes(query)) return;
-        let totalSpent = cust.visits.reduce((sum, v) => sum + Number(v.totalPrice || 0), 0);
-        let isExpanded = (expandedCustomerName === name);
-        let visitsHtml = "";
-        if(isExpanded) {
-          cust.visits.forEach(v => {
-            visitsHtml += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-top:8px; font-size:12px; line-height:1.5;">
-              <div style="font-weight:bold; color:var(--primary-color);">${v.date} ${v.time}</div>
-              <div><strong>預約項目：</strong>${escapeHtml(v.servicesSummary)}</div>
-              ${v.eyebrowBase ? `<div><strong>眉毛底色：</strong>${escapeHtml(v.eyebrowBase)}</div>` : ''}
-              ${v.removalDetails ? `<div><strong>除色評估：</strong>${escapeHtml(v.removalDetails)}</div>` : ''}
-              <div><strong>交通：</strong>${escapeHtml(v.transport) || '無'}</div>
-              <div style="color:#D9534F; font-weight:bold; margin-top:2px;">該次消費總金額：NT$ ${v.totalPrice || 0} (定金 $${v.deposit})</div></div>`;
-          });
-        }
-        html += `<div style="border:1px solid var(--border-color); padding:12px; border-radius:12px; margin-bottom:10px; background:#fff; cursor:pointer;" onclick="toggleCustomerExpand('${escapeHtml(name)}')">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:bold; font-size:15px; color:var(--primary-color);">${escapeHtml(cust.name)} ${isExpanded ? '▲' : '▼'}</span>
-            <span style="font-size:12px; color:var(--text-sub);">來店 ${cust.visits.length} 次 | 總消費 NT$ ${totalSpent}</span></div>
-          <div style="font-size:12px; color:var(--text-sub); margin-top:2px;">電話：${cust.phone}</div>${visitsHtml}</div>`;
+  // --- 其他後台管理模組 (分類、時段、記帳、設定) ---
+  function renderAdminCategories() {
+    let categories = db.categories || [];
+    let html = "";
+    categories.forEach((cat, catIdx) => {
+      let itemsHtml = "";
+      (cat.items || []).forEach((item, itemIdx) => {
+        itemsHtml += `<div class="item-option" style="background:#fff; margin-bottom:6px;">
+          <div class="item-info">
+            <div class="title">${escapeHtml(item.name)}</div>
+            <div class="subtitle">${item.time||30}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div>
+          </div>
+          <div style="display:flex; gap:3px; align-items:center;">
+            <button type="button" class="btn-secondary" style="padding:3px 5px;" onclick="openServiceModal('${cat.id}', 'edit', ${itemIdx})">編輯</button>
+            <button type="button" class="btn-danger" style="padding:3px 5px;" onclick="deleteServiceItem('${cat.id}', ${itemIdx})">刪除</button>
+          </div>
+        </div>`;
       });
-    }
-    document.getElementById('adminCustomersList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>找不到符合的顧客</div>";
+      html += `<div style="border:1px solid var(--border-color); background:var(--input-bg); padding:12px; border-radius:12px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <strong style="color:var(--primary-color); font-size:15px;">📁 ${escapeHtml(cat.name)}</strong>
+          <button type="button" class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openServiceModal('${cat.id}', 'add')">+項目</button>
+        </div>
+        ${itemsHtml || "<div style='color:var(--text-sub); font-size:12px;'>此分類尚無項目</div>"}
+      </div>`;
+    });
+    document.getElementById('adminCategoriesList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無分類</div>";
   }
 
-  function toggleCustomerExpand(name) { expandedCustomerName = expandedCustomerName === name ? null : name; renderAdminCustomers(); }
+  let currentCatMode = 'add', currentCatIdx = -1;
+  function openCategoryModal(mode, idx = -1) {
+    currentCatMode = mode; currentCatIdx = idx;
+    document.getElementById('editCatName').value = (mode === 'edit' && idx >= 0) ? db.categories[idx].name : "";
+    document.getElementById('categoryModal').classList.add('active');
+  }
+  function closeCategoryModal() { document.getElementById('categoryModal').classList.remove('active'); }
+  function saveCategoryItem() {
+    let name = document.getElementById('editCatName').value.trim();
+    if(!name) { alert("請輸入分類名稱！"); return; }
+    if(!db.categories) db.categories = [];
+    if(currentCatMode === 'add') db.categories.push({ id: 'cat_' + Date.now(), name, allowMultiple: false, items: [] });
+    else db.categories[currentCatIdx].name = name;
+    saveData(); closeCategoryModal(); renderAdminCategories(); renderClient();
+  }
+
+  let currentItemCatId = '', currentItemMode = 'add', currentItemIdx = -1;
+  function openServiceModal(catId, mode, idx = -1) {
+    currentItemCatId = catId; currentItemMode = mode; currentItemIdx = idx;
+    if(mode === 'edit') {
+      let cat = db.categories.find(c => c.id === catId);
+      let item = cat.items[idx];
+      document.getElementById('editItemName').value = item.name || "";
+      document.getElementById('editItemDesc').value = item.desc || "";
+      document.getElementById('editItemTime').value = item.time || 30;
+      document.getElementById('editItemPrice').value = item.price || 0;
+      document.getElementById('editItemDeposit').value = item.deposit || 0;
+    } else {
+      document.getElementById('editItemName').value = "";
+      document.getElementById('editItemDesc').value = "";
+      document.getElementById('editItemTime').value = 60;
+      document.getElementById('editItemPrice').value = 1000;
+      document.getElementById('editItemDeposit').value = 500;
+    }
+    document.getElementById('serviceModal').classList.add('active');
+  }
+  function closeServiceModal() { document.getElementById('serviceModal').classList.remove('active'); }
+  function saveServiceItem() {
+    let name = document.getElementById('editItemName').value.trim();
+    let desc = document.getElementById('editItemDesc').value.trim();
+    let time = Number(document.getElementById('editItemTime').value);
+    let price = Number(document.getElementById('editItemPrice').value);
+    let deposit = Number(document.getElementById('editItemDeposit').value);
+
+    if(!name) { alert("請輸入項目名稱！"); return; }
+    let cat = db.categories.find(c => c.id === currentItemCatId);
+    if(!cat.items) cat.items = [];
+
+    let newItem = { id: currentItemMode === 'edit' ? cat.items[currentItemIdx].id : 'item_' + Date.now(), name, desc, time, price, deposit };
+    if(currentItemMode === 'edit') cat.items[currentItemIdx] = newItem;
+    else cat.items.push(newItem);
+
+    saveData(); closeServiceModal(); renderAdminCategories(); renderClient();
+  }
+  function deleteServiceItem(catId, idx) {
+    if(confirm("確定要刪除此項目嗎？")) {
+      let cat = db.categories.find(c => c.id === catId);
+      cat.items.splice(idx, 1);
+      saveData(); renderAdminCategories(); renderClient();
+    }
+  }
+
+  let adminSelectedDate = "";
+  function changeAdminMonth(dir) {
+    adminMonth += dir;
+    if(adminMonth > 11) { adminMonth = 0; adminYear++; }
+    if(adminMonth < 0) { adminMonth = 11; adminYear--; }
+    renderCalendar(adminYear, adminMonth, 'admin');
+  }
+  function selectAdminDate(dateKey) {
+    adminSelectedDate = dateKey;
+    renderCalendar(adminYear, adminMonth, 'admin');
+    document.getElementById('adminDateScheduleArea').style.display = 'block';
+    document.getElementById('adminSelectedDateTitle').innerText = `修改 ${dateKey} 開放時段：`;
+    renderAdminTimeSlots();
+  }
+  function renderAdminTimeSlots() {
+    let slots = db.schedule[adminSelectedDate] || [], html = "";
+    if(slots.length === 0) html = "<div style='color:var(--text-sub); font-size:13px;'>當日無開放時段</div>";
+    else {
+      slots.forEach((t, idx) => {
+        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 12px; border-radius:8px; margin-bottom:6px;">
+          <span style="font-size:13px;"><b>${t}</b></span>
+          <button type="button" class="btn-danger" onclick="deleteAdminTime(${idx})">刪除</button>
+        </div>`;
+      });
+    }
+    document.getElementById('adminTimeSlotsList').innerHTML = html;
+  }
+  function addCustomTime() {
+    let val = document.getElementById('newTimeInput').value;
+    if(!val) return;
+    if(!db.schedule[adminSelectedDate]) db.schedule[adminSelectedDate] = [];
+    if(!db.schedule[adminSelectedDate].includes(val)) { db.schedule[adminSelectedDate].push(val); db.schedule[adminSelectedDate].sort(); saveData(); renderAdminTimeSlots(); }
+  }
+  function deleteAdminTime(idx) {
+    db.schedule[adminSelectedDate].splice(idx, 1);
+    saveData(); renderAdminTimeSlots();
+  }
 
   function initAccountingSelectors() {
-    let yearSelect = document.getElementById('accountingYearSelect'), monthSelect = document.getElementById('accountingMonthSelect');
-    if(!yearSelect || !monthSelect) return;
     let now = new Date(), currentY = now.getFullYear(), currentM = now.getMonth() + 1;
     let yHtml = ""; for(let y = currentY; y >= currentY - 2; y--) yHtml += `<option value="${y}">${y} 年</option>`;
-    yearSelect.innerHTML = yHtml; yearSelect.value = currentY;
+    let accY = document.getElementById('accountingYearSelect');
+    if(accY) { accY.innerHTML = yHtml; accY.value = currentY; }
     let mHtml = ""; for(let m = 1; m <= 12; m++) mHtml += `<option value="${String(m).padStart(2,'0')}">${m} 月</option>`;
-    monthSelect.innerHTML = mHtml; monthSelect.value = String(currentM).padStart(2,'0');
+    let accM = document.getElementById('accountingMonthSelect');
+    if(accM) { accM.innerHTML = mHtml; accM.value = String(currentM).padStart(2,'0'); }
   }
 
   function switchAccountingTab(tab) {
@@ -1450,14 +1550,14 @@
   }
 
   function renderAdminAccounting() {
-    let yearSelect = document.getElementById('accountingYearSelect'), monthSelect = document.getElementById('accountingMonthSelect');
-    if(!yearSelect || !monthSelect) return;
-    let selectedYM = `${yearSelect.value}-${monthSelect.value}`;
+    let y = document.getElementById('accountingYearSelect').value;
+    let m = document.getElementById('accountingMonthSelect').value;
+    let ym = `${y}-${m}`;
     let bookingIncome = 0; 
-    (db.orders || []).forEach(o => { if(o.date && o.date.startsWith(selectedYM)) { bookingIncome += Number(o.deposit || 0); } });
-    let manualIncome = 0; (db.manualIncomes || []).forEach(i => { if(i.date && i.date.startsWith(selectedYM)) manualIncome += Number(i.amount || 0); });
+    (db.orders || []).forEach(o => { if(o.date && o.date.startsWith(ym)) bookingIncome += Number(o.deposit || 0); });
+    let manualIncome = 0; (db.manualIncomes || []).forEach(i => { if(i.date && i.date.startsWith(ym)) manualIncome += Number(i.amount || 0); });
     let totalIncome = bookingIncome + manualIncome;
-    let totalExpense = 0; (db.expenses || []).forEach(e => { if(e.date && e.date.startsWith(selectedYM)) totalExpense += Number(e.amount || 0); });
+    let totalExpense = 0; (db.expenses || []).forEach(e => { if(e.date && e.date.startsWith(ym)) totalExpense += Number(e.amount || 0); });
     let netProfit = totalIncome - totalExpense;
 
     document.getElementById('accTotalIncome').innerText = `NT$ ${totalIncome}`;
@@ -1467,61 +1567,66 @@
 
     let html = "";
     if(currentAccTab === 'income') {
-      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>本月收入明細 (以定金計算)：</div>";
-      let hasInc = false;
       (db.orders || []).forEach(o => {
-        if(o.date && o.date.startsWith(selectedYM)) {
-          hasInc = true;
+        if(o.date && o.date.startsWith(ym)) {
           html += `<div style="background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:bold;">${o.date} ${o.time} - ${escapeHtml(o.name)} (預約定金)</span><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.deposit || 0}</span></div>
-            <div style="color:var(--text-sub); font-size:11px; margin-top:2px;">項目：${escapeHtml(o.servicesSummary)} (總價 NT$ ${o.totalPrice})</div></div>`;
+            <div style="display:flex; justify-content:space-between;"><span style="font-weight:bold;">${o.date} - ${escapeHtml(o.name)} (預約定金)</span><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${o.deposit || 0}</span></div>
+          </div>`;
         }
       });
-      (db.manualIncomes || []).forEach((i, idx) => {
-        if(i.date && i.date.startsWith(selectedYM)) {
-          hasInc = true;
-          html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-            <div><div style="font-weight:bold;">${escapeHtml(i.name)} (手動收入)</div><div style="color:var(--text-sub); font-size:11px;">${i.date}</div></div>
-            <div style="display:flex; align-items:center; gap:8px;"><span style="color:var(--primary-color); font-weight:bold;">+NT$ ${i.amount}</span><button type="button" class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteManualIncome(${idx})">刪除</button></div></div>`;
-        }
-      });
-      if(!hasInc) html += "<div style='color:var(--text-sub); font-size:12px;'>本月尚無收入紀錄</div>";
     } else {
-      html += "<div style='font-weight:bold; font-size:13px; margin-bottom:8px;'>本月支出明細：</div>";
-      let filteredExp = (db.expenses || []).filter(e => e.date && e.date.startsWith(selectedYM));
-      if(filteredExp.length === 0) html += "<div style='color:var(--text-sub); font-size:12px;'>本月尚無支出紀錄</div>";
-      else {
-        filteredExp.forEach((e, idx) => {
-          html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
-            <div><div style="font-weight:bold;">${escapeHtml(e.name)}</div><div style="color:var(--text-sub); font-size:11px;">${e.date}</div></div>
-            <div style="display:flex; align-items:center; gap:8px;"><span style="color:#D9534F; font-weight:bold;">-NT$ ${e.amount}</span><button type="button" class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteExpense(${idx})">刪除</button></div></div>`;
-        });
-      }
+      ((db.expenses || []).filter(e => e.date && e.date.startsWith(ym))).forEach((e, idx) => {
+        html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:8px 10px; border-radius:8px; margin-bottom:6px; font-size:12px;">
+          <div><div style="font-weight:bold;">${escapeHtml(e.name)}</div><div style="color:var(--text-sub); font-size:11px;">${e.date}</div></div>
+          <div style="display:flex; align-items:center; gap:8px;"><span style="color:#D9534F; font-weight:bold;">-NT$ ${e.amount}</span><button type="button" class="btn-danger" style="padding:3px 6px; font-size:10px;" onclick="deleteExpense(${idx})">刪除</button></div></div>`;
+      });
     }
-    document.getElementById('adminAccountingDetails').innerHTML = html;
+    document.getElementById('adminAccountingDetails').innerHTML = html || "<div style='color:var(--text-sub); font-size:12px;'>本月尚無紀錄</div>";
   }
 
   function openExpenseModal(type) {
     currentExpModalType = type;
-    document.getElementById('expenseModalTitle').innerText = type === 'income' ? "新增手動收入紀錄" : "新增支出紀錄";
-    document.getElementById('expNameLabel').innerText = (type === 'income' ? "收入項目名稱" : "支出項目名稱") + " *";
+    document.getElementById('expenseModalTitle').innerText = type === 'income' ? "新增手動收入" : "新增支出";
     document.getElementById('expName').value = ""; document.getElementById('expAmount').value = "";
     document.getElementById('expDate').value = new Date().toISOString().split('T')[0];
     document.getElementById('expenseModal').classList.add('active');
   }
-
   function closeExpenseModal() { document.getElementById('expenseModal').classList.remove('active'); }
-
   function saveExpenseItem() {
     let name = document.getElementById('expName').value.trim(), amount = Number(document.getElementById('expAmount').value), date = document.getElementById('expDate').value;
-    if(!name || !amount || !date) { alert("請完整填寫項目名稱、金額與日期！"); return; }
+    if(!name || !amount || !date) { alert("請完整填寫！"); return; }
     if(currentExpModalType === 'income') { if(!db.manualIncomes) db.manualIncomes = []; db.manualIncomes.push({ name, amount, date }); }
     else { if(!db.expenses) db.expenses = []; db.expenses.push({ name, amount, date }); }
     saveData(); closeExpenseModal(); renderAdminAccounting();
   }
+  function deleteExpense(idx) { db.expenses.splice(idx, 1); saveData(); renderAdminAccounting(); }
 
-  function deleteExpense(idx) { if(confirm("確定要刪除這筆支出紀錄嗎？")) { db.expenses.splice(idx, 1); saveData(); renderAdminAccounting(); } }
-  function deleteManualIncome(idx) { if(confirm("確定要刪除這筆手動收入紀錄嗎？")) { db.manualIncomes.splice(idx, 1); saveData(); renderAdminAccounting(); } }
+  function renderAdminNoticesEditor() {
+    let notices = db.notices || [];
+    let html = "";
+    notices.forEach((n, idx) => {
+      html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-bottom:10px;">
+        <input type="text" class="form-input" style="font-weight:bold; margin-bottom:6px;" id="noticeTitle_${idx}" value="${escapeHtml(n.title)}">
+        <textarea class="form-input" rows="3" id="noticeContent_${idx}">${(n.content||'').replace(/<br\s*\/?>/gi, '\n')}</textarea>
+      </div>`;
+    });
+    document.getElementById('adminNoticesEditorList').innerHTML = html;
+  }
+  function addNoticeSection() {
+    if(!db.notices) db.notices = [];
+    db.notices.push({ id: 'n_' + Date.now(), title: "新標題", content: "說明..." });
+    renderAdminNoticesEditor();
+  }
+  function saveAllSettings() {
+    db.settings.bankCode = document.getElementById('settingBankCode').value.trim();
+    db.settings.bankName = document.getElementById('settingBankName').value.trim();
+    db.settings.bankAcc = document.getElementById('settingBankAcc').value.trim();
+    db.settings.bankHolder = document.getElementById('settingBankHolder').value.trim();
+    db.settings.payNotice = document.getElementById('settingPayNotice').value.trim();
+    saveData();
+    alert("後台設定已儲存！");
+    renderClientNotices();
+  }
 </script>
 </body>
 </html>
