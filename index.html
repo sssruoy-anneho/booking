@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>安,你好ANNEHO</title>
   
-  <!-- LINE / 社群分享預覽小字與標題設定 (同時支援電腦與手機版 LINE 重新抓取) -->
+  <!-- LINE / 社群分享預覽小字與標題設定 -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="安,你好ANNEHO">
   <meta property="og:description" content="微針霧眉 · 新中式美睫 · 無創除色">
@@ -346,7 +346,7 @@
         <div style="background: var(--input-bg); padding: 12px; border-radius: 12px; margin-bottom: 14px; font-size: 13px;">
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>區間總預約數：</span><strong id="repTotalCount">0 筆</strong></div>
           <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>定金總收入：</span><strong style="color:var(--primary-color);" id="repTotalDeposit">NT$ 0</strong></div>
-          <div style="display:flex; justify-content:space-between;"><span>總金額合計：</span><strong style="color:#28a745;" id="repTotalAmount">NT$ 0</strong></div>
+          <div style="display:flex; justify-content:space-between;"><span>總金額合計（如期未到僅計定金）：</span><strong style="color:#28a745;" id="repTotalAmount">NT$ 0</strong></div>
         </div>
 
         <div id="adminReportsDetails"></div>
@@ -530,20 +530,19 @@
 
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
-  const LOCAL_DB_KEY = "anneho_db_v8";
+  const LOCAL_DB_KEY = "anneho_db_v9";
 
   let defaultDb = {
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "", bankHolder: "", payNotice: "" },
     notices: [],
     categories: [],
     schedule: {}, orders: [], expenses: [], manualIncomes: [],
-    customers: {}, // phone -> { name, phone, notes, noShowCount, isBlacklisted, history: [] }
-    blacklist: []  // array of phones
+    customers: {}, 
+    blacklist: []  
   };
 
   let db = JSON.parse(JSON.stringify(defaultDb));
 
-  // 鎖定用戶端文字選取與複製
   document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('contextmenu', e => e.preventDefault());
     document.addEventListener('copy', e => e.preventDefault());
@@ -898,9 +897,8 @@
   function tryOpenPayModal() {
     if(selectedServiceIds.length === 0) { alert("尚未選擇服務項目！"); return; }
 
-    // 檢查分類連動綁定規則
     let categories = db.categories || [];
-    let selectedCategoriesMap = {}; // catId -> has selected item
+    let selectedCategoriesMap = {}; 
     categories.forEach(cat => {
       let hasItemInCat = (cat.items || []).some(item => selectedServiceIds.includes(item.id));
       if(hasItemInCat) selectedCategoriesMap[cat.id] = true;
@@ -921,7 +919,6 @@
     let custName = document.getElementById('custName').value.trim();
     if(!custName || !custPhone) { alert("請填寫您的姓名與聯絡電話！"); return; }
 
-    // 黑名單阻擋檢查
     let isBlacklisted = (db.blacklist || []).includes(custPhone) || 
                         (db.customers && db.customers[custPhone] && db.customers[custPhone].isBlacklisted);
     if(isBlacklisted) {
@@ -1003,7 +1000,7 @@
       servicesSummary: serviceNames.join(', '),
       eyebrowBase: eyebrowBaseText, removalDetails: removalDetailsText,
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
-      status: 'pending', // pending, success, noshow
+      status: 'pending', 
       rating: 0, ratingText: '', 
       createdAt: new Date().toLocaleString(), isRead: false
     };
@@ -1012,10 +1009,9 @@
     db.orders.unshift(order);
     if(db.schedule[selectedDateStr]) db.schedule[selectedDateStr] = db.schedule[selectedDateStr].filter(t => t !== selectedTime);
     
-    // 自動建立或更新會員資料
     if(!db.customers) db.customers = {};
     if(!db.customers[phone]) {
-      db.customers[phone] = { name, phone, notes: "", noShowCount: 0, isBlacklisted: false, history: [] };
+      db.customers[phone] = { name, phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
     } else {
       db.customers[phone].name = name;
     }
@@ -1027,7 +1023,6 @@
     location.reload();
   }
 
-  // --- 後台管理邏輯 ---
   function renderAdmin() {
     renderAdminCategories();
     renderCalendar(adminYear, adminMonth, 'admin'); 
@@ -1073,40 +1068,127 @@
     return (sum / orders.length).toFixed(1);
   }
 
-  function updateOrderStatus(orderId, status) {
+  // 暫存編輯狀態 (直到按下確認)
+  let pendingOrderEdits = {}; // orderId -> { status, rating, ratingText }
+
+  function initReportOrderEdit(orderId) {
     let order = (db.orders || []).find(o => o.id === orderId);
     if(!order) return;
+    if(!pendingOrderEdits[orderId]) {
+      pendingOrderEdits[orderId] = {
+        status: order.status || 'pending',
+        rating: order.rating || 0,
+        ratingText: order.ratingText || ''
+      };
+    }
+  }
+
+  function setReportOrderStatus(orderId, status) {
+    initReportOrderEdit(orderId);
+    pendingOrderEdits[orderId].status = status;
+    renderAdminReports();
+  }
+
+  function setReportOrderRating(orderId, ratingVal) {
+    initReportOrderEdit(orderId);
+    pendingOrderEdits[orderId].rating = Number(ratingVal);
+    renderAdminReports();
+  }
+
+  function setReportOrderRatingText(orderId, textVal) {
+    initReportOrderEdit(orderId);
+    pendingOrderEdits[orderId].ratingText = textVal;
+  }
+
+  // 點擊確認按鈕才正式儲存
+  function confirmReportOrderEdit(orderId) {
+    let order = (db.orders || []).find(o => o.id === orderId);
+    let editData = pendingOrderEdits[orderId];
+    if(!order || !editData) return;
+
+    let oldStatus = order.status;
+    let newStatus = editData.status;
+
+    order.status = newStatus;
+    order.rating = editData.rating;
+    order.ratingText = editData.ratingText;
+
+    let phone = order.phone;
+    if(!db.customers) db.customers = {};
+    if(!db.customers[phone]) {
+      db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
+    }
+    if(!db.customers[phone].noShowDates) db.customers[phone].noShowDates = [];
+
+    // 若從非 noshow 變更為 noshow，且該預約日期不在紀錄中，才計入不同天未到次數
+    if(newStatus === 'noshow' && oldStatus !== 'noshow') {
+      if(!db.customers[phone].noShowDates.includes(order.date)) {
+        db.customers[phone].noShowDates.push(order.date);
+      }
+    } 
+    // 若從 noshow 改回其他狀態，則將該日期從未到清單移除
+    else if(newStatus !== 'noshow' && oldStatus === 'noshow') {
+      db.customers[phone].noShowDates = db.customers[phone].noShowDates.filter(d => d !== order.date);
+    }
+
+    // 檢查不同天累積是否達到 2 次
+    let distinctNoShowCount = db.customers[phone].noShowDates.length;
+    if(distinctNoShowCount >= 2 && !db.customers[phone].isBlacklisted) {
+      db.customers[phone].isBlacklisted = true;
+      if(!db.blacklist) db.blacklist = [];
+      if(!db.blacklist.includes(phone)) db.blacklist.push(phone);
+      alert(`⚠️ 系統提示：${order.name} (${phone}) 已累積 2 個不同天數的「如期未到」，系統已自動將其加入黑名單！`);
+    } else if(distinctNoShowCount < 2 && db.customers[phone].isBlacklisted) {
+      // 若調回成功服務使次數低於2，自動解除黑名單
+      db.customers[phone].isBlacklisted = false;
+      db.blacklist = (db.blacklist || []).filter(p => p !== phone);
+    }
+
+    delete pendingOrderEdits[orderId];
+    saveData();
+    renderAdminReports();
+    renderAdminOrders();
+    renderAdminCustomers();
+    renderAdminBlacklist();
+    alert("✅ 該筆資料編輯已確認儲存！");
+  }
+
+  function updateOrderStatusDirect(orderId, status) {
+    let order = (db.orders || []).find(o => o.id === orderId);
+    if(!order) return;
+    let oldStatus = order.status;
     order.status = status;
 
-    if(status === 'noshow') {
-      let phone = order.phone;
-      if(!db.customers) db.customers = {};
-      if(!db.customers[phone]) {
-        db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowCount: 0, isBlacklisted: false, history: [] };
-      }
-      db.customers[phone].noShowCount = (db.customers[phone].noShowCount || 0) + 1;
-
-      if(db.customers[phone].noShowCount >= 2 && !db.customers[phone].isBlacklisted) {
-        db.customers[phone].isBlacklisted = true;
-        if(!db.blacklist) db.blacklist = [];
-        if(!db.blacklist.includes(phone)) db.blacklist.push(phone);
-        alert(`⚠️ 系統提示：${order.name} (${phone}) 已累積 2 次「如期未到」，系統已自動將其加入黑名單！`);
-      }
+    let phone = order.phone;
+    if(!db.customers) db.customers = {};
+    if(!db.customers[phone]) {
+      db.customers[phone] = { name: order.name, phone: phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
     }
+    if(!db.customers[phone].noShowDates) db.customers[phone].noShowDates = [];
+
+    if(status === 'noshow' && oldStatus !== 'noshow') {
+      if(!db.customers[phone].noShowDates.includes(order.date)) {
+        db.customers[phone].noShowDates.push(order.date);
+      }
+    } else if(status !== 'noshow' && oldStatus === 'noshow') {
+      db.customers[phone].noShowDates = db.customers[phone].noShowDates.filter(d => d !== order.date);
+    }
+
+    let distinctNoShowCount = db.customers[phone].noShowDates.length;
+    if(distinctNoShowCount >= 2 && !db.customers[phone].isBlacklisted) {
+      db.customers[phone].isBlacklisted = true;
+      if(!db.blacklist) db.blacklist = [];
+      if(!db.blacklist.includes(phone)) db.blacklist.push(phone);
+    } else if(distinctNoShowCount < 2 && db.customers[phone].isBlacklisted) {
+      db.customers[phone].isBlacklisted = false;
+      db.blacklist = (db.blacklist || []).filter(p => p !== phone);
+    }
+
     saveData();
     renderAdminOrders();
     renderAdminCustomers();
     renderAdminBlacklist();
     renderAdminReports();
-  }
-
-  function updateOrderRating(orderId, ratingVal, textVal) {
-    let order = (db.orders || []).find(o => o.id === orderId);
-    if(!order) return;
-    order.rating = Number(ratingVal);
-    if(textVal !== undefined) order.ratingText = textVal;
-    saveData();
-    renderAdminCustomers();
   }
 
   function renderAdminCustomers() {
@@ -1116,7 +1198,7 @@
 
     (db.orders || []).forEach(o => {
       if(!custMap[o.phone]) {
-        custMap[o.phone] = { name: o.name, phone: o.phone, notes: "", noShowCount: 0, isBlacklisted: false, history: [] };
+        custMap[o.phone] = { name: o.name, phone: o.phone, notes: "", noShowDates: [], isBlacklisted: false, history: [] };
       }
     });
 
@@ -1130,6 +1212,7 @@
 
         let avgRating = calculateCustomerAverageRating(phone);
         let starDisplay = avgRating > 0 ? `⭐ ${avgRating} 顆星` : '⭐ 尚無評分';
+        let noShowCount = c.noShowDates ? c.noShowDates.length : 0;
 
         let historyHtml = "";
         let histList = c.history || [];
@@ -1157,6 +1240,7 @@
             </div>
             <span style="font-size:13px; font-weight:bold; color:#e09f3e; background:#fef9e7; padding:2px 8px; border-radius:6px;">${starDisplay}</span>
           </div>
+          <div style="font-size:11px; color:var(--text-sub); margin-bottom:6px;">不同天未到次數：${noShowCount} 次</div>
 
           <div style="margin-bottom:8px;">
             <button type="button" class="btn-submit" style="padding:4px 8px; font-size:11px;" onclick="openHistoryModal('${phone}')">+ 新增操作紀錄</button>
@@ -1249,10 +1333,11 @@
     } else {
       blacklistPhones.forEach(phone => {
         let cust = (db.customers && db.customers[phone]) ? db.customers[phone] : { name: '未知貴賓', phone, notes: '無' };
+        let noShowCount = cust.noShowDates ? cust.noShowDates.length : 2;
         html += `<div style="display:flex; justify-content:space-between; align-items:center; background:var(--input-bg); padding:10px 12px; border-radius:8px; margin-bottom:8px; border:1px solid var(--border-color);">
           <div>
             <strong style="color:#D9534F; font-size:14px;">🚫 ${escapeHtml(cust.name)} (${phone})</strong>
-            <div style="font-size:12px; color:var(--text-sub);">未到次數：${cust.noShowCount || 2} 次</div>
+            <div style="font-size:12px; color:var(--text-sub);">不同天未到次數：${noShowCount} 次</div>
           </div>
           <button type="button" class="btn-secondary" onclick="removeFromBlacklist('${phone}')">解除黑名單</button>
         </div>`;
@@ -1266,7 +1351,7 @@
       db.blacklist = (db.blacklist || []).filter(p => p !== phone);
       if(db.customers && db.customers[phone]) {
         db.customers[phone].isBlacklisted = false;
-        db.customers[phone].noShowCount = 0;
+        db.customers[phone].noShowDates = [];
       }
       saveData();
       renderAdminBlacklist();
@@ -1327,7 +1412,13 @@
 
     let totalCount = filtered.length;
     let totalDeposit = filtered.reduce((sum, o) => sum + Number(o.deposit || 0), 0);
-    let totalAmount = filtered.reduce((sum, o) => sum + Number(o.totalPrice || 0), 0);
+    
+    // 總金額計算：若為如期未到，僅計入定金；成功服務或待處理則計入總價格
+    let totalAmount = filtered.reduce((sum, o) => {
+      let st = pendingOrderEdits[o.id] ? pendingOrderEdits[o.id].status : o.status;
+      if(st === 'noshow') return sum + Number(o.deposit || 0);
+      return sum + Number(o.totalPrice || 0);
+    }, 0);
 
     document.getElementById('repTotalCount').innerText = `${totalCount} 筆`;
     document.getElementById('repTotalDeposit').innerText = `NT$ ${totalDeposit}`;
@@ -1338,13 +1429,17 @@
       html = "<div style='color:var(--text-sub); font-size:12px; text-align:center;'>此區間尚無預約營運紀錄</div>";
     } else {
       filtered.forEach(o => {
+        let editData = pendingOrderEdits[o.id];
+        let currentStatus = editData ? editData.status : (o.status || 'pending');
+        let currentRating = editData ? editData.rating : (o.rating || 0);
+        let ratingTextVal = editData ? editData.ratingText : (o.ratingText || '');
+
         let statusBadge = '';
-        if(o.status === 'success') statusBadge = '<span style="color:#28a745; font-weight:bold;">[成功服務]</span>';
-        else if(o.status === 'noshow') statusBadge = '<span style="color:#D9534F; font-weight:bold;">[如期未到]</span>';
+        if(currentStatus === 'success') statusBadge = '<span style="color:#28a745; font-weight:bold;">[成功服務]</span>';
+        else if(currentStatus === 'noshow') statusBadge = '<span style="color:#D9534F; font-weight:bold;">[如期未到]</span>';
         else statusBadge = '<span style="color:#8C7C73;">[待處理]</span>';
 
-        let currentRating = o.rating || 0;
-        let ratingTextVal = o.ratingText || '';
+        let hasPending = !!editData;
 
         html += `<div style="background:var(--input-bg); padding:10px; border-radius:8px; margin-bottom:8px; font-size:12px; line-height:1.5; border:1px solid var(--border-color);">
           <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary-color); margin-bottom:4px;">
@@ -1357,12 +1452,12 @@
           
           <div style="margin-top:8px; padding-top:8px; border-top:1px dashed var(--border-color);">
             <div style="display:flex; gap:6px; margin-bottom:6px;">
-              <button type="button" class="${o.status==='success'?'btn-submit':'btn-secondary'}" style="padding:3px 6px; font-size:10px;" onclick="updateOrderStatus(${o.id}, 'success')">✅ 成功服務</button>
-              <button type="button" class="${o.status==='noshow'?'btn-danger':'btn-secondary'}" style="padding:3px 6px; font-size:10px;" onclick="updateOrderStatus(${o.id}, 'noshow')">❌ 如期未到</button>
+              <button type="button" class="${currentStatus==='success'?'btn-submit':'btn-secondary'}" style="padding:3px 6px; font-size:10px;" onclick="setReportOrderStatus(${o.id}, 'success')">✅ 成功服務</button>
+              <button type="button" class="${currentStatus==='noshow'?'btn-danger':'btn-secondary'}" style="padding:3px 6px; font-size:10px;" onclick="setReportOrderStatus(${o.id}, 'noshow')">❌ 如期未到</button>
             </div>
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
               <span>客戶評分：</span>
-              <select class="form-input" style="width:110px; padding:4px; font-size:11px;" onchange="updateOrderRating(${o.id}, this.value)">
+              <select class="form-input" style="width:110px; padding:4px; font-size:11px;" onchange="setReportOrderRating(${o.id}, this.value)">
                 <option value="0" ${currentRating==0?'selected':''}>⭐ 選擇星級</option>
                 <option value="5" ${currentRating==5?'selected':''}>⭐⭐⭐⭐⭐ (5星)</option>
                 <option value="4" ${currentRating==4?'selected':''}>⭐⭐⭐⭐ (4星)</option>
@@ -1371,8 +1466,11 @@
                 <option value="1" ${currentRating==1?'selected':''}>⭐ (1星)</option>
               </select>
             </div>
+            <div style="margin-bottom:6px;">
+              <input type="text" class="form-input" style="padding:6px; font-size:11px;" placeholder="文字評分（可打可不打）..." value="${escapeHtml(ratingTextVal)}" oninput="setReportOrderRatingText(${o.id}, this.value)">
+            </div>
             <div>
-              <input type="text" class="form-input" style="padding:6px; font-size:11px;" placeholder="文字評分（可打可不打）..." value="${escapeHtml(ratingTextVal)}" onchange="updateOrderRating(${o.id}, ${currentRating}, this.value)">
+              <button type="button" class="btn-submit" style="width:100%; padding:6px; font-size:11px; ${hasPending?'background:#28a745;':'opacity:0.7;'}" onclick="confirmReportOrderEdit(${o.id})">💾 確認儲存此筆編輯</button>
             </div>
           </div>
         </div>`;
@@ -1406,8 +1504,8 @@
           <div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
           ${blWarning}
           <div style="display:flex; gap:6px; margin-top:8px;">
-            <button type="button" class="${o.status==='success'?'btn-submit':'btn-secondary'}" style="padding:4px 8px; font-size:11px;" onclick="updateOrderStatus(${o.id}, 'success')">✅ 成功服務</button>
-            <button type="button" class="${o.status==='noshow'?'btn-danger':'btn-secondary'}" style="padding:4px 8px; font-size:11px;" onclick="updateOrderStatus(${o.id}, 'noshow')">❌ 如期未到</button>
+            <button type="button" class="${o.status==='success'?'btn-submit':'btn-secondary'}" style="padding:4px 8px; font-size:11px;" onclick="updateOrderStatusDirect(${o.id}, 'success')">✅ 成功服務</button>
+            <button type="button" class="${o.status==='noshow'?'btn-danger':'btn-secondary'}" style="padding:4px 8px; font-size:11px;" onclick="updateOrderStatusDirect(${o.id}, 'noshow')">❌ 如期未到</button>
           </div>
         </div>`;
       });
@@ -1468,11 +1566,10 @@
     let allowMultSel = document.getElementById('editCatAllowMultiple');
     let reqMatchSelect = document.getElementById('editCatRequiredMatchId');
 
-    // 填充下拉選項
     let categories = db.categories || [];
     let optionsHtml = `<option value="">-- 無需綁定其他分類 --</option>`;
     categories.forEach(c => {
-      if(mode === 'edit' && c.id === categories[idx].id) return; // 避免自己綁自己
+      if(mode === 'edit' && c.id === categories[idx].id) return; 
       optionsHtml += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
     });
     reqMatchSelect.innerHTML = optionsHtml;
