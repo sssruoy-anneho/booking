@@ -534,7 +534,7 @@
 
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxshoOpdynUbKcwZdTG0bR7-S9seXp-XC-6jm8J7aNV54PdZZodA-AMbc3sPFGbGcYuWQ/exec";
-  const LOCAL_DB_KEY = "anneho_db_v11";
+  const LOCAL_DB_KEY = "anneho_db_v12";
 
   let defaultDb = {
     settings: { bankCode: "812", bankName: "台新銀行", bankAcc: "", bankHolder: "", payNotice: "" },
@@ -1028,6 +1028,7 @@
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
       status: 'pending', 
       rating: 0, ratingText: '', 
+      ratedAt: 0, // 初始評分時間戳記
       createdAt: new Date().toLocaleString(), isRead: false
     };
 
@@ -1136,6 +1137,11 @@
     order.status = newStatus;
     order.rating = editData.rating;
     order.ratingText = editData.ratingText;
+    
+    // 只要按了星星評分儲存，就記錄當下時間戳記，作為會員排序依據
+    if(Number(editData.rating) > 0) {
+      order.ratedAt = Date.now();
+    }
 
     let phone = order.phone;
     if(!db.customers) db.customers = {};
@@ -1216,22 +1222,15 @@
     renderAdminCustomers();
   }
 
-  // 取得會員最近一次成功預約（或操作紀錄）的日期字串用於排序
-  function getCustomerLatestDate(phone, custData) {
-    let dates = [];
-    // 收集該手機號碼所有預約的日期
-    (db.orders || []).forEach(o => {
-      if(o.phone === phone && o.date) dates.push(o.date);
+  // 取得會員最近一次被評分的時間戳記（若無評分則取 0），作為排序依據
+  function getCustomerLatestRatedTime(phone) {
+    let orders = (db.orders || []).filter(o => o.phone === phone);
+    let maxRatedAt = 0;
+    orders.forEach(o => {
+      let rTime = Number(o.ratedAt || 0);
+      if(rTime > maxRatedAt) maxRatedAt = rTime;
     });
-    // 收集該會員所有手動操作紀錄的日期
-    if(custData.history) {
-      custData.history.forEach(h => {
-        if(h.date) dates.push(h.date);
-      });
-    }
-    if(dates.length === 0) return "";
-    dates.sort();
-    return dates[dates.length - 1]; // 取最晚（最近）的日期
+    return maxRatedAt;
   }
 
   function renderAdminCustomers() {
@@ -1249,13 +1248,11 @@
     if(keys.length === 0) {
       html = "<div style='color:var(--text-sub); font-size:13px; text-align:center;'>尚無會員資料</div>";
     } else {
-      // 依照「最近一次預約/操作日期」由近到遠（日期越新越上面）排序
+      // 依照「最近一次按星星評分儲存的時間」由新到舊排序
       keys.sort((a, b) => {
-        let dateA = getCustomerLatestDate(a, custMap[a]);
-        let dateB = getCustomerLatestDate(b, custMap[b]);
-        if(dateA > dateB) return -1;
-        if(dateA < dateB) return 1;
-        return 0;
+        let timeA = getCustomerLatestRatedTime(a);
+        let timeB = getCustomerLatestRatedTime(b);
+        return timeB - timeA; // 評分時間越新越上面
       });
 
       keys.forEach(phone => {
@@ -1602,6 +1599,7 @@
       }
 
       let itemsHtml = "";
+      let totalItems = (cat.items || []).length;
       (cat.items || []).forEach((item, itemIdx) => {
         itemsHtml += `<div class="item-option" style="background:#fff; margin-bottom:6px;">
           <div class="item-info">
@@ -1609,6 +1607,8 @@
             <div class="subtitle">${item.time||30}分鐘 | NT$ ${item.price} (定金: $${item.deposit || 0})</div>
           </div>
           <div style="display:flex; gap:3px; align-items:center;">
+            ${itemIdx > 0 ? `<button type="button" class="btn-secondary" style="padding:3px 5px; font-size:10px;" onclick="moveServiceItem('${cat.id}', ${itemIdx}, -1)">⬆</button>` : ''}
+            ${itemIdx < totalItems - 1 ? `<button type="button" class="btn-secondary" style="padding:3px 5px; font-size:10px;" onclick="moveServiceItem('${cat.id}', ${itemIdx}, 1)">⬇</button>` : ''}
             <button type="button" class="btn-secondary" style="padding:3px 5px;" onclick="openServiceModal('${cat.id}', 'edit', ${itemIdx})">編輯</button>
             <button type="button" class="btn-danger" style="padding:3px 5px;" onclick="deleteServiceItem('${cat.id}', ${itemIdx})">刪除</button>
           </div>
@@ -1628,6 +1628,19 @@
       </div>`;
     });
     document.getElementById('adminCategoriesList').innerHTML = html || "<div style='color:var(--text-sub); font-size:13px;'>尚無分類</div>";
+  }
+
+  function moveServiceItem(catId, idx, direction) {
+    let cat = db.categories.find(c => c.id === catId);
+    if(!cat || !cat.items) return;
+    let targetIdx = idx + direction;
+    if(targetIdx < 0 || targetIdx >= cat.items.length) return;
+    let temp = cat.items[idx];
+    cat.items[idx] = cat.items[targetIdx];
+    cat.items[targetIdx] = temp;
+    saveData();
+    renderAdminCategories();
+    renderClient();
   }
 
   let currentCatMode = 'add', currentCatIdx = -1;
