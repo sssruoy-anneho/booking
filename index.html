@@ -563,7 +563,9 @@
       fetchCloudData(() => {
         let newOrdersCount = (db.orders || []).length;
         if(newOrdersCount > oldOrdersCount) {
-          triggerNativeAlert("🔔 安你好預約系統：有新的顧客預約成功！");
+          let latestOrder = (db.orders || [])[0];
+          let transportInfo = latestOrder && latestOrder.transport ? `｜交通：${latestOrder.transport}` : '';
+          triggerNativeAlert(`🔔 安你好預約系統：有新的顧客預約成功！${latestOrder ? latestOrder.name + transportInfo : ''}`);
         }
         if(currentView === 'admin') { renderAdminOrders(); updateUnreadBadge(); }
       });
@@ -1028,7 +1030,7 @@
       transport: selectedTransportMode, deposit: totalDeposit, totalPrice, totalTime, last5, 
       status: 'pending', 
       rating: 0, ratingText: '', 
-      ratedAt: 0, // 初始評分時間戳記
+      ratedAt: 0,
       createdAt: new Date().toLocaleString(), isRead: false
     };
 
@@ -1045,7 +1047,7 @@
 
     saveData(); 
     closePayModal();
-    triggerNativeAlert(`🔔 收到新的預約！顧客：${name} (${phone}) 於 ${selectedDateStr} ${selectedTime} 預約成功！`);
+    triggerNativeAlert(`🔔 收到新的預約！顧客：${name} (${phone}) 於 ${selectedDateStr} ${selectedTime} 預約成功｜交通方式：${selectedTransportMode}`);
     alert("感謝您的預約，期待為您服務✨🤍");
     location.reload();
   }
@@ -1138,7 +1140,6 @@
     order.rating = editData.rating;
     order.ratingText = editData.ratingText;
     
-    // 只要按了星星評分儲存，就記錄當下時間戳記，作為會員排序依據
     if(Number(editData.rating) > 0) {
       order.ratedAt = Date.now();
     }
@@ -1222,7 +1223,6 @@
     renderAdminCustomers();
   }
 
-  // 取得會員最近一次被評分的時間戳記（若無評分則取 0），作為排序依據
   function getCustomerLatestRatedTime(phone) {
     let orders = (db.orders || []).filter(o => o.phone === phone);
     let maxRatedAt = 0;
@@ -1248,11 +1248,10 @@
     if(keys.length === 0) {
       html = "<div style='color:var(--text-sub); font-size:13px; text-align:center;'>尚無會員資料</div>";
     } else {
-      // 依照「最近一次按星星評分儲存的時間」由新到舊排序
       keys.sort((a, b) => {
         let timeA = getCustomerLatestRatedTime(a);
         let timeB = getCustomerLatestRatedTime(b);
-        return timeB - timeA; // 評分時間越新越上面
+        return timeB - timeA;
       });
 
       keys.forEach(phone => {
@@ -1568,6 +1567,7 @@
             </label>
           </div>
           <div><strong>姓名：</strong>${escapeHtml(o.name)} (${o.phone})</div>
+          <div><strong>交通方式：</strong>${escapeHtml(o.transport || '未填寫')}</div>
           <div><strong>預約項目：</strong>${escapeHtml(o.servicesSummary)}</div>
           <div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
           ${blWarning}
