@@ -1579,6 +1579,7 @@
           <div><strong>交通方式：</strong>${escapeHtml(o.transport || '未填寫')}</div>
           <div><strong>預約項目：</strong>${escapeHtml(o.servicesSummary)}</div>
           <div><strong>定金：</strong>NT$ ${o.deposit} (末五碼: <span style="color:#D9534F; font-weight:bold;">${o.last5}</span>)</div>
+          <div><strong>總金額：</strong>NT$ ${o.totalPrice || 0}</div>
           ${blWarning}
           <div style="display:flex; gap:6px; margin-top:8px;">
             <button type="button" class="${o.status==='success'?'btn-submit':'btn-secondary'}" style="padding:4px 8px; font-size:11px;" onclick="updateOrderStatusDirect(${o.id}, 'success')">✅ 成功服務</button>
